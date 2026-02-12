@@ -141,7 +141,6 @@ export default function App() {
   const [selectedConfession, setSelectedConfession] = useState(
     () => JSON.parse(localStorage.getItem("dssc_selected")) || null,
   );
-
   const [feed, setFeed] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -157,7 +156,6 @@ export default function App() {
     localStorage.setItem("dssc_selected", JSON.stringify(selectedConfession));
   }, [view, formData, selectedConfession]);
 
-  // --- API CALLS ---
   const fetchFeed = useCallback(async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/confessions`);
@@ -229,14 +227,19 @@ export default function App() {
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
       {/* NAVBAR */}
       {view !== "details" && (
-        <nav className="fixed top-0 w-full bg-white border-b-2 border-black z-40 h-20 px-6">
+        <nav className="fixed top-0 w-full bg-white border-b-2 border-black z-50 h-20 px-6">
           <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
             <div
-              onClick={() => setView("home")}
+              onClick={() => {
+                setView("home");
+                setIsMenuOpen(false);
+              }}
               className="font-script font-bold cursor-pointer text-3xl"
             >
               dssconfessions
             </div>
+
+            {/* Desktop Menu */}
             <div className="hidden md:flex gap-8 items-center">
               {["home", "browse", "submit", "about"].map((v) => (
                 <button
@@ -248,13 +251,35 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            {/* Mobile Burger Toggle */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden"
+              className="md:hidden p-2 hover:bg-zinc-100 rounded-lg"
             >
               <MenuIcon />
             </button>
           </div>
+
+          {/* Mobile Menu Overlay */}
+          {isMenuOpen && (
+            <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b-2 border-black animate-fade-in shadow-xl z-50">
+              <div className="flex flex-col p-6 gap-4">
+                {["home", "browse", "submit", "about"].map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => {
+                      setView(v);
+                      setIsMenuOpen(false);
+                    }}
+                    className={`text-left font-bold uppercase tracking-widest py-3 border-b border-zinc-100 last:border-0 ${view === v ? "text-black" : "text-zinc-400"}`}
+                  >
+                    {v === "submit" ? "Confess" : v}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </nav>
       )}
 
