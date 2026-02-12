@@ -9,6 +9,10 @@ require("dotenv").config();
 
 const app = express();
 
+// --- RENDER/PRODUCTION FIX ---
+// Essential for express-rate-limit to work behind Render's reverse proxy
+app.set("trust proxy", 1);
+
 // --- PRODUCTION CORS CONFIGURATION ---
 const allowedOrigins = [
   "http://localhost:5173",
@@ -25,6 +29,7 @@ app.use(
       if (allowedOrigins.indexOf(origin) !== -1 || isAllowedVercel || isLocal) {
         callback(null, true);
       } else {
+        console.error(`CORS Blocked for origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -36,6 +41,7 @@ app.use(
 app.use(helmet());
 app.use(express.json({ limit: "10kb" }));
 
+// Rate Limiter: Protects your Supabase quota and ensures fair usage
 const postLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 15,
