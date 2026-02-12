@@ -3,7 +3,6 @@ import axios from "axios";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
 // --- DYNAMIC API CONFIGURATION ---
-// This uses your Vercel/Local .env variable, or defaults to localhost if missing
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -142,6 +141,7 @@ export default function App() {
   const [selectedConfession, setSelectedConfession] = useState(
     () => JSON.parse(localStorage.getItem("dssc_selected")) || null,
   );
+
   const [feed, setFeed] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -149,6 +149,7 @@ export default function App() {
   const [songs, setSongs] = useState([]);
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("dssc_view", view);
@@ -156,7 +157,7 @@ export default function App() {
     localStorage.setItem("dssc_selected", JSON.stringify(selectedConfession));
   }, [view, formData, selectedConfession]);
 
-  // --- API CALLS UPDATED FOR PRODUCTION ---
+  // --- API CALLS ---
   const fetchFeed = useCallback(async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/confessions`);
@@ -168,7 +169,7 @@ export default function App() {
 
   useEffect(() => {
     fetchFeed();
-  }, [view, fetchFeed]);
+  }, [fetchFeed]);
 
   useEffect(() => {
     if (songSearch.length < 3) return setSongs([]);
@@ -187,6 +188,7 @@ export default function App() {
 
   const executeSearch = async () => {
     if (!searchQuery.trim()) return;
+    setIsLoading(true);
     try {
       const res = await axios.get(
         `${API_BASE_URL}/api/confessions?to=${encodeURIComponent(searchQuery)}`,
@@ -194,6 +196,8 @@ export default function App() {
       setSearchResults(res.data);
     } catch (e) {
       console.error("Search Error", e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -209,7 +213,7 @@ export default function App() {
       setSelectedSong(null);
       setSongSearch("");
       setView("home");
-      fetchFeed(); // Refresh feed after posting
+      fetchFeed();
     } catch (e) {
       alert("Submission failed. Check connection.");
     }
@@ -225,7 +229,7 @@ export default function App() {
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
       {/* NAVBAR */}
       {view !== "details" && (
-        <nav className="fixed top-0 w-full bg-white border-b-2 border-black z-50 h-20 px-6">
+        <nav className="fixed top-0 w-full bg-white border-b-2 border-black z-40 h-20 px-6">
           <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
             <div
               onClick={() => setView("home")}
@@ -335,16 +339,28 @@ export default function App() {
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {searchResults.map((c) => (
-                  <ConfessionCard
-                    key={c.id}
-                    data={c}
-                    onClick={() => {
-                      setSelectedConfession(c);
-                      setView("details");
-                    }}
-                  />
-                ))}
+                {isLoading ? (
+                  <div className="col-span-full py-20 text-zinc-400 font-bold animate-pulse">
+                    Searching the archives...
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((c) => (
+                    <ConfessionCard
+                      key={c.id}
+                      data={c}
+                      onClick={() => {
+                        setSelectedConfession(c);
+                        setView("details");
+                      }}
+                    />
+                  ))
+                ) : (
+                  searchQuery && (
+                    <div className="col-span-full py-20 text-zinc-400 font-medium italic">
+                      No confessions found for "{searchQuery}".
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
@@ -493,8 +509,7 @@ export default function App() {
               </h1>
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
-                  // Corrected line with ${} for the variable
-                  src={`http://googleusercontent.com/spotify.com/6${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
+                  src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
@@ -506,7 +521,7 @@ export default function App() {
                 "{selectedConfession.content}"
               </p>
               <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10">
-                FROM: {selectedConfession.sender_from}
+                SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
               </p>
             </div>
           )}
