@@ -1,0 +1,36 @@
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Inter:wght@300;400;600;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-script: "Caveat", cursive;
+  --font-sans: "Inter", sans-serif;
+}
+
+/* Ensure no white gaps at the top/bottom of the page */
+html,
+body,
+#root {
+  background-color: #ffffff;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  display: flex;
+  width: max-content;
+  animation: scroll 15s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
