@@ -9,22 +9,39 @@ require("dotenv").config();
 
 const app = express();
 
-// --- SECURITY & MIDDLEWARE ---
+// --- PRODUCTION CORS CONFIGURATION ---
+// This allows both your local testing and your live Vercel site to talk to this API
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://dssconfessions.vercel.app", // Update this if your Vercel URL is different
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  }),
+);
+
 app.use(helmet());
-app.use(cors()); // Allows your React frontend to connect
 app.use(express.json({ limit: "10kb" }));
 
 // Rate Limiter: Protects your Supabase quota from spam
 const postLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // Increased to 10 for easier testing
+  max: 10,
   message: { error: "Too many confessions. Please wait 15 minutes." },
 });
 
 // Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE,
+  process.env.SUPABASE_SERVICE_ROLE, // Ensure this is the SECRET key in Render
 );
 
 // --- SPOTIFY ACCESS LOGIC ---
@@ -48,11 +65,9 @@ const getSpotifyToken = async () => {
 
 // --- API ROUTES ---
 
-// 1. Post Confession (Matches your SQL schema)
 app.post("/api/confess", postLimiter, async (req, res) => {
   const { to, from, content, song } = req.body;
 
-  // XSS Filtering
   const cleanTo = xss.inHTMLData(to).substring(0, 50);
   const cleanFrom = xss.inHTMLData(from || "Anonymous").substring(0, 50);
   const cleanContent = xss.inHTMLData(content).substring(0, 500);
@@ -73,7 +88,6 @@ app.post("/api/confess", postLimiter, async (req, res) => {
   res.status(200).json("Success");
 });
 
-// 2. Search Spotify Songs
 app.get("/api/search-song", async (req, res) => {
   try {
     const token = await getSpotifyToken();
@@ -88,7 +102,6 @@ app.get("/api/search-song", async (req, res) => {
   }
 });
 
-// 3. Get Confessions (Fetch Feed)
 app.get("/api/confessions", async (req, res) => {
   const { data, error } = await supabase
     .from("confessions")
@@ -100,7 +113,8 @@ app.get("/api/confessions", async (req, res) => {
   res.json(data);
 });
 
+// Render provides the PORT dynamically; default to 5000 for local testing
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Backend live on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
