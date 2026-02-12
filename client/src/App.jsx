@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
+// --- DYNAMIC API CONFIGURATION ---
+// This uses your Vercel/Local .env variable, or defaults to localhost if missing
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 // --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
   if (!id) return { bg: "from-zinc-100" };
@@ -47,7 +52,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// --- UI COMPONENTS: Icons & Step Cards ---
+// --- UI ICONS ---
 const WriteIcon = () => (
   <svg
     width="24"
@@ -123,7 +128,6 @@ const StepCard = ({ number, title, description, icon }) => (
 );
 
 export default function App() {
-  // --- STATE & PERSISTENCE ---
   const [view, setView] = useState(
     () => localStorage.getItem("dssc_view") || "home",
   );
@@ -138,7 +142,6 @@ export default function App() {
   const [selectedConfession, setSelectedConfession] = useState(
     () => JSON.parse(localStorage.getItem("dssc_selected")) || null,
   );
-
   const [feed, setFeed] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -153,12 +156,13 @@ export default function App() {
     localStorage.setItem("dssc_selected", JSON.stringify(selectedConfession));
   }, [view, formData, selectedConfession]);
 
+  // --- API CALLS UPDATED FOR PRODUCTION ---
   const fetchFeed = useCallback(async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/confessions`);
+      const res = await axios.get(`${API_BASE_URL}/api/confessions`);
       setFeed(res.data);
     } catch (e) {
-      console.error("Feed Fetch Error");
+      console.error("Feed Fetch Error", e);
     }
   }, []);
 
@@ -166,17 +170,16 @@ export default function App() {
     fetchFeed();
   }, [view, fetchFeed]);
 
-  // Spotify Search Debounce
   useEffect(() => {
     if (songSearch.length < 3) return setSongs([]);
     const timer = setTimeout(async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/search-song?q=${songSearch}`,
+          `${API_BASE_URL}/api/search-song?q=${encodeURIComponent(songSearch)}`,
         );
         setSongs(res.data);
       } catch (e) {
-        console.error("Spotify Search Error");
+        console.error("Spotify Search Error", e);
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -186,11 +189,11 @@ export default function App() {
     if (!searchQuery.trim()) return;
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/confessions?to=${searchQuery}`,
+        `${API_BASE_URL}/api/confessions?to=${encodeURIComponent(searchQuery)}`,
       );
       setSearchResults(res.data);
     } catch (e) {
-      console.error("Search Error");
+      console.error("Search Error", e);
     }
   };
 
@@ -198,7 +201,7 @@ export default function App() {
     if (!formData.to || !formData.content)
       return alert("Fill required fields!");
     try {
-      await axios.post("http://localhost:5000/api/confess", {
+      await axios.post(`${API_BASE_URL}/api/confess`, {
         ...formData,
         song: selectedSong,
       });
@@ -206,8 +209,9 @@ export default function App() {
       setSelectedSong(null);
       setSongSearch("");
       setView("home");
+      fetchFeed(); // Refresh feed after posting
     } catch (e) {
-      alert("Submission failed. Check backend.");
+      alert("Submission failed. Check connection.");
     }
   };
 
@@ -252,7 +256,6 @@ export default function App() {
 
       <main className={view === "details" ? "" : "pt-32 pb-20"}>
         <ErrorBoundary key={view}>
-          {/* HOME VIEW: Steps & Feed */}
           {view === "home" && (
             <div className="animate-fade-in text-center px-4">
               <h1 className="text-6xl md:text-9xl font-script mb-4">
@@ -261,7 +264,6 @@ export default function App() {
               <p className="text-zinc-400 mb-20 font-medium">
                 Untold words, sent through the song.
               </p>
-
               <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-6 mb-24">
                 <StepCard
                   number="1"
@@ -282,7 +284,6 @@ export default function App() {
                   icon={<ListenIcon />}
                 />
               </div>
-
               <div className="border-t-2 border-black bg-zinc-50 py-16 overflow-hidden">
                 <div className="mb-8 flex items-center justify-center gap-2">
                   <span className="relative flex h-3 w-3">
@@ -315,7 +316,6 @@ export default function App() {
             </div>
           )}
 
-          {/* BROWSE VIEW */}
           {view === "browse" && (
             <div className="max-w-6xl mx-auto px-6 text-center">
               <h2 className="text-5xl font-script mb-10 font-bold">Browse</h2>
@@ -349,7 +349,6 @@ export default function App() {
             </div>
           )}
 
-          {/* SUBMIT VIEW */}
           {view === "submit" && (
             <div className="max-w-7xl mx-auto px-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -437,7 +436,6 @@ export default function App() {
             </div>
           )}
 
-          {/* ABOUT VIEW: RE-ADDED */}
           {view === "about" && (
             <div className="max-w-3xl mx-auto px-6 animate-fade-in space-y-12 pb-20">
               <h2 className="text-6xl font-script text-center mb-12 font-bold">
@@ -464,8 +462,7 @@ export default function App() {
                   <span className="text-black font-bold underline">
                     SendTheSong
                   </span>{" "}
-                  platform, allowing untouchable words to be sent through
-                  Spotify embeds.
+                  platform.
                 </p>
               </section>
               <section className="bg-white border-2 border-black p-8 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -474,14 +471,12 @@ export default function App() {
                 </h3>
                 <p className="text-zinc-600 font-medium leading-relaxed">
                   I believe in true anonymity. No personal data is tracked or
-                  sold. Your identity remains private, and your words are for
-                  the community to hear.
+                  sold.
                 </p>
               </section>
             </div>
           )}
 
-          {/* DETAILS VIEW */}
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative">
               <div
@@ -510,7 +505,7 @@ export default function App() {
                 "{selectedConfession.content}"
               </p>
               <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10">
-                SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
+                FROM: {selectedConfession.sender_from}
               </p>
             </div>
           )}
