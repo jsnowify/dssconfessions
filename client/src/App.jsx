@@ -79,7 +79,7 @@ const SearchIcon = () => (
     strokeLinejoin="round"
   >
     <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    <line x1="21" x1="21" x2="16.65" y2="16.65"></line>
   </svg>
 );
 const ListenIcon = () => (
@@ -357,7 +357,8 @@ export default function App() {
                   Search
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* SEARCH RESULTS GRID: justify-items-center added for centering on mobile */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {isLoading ? (
                   <div className="col-span-full py-20 text-zinc-400 font-bold animate-pulse">
                     Searching the archives...
@@ -451,7 +452,6 @@ export default function App() {
                     Post Confession
                   </button>
                 </div>
-                {/* RESPONSIVE LIVE PREVIEW: Better scaling for mobile */}
                 <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0 overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-8">
                     Live Preview
@@ -531,7 +531,7 @@ export default function App() {
               </h1>
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
-                  src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
+                  src={`https://open.spotify.com/track/2vdBo4ALPYbHRUPKgtE5iC${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
