@@ -238,8 +238,6 @@ export default function App() {
             >
               dssconfessions
             </div>
-
-            {/* Desktop Menu */}
             <div className="hidden md:flex gap-8 items-center">
               {["home", "browse", "submit", "about"].map((v) => (
                 <button
@@ -251,17 +249,13 @@ export default function App() {
                 </button>
               ))}
             </div>
-
-            {/* Mobile Burger Toggle */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 hover:bg-zinc-100 rounded-lg"
+              className="md:hidden p-2 hover:bg-zinc-100 rounded-lg transition-colors"
             >
               <MenuIcon />
             </button>
           </div>
-
-          {/* Mobile Menu Overlay */}
           {isMenuOpen && (
             <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b-2 border-black animate-fade-in shadow-xl z-50">
               <div className="flex flex-col p-6 gap-4">
@@ -457,7 +451,8 @@ export default function App() {
                     Post Confession
                   </button>
                 </div>
-                <div className="hidden lg:flex flex-col items-center p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300">
+                {/* LIVE PREVIEW: Now visible on all screen sizes */}
+                <div className="flex flex-col items-center p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-8">
                     Live Preview
                   </span>
@@ -529,12 +524,12 @@ export default function App() {
               >
                 ← Back
               </button>
-              <h1 className="text-5xl md:text-7xl font-script mb-10 z-10">
+              <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
                 Hello, {selectedConfession.recipient_to}
               </h1>
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
-                  src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
+                  src={`https://open.spotify.com/track/2vdBo4ALPYbHRUPKgtE5iC${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
@@ -542,10 +537,10 @@ export default function App() {
                   loading="lazy"
                 />
               </div>
-              <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl">
+              <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance">
                 "{selectedConfession.content}"
               </p>
-              <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10">
+              <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 mb-10 text-center">
                 SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
               </p>
             </div>
