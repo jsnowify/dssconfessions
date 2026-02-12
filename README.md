@@ -1,5 +1,3 @@
-cat << 'EOF' > README.md
-
 # 📝 dssconfessions
 
 **Untold words, sent through the song.**
@@ -52,19 +50,19 @@ To run this project locally, create a `.env` file:
 
 ### Backend (.env)
 
-\`\`\`env
+```env
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE=your_service_role_key
 SPOTIFY_CLIENT_ID=your_id
 SPOTIFY_CLIENT_SECRET=your_secret
 PORT=5000
-\`\`\`
+```
 
 ### Frontend (.env)
 
-\`\`\`env
+```env
 VITE_API_BASE_URL=http://localhost:5000
-\`\`\`
+```
 
 ---
 
