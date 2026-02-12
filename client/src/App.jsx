@@ -451,22 +451,24 @@ export default function App() {
                     Post Confession
                   </button>
                 </div>
-                {/* LIVE PREVIEW: Now visible on all screen sizes */}
-                <div className="flex flex-col items-center p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0">
+                {/* RESPONSIVE LIVE PREVIEW: Better scaling for mobile */}
+                <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0 overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-8">
                     Live Preview
                   </span>
-                  <ConfessionCard
-                    isPreview={true}
-                    data={{
-                      recipient_to: formData.to,
-                      sender_from: formData.from,
-                      content: formData.content,
-                      song_name: selectedSong?.name,
-                      album_art: selectedSong?.album?.images[0]?.url,
-                      artist_name: selectedSong?.artists[0]?.name,
-                    }}
-                  />
+                  <div className="w-full scale-90 sm:scale-100 flex justify-center">
+                    <ConfessionCard
+                      isPreview={true}
+                      data={{
+                        recipient_to: formData.to,
+                        sender_from: formData.from,
+                        content: formData.content,
+                        song_name: selectedSong?.name,
+                        album_art: selectedSong?.album?.images[0]?.url,
+                        artist_name: selectedSong?.artists[0]?.name,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -529,7 +531,7 @@ export default function App() {
               </h1>
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
-                  src={`https://open.spotify.com/track/2vdBo4ALPYbHRUPKgtE5iC${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
+                  src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
