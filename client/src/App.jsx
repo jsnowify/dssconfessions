@@ -493,7 +493,8 @@ export default function App() {
               </h1>
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
-                  src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
+                  // Corrected line with ${} for the variable
+                  src={`http://googleusercontent.com/spotify.com/6${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
