@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
-// --- DYNAMIC API CONFIGURATION ---
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-// --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
   if (!id) return { bg: "from-zinc-100" };
   const vibes = [
@@ -22,7 +20,6 @@ const getVibe = (id) => {
   return { bg: vibes[index] };
 };
 
-// --- SECURITY: Error Boundary ---
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -51,7 +48,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// --- UI ICONS ---
 const WriteIcon = () => (
   <svg
     width="24"
@@ -158,7 +154,6 @@ export default function App() {
     localStorage.setItem("dssc_selected", JSON.stringify(selectedConfession));
   }, [view, formData, selectedConfession]);
 
-  // --- API CALLS ---
   const fetchFeed = useCallback(async () => {
     setIsFeedLoading(true);
     try {
@@ -206,8 +201,12 @@ export default function App() {
   };
 
   const handleSubmit = async () => {
+    // --- UPDATED VALIDATION ---
     if (!formData.to || !formData.content)
-      return alert("Fill required fields!");
+      return alert("Please fill in the recipient and message!");
+    if (!selectedSong)
+      return alert("Please select a song! Every confession needs a vibe. 🎶");
+
     try {
       await axios.post(`${API_BASE_URL}/api/confess`, {
         ...formData,
@@ -448,9 +447,16 @@ export default function App() {
                   <div className="relative">
                     <input
                       className="w-full border-2 border-black p-4 rounded-xl font-bold"
-                      placeholder="Spotify Search..."
+                      placeholder={
+                        selectedSong
+                          ? `Selected: ${selectedSong.name}`
+                          : "Search for a song (Required)..."
+                      }
                       value={songSearch}
-                      onChange={(e) => setSongSearch(e.target.value)}
+                      onChange={(e) => {
+                        setSongSearch(e.target.value);
+                        setSelectedSong(null);
+                      }}
                     />
                     {songs.length > 0 && !selectedSong && (
                       <div className="absolute bottom-full left-0 w-full bg-white border-2 border-black rounded-xl mb-2 max-h-48 overflow-y-auto z-20 shadow-xl">
@@ -468,7 +474,7 @@ export default function App() {
                               src={s.album.images[0].url}
                               className="w-10 h-10 rounded"
                             />{" "}
-                            {s.name}
+                            {s.name} - {s.artists[0].name}
                           </div>
                         ))}
                       </div>
@@ -505,7 +511,7 @@ export default function App() {
           )}
 
           {view === "about" && (
-            <div className="max-w-3xl mx-auto px-6 animate-fade-in space-y-12 pb-20 text-center md:text-left">
+            <div className="max-w-3xl mx-auto px-6 animate-fade-in space-y-12 pb-20">
               <h2 className="text-6xl font-script text-center mb-12 font-bold">
                 About
               </h2>
@@ -513,9 +519,12 @@ export default function App() {
                 <h3 className="text-2xl font-bold uppercase mb-4 tracking-tighter">
                   The Creator
                 </h3>
-                <p className="text-zinc-600 font-medium leading-relaxed italic">
-                  Hi, I'm **Snowi Wu**, a 4th-year BSIT student specializing in
-                  full-stack architecture and interactive user experiences.
+                <p className="text-zinc-600 font-medium leading-relaxed">
+                  Hi, I'm{" "}
+                  <span className="text-black font-bold italic">Snowi Wu</span>,
+                  a 4th-year BSIT student. I built this project to practice
+                  software engineering skills, focusing on high-performance data
+                  retrieval and secure cloud architecture using Supabase.
                 </p>
               </section>
               <section className="bg-zinc-50 border-2 border-black p-8 rounded-2xl">
@@ -523,8 +532,21 @@ export default function App() {
                   Inspiration
                 </h3>
                 <p className="text-zinc-600 font-medium leading-relaxed">
-                  Inspired by SendTheSong, customized for the DSSC student
-                  community.
+                  This website is inspired by the emotional experience of the{" "}
+                  <span className="text-black font-bold underline">
+                    SendTheSong
+                  </span>{" "}
+                  platform, localized for the DSSC community.
+                </p>
+              </section>
+              <section className="bg-white border-2 border-black p-8 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <h3 className="text-2xl font-bold uppercase mb-4 text-rose-600 tracking-tighter">
+                  Privacy Guarantee
+                </h3>
+                <p className="text-zinc-600 font-medium leading-relaxed">
+                  I believe in true anonymity. No personal data is tracked,
+                  stored, or sold. Confessions are purely text and Spotify
+                  metadata.
                 </p>
               </section>
             </div>
@@ -544,7 +566,6 @@ export default function App() {
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
                 Hello, {selectedConfession.recipient_to}
               </h1>
-
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
                   src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
@@ -555,7 +576,6 @@ export default function App() {
                   loading="lazy"
                 />
               </div>
-
               <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
                 "{selectedConfession.content}"
               </p>
