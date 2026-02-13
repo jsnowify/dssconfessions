@@ -216,21 +216,24 @@ export default function App() {
   const handleDownloadImage = async () => {
     if (!shareRef.current) return;
     try {
+      // NOTE: useCORS is required for Spotify images, but might fail if Spotify blocks it.
+      // If this fails, we will catch the error and alert the user, or try a fallback.
       const canvas = await html2canvas(shareRef.current, {
-        scale: 3, // High Res
-        useCORS: true, // Critical for Spotify Images
-        allowTaint: true,
+        scale: 2, // Slightly reduced scale for better compatibility
+        useCORS: true,
+        allowTaint: false, // Taint must be false if we want to read the canvas
         backgroundColor: null,
+        logging: true,
       });
       const link = document.createElement("a");
-      link.download = `dssc-confession-${selectedConfession.id}.png`;
+      link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
+      console.error("Image Generation Error:", err);
       alert(
-        "Could not generate image. Browser security blocked the Spotify image.",
+        "Could not generate image due to Spotify security settings. Try screenshotting instead!",
       );
-      console.error(err);
     }
   };
 
@@ -572,7 +575,8 @@ export default function App() {
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
               {/* === THE GHOST CARD (INVISIBLE, FOR EXPORT ONLY) === */}
-              <div className="absolute top-0 left-[-9999px] flex justify-center items-center">
+              {/* NOTE: We position it off-screen but visible to the DOM for html2canvas to capture it. */}
+              <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
                 <div
                   ref={shareRef}
                   className={`relative p-12 w-[600px] h-[900px] border-[6px] border-black rounded-[40px] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white flex flex-col items-center text-center justify-between`}
@@ -585,6 +589,7 @@ export default function App() {
                       Hello, {selectedConfession.recipient_to}
                     </h1>
                     <div className="w-[400px] h-[400px] bg-black rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl">
+                      {/* IMPORTANT: crossOrigin="anonymous" allows html2canvas to read the image data */}
                       <img
                         src={selectedConfession.album_art}
                         className="w-full h-full object-cover"
