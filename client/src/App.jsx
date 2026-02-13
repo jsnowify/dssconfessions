@@ -233,12 +233,12 @@ export default function App() {
   const handleDownloadImage = async () => {
     if (!shareRef.current) return;
 
-    // Attempt standard generation first. If it fails, switch to fallback and retry.
+    // Attempt 1: Standard generation (Try to get the album art)
     try {
       const canvas = await html2canvas(shareRef.current, {
         scale: 2,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: false, // Must be false to export
         backgroundColor: null,
         logging: false,
       });
@@ -248,25 +248,28 @@ export default function App() {
       link.click();
     } catch (err) {
       console.warn("CORS blocked image. Switching to fallback UI.");
-      setUseFallbackImage(true); // Trigger re-render with fallback
-      // Small delay to allow re-render before capturing again
+      setUseFallbackImage(true); // Switch UI to Generic Icon
+
+      // Wait for React to re-render the DOM with the Icon instead of the Image
       setTimeout(async () => {
         try {
+          // Attempt 2: Fallback generation (No external image, just SVG)
           const canvasFallback = await html2canvas(shareRef.current, {
             scale: 2,
             useCORS: true,
-            allowTaint: true,
+            allowTaint: false, // CRITICAL FIX: Must be false!
             backgroundColor: null,
           });
           const link = document.createElement("a");
           link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
           link.href = canvasFallback.toDataURL("image/png");
           link.click();
-          setUseFallbackImage(false); // Reset
+          setUseFallbackImage(false); // Reset state after success
         } catch (e) {
-          alert("Even fallback failed. Browser is very strict!");
+          console.error(e);
+          alert("Export failed. Your browser is blocking script execution.");
         }
-      }, 500);
+      }, 100); // 100ms delay is usually enough for a DOM update
     }
   };
 
