@@ -23,7 +23,6 @@ const getVibe = (id) => {
     { bg: "from-violet-100", hex: "#ede9fe" },
     { bg: "from-teal-100", hex: "#ccfbf1" },
   ];
-  // Extract ID reliably from Spotify URL
   const trackId = id?.split("/track/")[1]?.split("?")[0] || id;
   const index =
     trackId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
@@ -88,7 +87,7 @@ const SearchIcon = () => (
     strokeLinejoin="round"
   >
     <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" x1="21" x2="16.65" y2="16.65"></line>
+    <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
   </svg>
 );
 const ListenIcon = () => (
@@ -160,7 +159,7 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const shareRef = useRef(null); // Ref for capturing the image
+  const shareRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("dssc_view", view);
@@ -216,15 +215,23 @@ export default function App() {
 
   const handleDownloadImage = async () => {
     if (!shareRef.current) return;
-    const canvas = await html2canvas(shareRef.current, {
-      scale: 3, // High resolution for stories
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-    const link = document.createElement("a");
-    link.download = `confession-${selectedConfession.recipient_to || "dssc"}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    try {
+      const canvas = await html2canvas(shareRef.current, {
+        scale: 3, // High Res
+        useCORS: true, // Critical for Spotify Images
+        allowTaint: true,
+        backgroundColor: null,
+      });
+      const link = document.createElement("a");
+      link.download = `dssc-confession-${selectedConfession.id}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      alert(
+        "Could not generate image. Browser security blocked the Spotify image.",
+      );
+      console.error(err);
+    }
   };
 
   const handleSubmit = async () => {
@@ -501,7 +508,7 @@ export default function App() {
                     Post Confession
                   </button>
                 </div>
-                <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 overflow-hidden">
+                <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0 overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-8">
                     Live Preview
                   </span>
@@ -564,12 +571,43 @@ export default function App() {
 
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
+              {/* === THE GHOST CARD (INVISIBLE, FOR EXPORT ONLY) === */}
+              <div className="absolute top-0 left-[-9999px] flex justify-center items-center">
+                <div
+                  ref={shareRef}
+                  className={`relative p-12 w-[600px] h-[900px] border-[6px] border-black rounded-[40px] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white flex flex-col items-center text-center justify-between`}
+                >
+                  <div>
+                    <div className="text-xl font-black uppercase tracking-widest opacity-30 mb-8">
+                      dssconfessions.vercel.app
+                    </div>
+                    <h1 className="text-6xl font-script mb-8">
+                      Hello, {selectedConfession.recipient_to}
+                    </h1>
+                    <div className="w-[400px] h-[400px] bg-black rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl">
+                      <img
+                        src={selectedConfession.album_art}
+                        className="w-full h-full object-cover"
+                        alt="album"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                    <p className="text-4xl font-script italic leading-tight px-4 text-balance">
+                      "{selectedConfession.content}"
+                    </p>
+                  </div>
+                  <div className="bg-black text-white px-8 py-3 rounded-full font-mono text-xl font-bold uppercase tracking-widest">
+                    From: {selectedConfession.sender_from}
+                  </div>
+                </div>
+              </div>
+
+              {/* === THE REAL VISIBLE UI (CLEAN LAYOUT) === */}
               <div
                 className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
               />
 
-              {/* BUTTONS ROW */}
-              <div className="flex gap-3 z-10 mb-8">
+              <div className="w-full max-w-4xl flex justify-between items-center mb-8 z-10">
                 <button
                   onClick={() => setView("browse")}
                   className="px-6 py-2 bg-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
@@ -580,50 +618,31 @@ export default function App() {
                   onClick={handleDownloadImage}
                   className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2"
                 >
-                  📸 Save for IG/MyDSSC
+                  📸 Save for IG
                 </button>
               </div>
 
-              {/* CAPTURE WRAPPER: This is what gets turned into an image */}
-              <div className="w-full flex justify-center mb-10">
-                <div
-                  ref={shareRef}
-                  className={`relative p-8 md:p-12 w-full max-w-[400px] border-4 border-black rounded-3xl bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-center`}
-                >
-                  <div className="absolute top-4 right-6 text-[8px] font-black uppercase tracking-tighter opacity-20">
-                    dssconfessions.vercel.app
-                  </div>
-                  <h1 className="text-4xl md:text-5xl font-script mb-8">
-                    Hello, {selectedConfession.recipient_to}
-                  </h1>
-                  <div className="aspect-square w-full bg-black rounded-2xl mb-8 overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <img
-                      src={selectedConfession.album_art}
-                      className="w-full h-full object-cover"
-                      alt="album"
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                  <p className="text-2xl md:text-3xl font-script italic leading-tight mb-8 px-2 text-balance">
-                    "{selectedConfession.content}"
-                  </p>
-                  <p className="text-[10px] font-mono font-black uppercase tracking-widest bg-black text-white inline-block px-4 py-1 rounded-full">
-                    FROM: {selectedConfession.sender_from}
-                  </p>
-                </div>
-              </div>
+              <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
+                Hello, {selectedConfession.recipient_to}
+              </h1>
 
-              {/* THE REAL INTERACTIVE SPOTIFY PLAYER (Not captured in image) */}
-              <div className="w-full max-w-[450px] z-10 mb-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black">
+              <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
                   src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
-                  allow="autoplay; encrypted-media;"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
                 />
               </div>
+
+              <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
+                "{selectedConfession.content}"
+              </p>
+              <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 text-center">
+                SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
+              </p>
             </div>
           )}
         </ErrorBoundary>
