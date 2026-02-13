@@ -42,14 +42,13 @@ const roundRect = (ctx, x, y, w, h, r) => {
   return ctx;
 };
 
-// --- HELPER: Smart Text Sizer (The "UI Designer" Logic) ---
+// --- HELPER: Smart Text Sizer ---
 const drawSmartText = (ctx, text, x, centerY, maxWidth, maxHeight) => {
   let fontSize = 70; // Start huge
   const minFontSize = 24;
   let lines = [];
   let lineHeight = 0;
 
-  // Loop to find the perfect font size
   do {
     ctx.font = `italic ${fontSize}px Georgia, serif`;
     lineHeight = fontSize * 1.3;
@@ -70,11 +69,10 @@ const drawSmartText = (ctx, text, x, centerY, maxWidth, maxHeight) => {
     lines.push(currentLine);
 
     const totalHeight = lines.length * lineHeight;
-    if (totalHeight <= maxHeight) break; // It fits!
-    fontSize -= 2; // Shrink and try again
+    if (totalHeight <= maxHeight) break;
+    fontSize -= 2;
   } while (fontSize > minFontSize);
 
-  // Draw the lines centered
   const totalBlockHeight = lines.length * lineHeight;
   let currentY = centerY - totalBlockHeight / 2 + lineHeight / 3;
 
@@ -268,7 +266,6 @@ export default function App() {
     }
   };
 
-  // --- SMART UI PUBMAT GENERATOR ---
   const handleDownloadImage = async () => {
     if (!selectedConfession) return;
     setIsExporting(true);
@@ -276,12 +273,9 @@ export default function App() {
     try {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
-      // IG STORY DIMENSIONS (Standard 9:16)
       canvas.width = 1080;
       canvas.height = 1920;
 
-      // 1. Background
       const vibe = getVibe(selectedConfession.spotify_url);
       const vibeHexMap = {
         "from-rose-100": "#ffe4e6",
@@ -297,52 +291,43 @@ export default function App() {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // --- LAYOUT COORDINATES ---
       const centerX = canvas.width / 2;
       const cardY = 480;
       const cardSize = 500;
       const footerY = 1700;
 
-      // 2. Header (Clean, Small)
       ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
       ctx.font = "bold 24px sans-serif";
       ctx.textAlign = "center";
       ctx.letterSpacing = "0.3em";
       ctx.fillText("DSSCONFESSIONS.VERCEL.APP", centerX, 120);
 
-      // 3. "Hello, Recipient"
       ctx.fillStyle = "#000000";
       ctx.font = "bold 80px Georgia, serif";
       ctx.fillText("Hello, " + selectedConfession.recipient_to, centerX, 300);
 
-      // 4. Music Card (Clean White Box, No Outline, Soft Shadow)
       ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
       ctx.shadowBlur = 50;
       ctx.shadowOffsetY = 20;
 
       const cardX = (canvas.width - cardSize) / 2;
       ctx.fillStyle = "#ffffff";
-      roundRect(ctx, cardX, cardY, cardSize, cardSize, 60); // Rounded corners
+      roundRect(ctx, cardX, cardY, cardSize, cardSize, 60);
       ctx.fill();
 
-      // Reset Shadow for text
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
 
-      // Icon
       ctx.fillStyle = "#000000";
       ctx.font = "150px sans-serif";
       ctx.textBaseline = "middle";
       ctx.fillText("🎵", centerX, cardY + cardSize / 2 - 50);
 
-      // Song Info (Inside Card)
       ctx.font = "bold 32px sans-serif";
       const songTitle = selectedConfession.song_name || "Unknown Track";
-      // Basic shrink if title is super long
       if (ctx.measureText(songTitle).width > cardSize - 60)
         ctx.font = "bold 24px sans-serif";
-
       ctx.fillText(songTitle, centerX, cardY + cardSize - 120);
 
       ctx.fillStyle = "#666666";
@@ -353,8 +338,6 @@ export default function App() {
         cardY + cardSize - 80,
       );
 
-      // 5. Smart Confession Text
-      // Calculate available space between Card and Footer
       const textTop = cardY + cardSize + 60;
       const textBottom = footerY - 60;
       const maxTextHeight = textBottom - textTop;
@@ -363,7 +346,6 @@ export default function App() {
       const content = '"' + (selectedConfession.content || "") + '"';
       drawSmartText(ctx, content, centerX, textCenterY, 900, maxTextHeight);
 
-      // 6. Footer Badge
       const badgeWidth = 600;
       const badgeHeight = 90;
       const badgeX = (canvas.width - badgeWidth) / 2;
@@ -382,7 +364,6 @@ export default function App() {
         footerY + badgeHeight / 2 + 2,
       );
 
-      // 7. Download
       const link = document.createElement("a");
       link.download = `dssc-story-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
@@ -435,6 +416,8 @@ export default function App() {
             >
               dssconfessions
             </div>
+
+            {/* DESKTOP NAV */}
             <div className="hidden md:flex gap-8 items-center font-bold uppercase tracking-widest text-sm">
               {["home", "browse", "submit", "about"].map((v) => (
                 <button
@@ -446,10 +429,12 @@ export default function App() {
                       : "text-zinc-400 hover:text-black"
                   }
                 >
-                  {v === "submit" ? "Confess" : v === "home" ? "ABOUT" : v}
+                  {v === "submit" ? "CONFESS" : v}
                 </button>
               ))}
             </div>
+
+            {/* MOBILE HAMBURGER */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2"
@@ -457,6 +442,8 @@ export default function App() {
               <MenuIcon />
             </button>
           </div>
+
+          {/* MOBILE MENU */}
           {isMenuOpen && (
             <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b-2 border-black p-6 flex flex-col gap-4 z-50 animate-fade-in shadow-xl">
               {["home", "browse", "submit", "about"].map((v) => (
@@ -468,7 +455,7 @@ export default function App() {
                   }}
                   className={`text-left font-bold uppercase ${view === v ? "text-black" : "text-zinc-400"}`}
                 >
-                  {v === "submit" ? "Confess" : v === "home" ? "ABOUT" : v}
+                  {v === "submit" ? "CONFESS" : v}
                 </button>
               ))}
             </div>
