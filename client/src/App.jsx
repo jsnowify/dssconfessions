@@ -42,16 +42,16 @@ const roundRect = (ctx, x, y, w, h, r) => {
   return ctx;
 };
 
-// --- HELPER: Smart Text Wrapper & Sizer ---
+// --- HELPER: Smart Text Sizer ---
 const drawSmartText = (ctx, text, x, centerY, maxWidth, maxHeight) => {
-  let fontSize = 60;
+  let fontSize = 70; // Start huge
   const minFontSize = 24;
   let lines = [];
   let lineHeight = 0;
 
   do {
     ctx.font = `italic ${fontSize}px Georgia, serif`;
-    lineHeight = fontSize * 1.4;
+    lineHeight = fontSize * 1.3;
     lines = [];
     const words = text.split(" ");
     let currentLine = words[0];
@@ -171,22 +171,6 @@ const MenuIcon = () => (
     <line x1="3" y1="12" x2="21" y2="12"></line>
     <line x1="3" y1="6" x2="21" y2="6"></line>
     <line x1="3" y1="18" x2="21" y2="18"></line>
-  </svg>
-);
-const MusicIcon = () => (
-  <svg
-    width="64"
-    height="64"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M9 18V5l12-2v13"></path>
-    <circle cx="6" cy="18" r="3"></circle>
-    <circle cx="18" cy="16" r="3"></circle>
   </svg>
 );
 
@@ -411,30 +395,11 @@ export default function App() {
     }
   };
 
-  // --- AUTOMATIC MARQUEE SPLITTING LOGIC ---
-  const feedLayout = useMemo(() => {
-    // If we have 7 or more items, split into two rows
-    if (feed.length >= 7) {
-      const mid = Math.ceil(feed.length / 2);
-      const row1 = feed.slice(0, mid);
-      const row2 = feed.slice(mid);
-
-      // Duplicate items to ensure smooth infinite scroll (quadruple for safety)
-      return {
-        mode: "double",
-        row1: [...row1, ...row1, ...row1, ...row1],
-        row2: [...row2, ...row2, ...row2, ...row2],
-      };
-    } else {
-      // Standard single row behavior
-      const isScrollable = feed.length > 4;
-      return {
-        mode: "single",
-        items: isScrollable ? [...feed, ...feed] : feed,
-        isScrollable,
-      };
-    }
-  }, [feed]);
+  const isScrollable = useMemo(() => feed.length > 4, [feed]);
+  const displayFeed = useMemo(
+    () => (isScrollable ? [...feed, ...feed] : feed),
+    [feed, isScrollable],
+  );
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
@@ -464,7 +429,7 @@ export default function App() {
                       : "text-zinc-400 hover:text-black"
                   }
                 >
-                  {v === "submit" ? "CONFESS" : v.toUpperCase()}
+                  {v === "submit" ? "CONFESS" : v}
                 </button>
               ))}
             </div>
@@ -490,7 +455,7 @@ export default function App() {
                   }}
                   className={`text-left font-bold uppercase ${view === v ? "text-black" : "text-zinc-400"}`}
                 >
-                  {v === "submit" ? "CONFESS" : v.toUpperCase()}
+                  {v === "submit" ? "CONFESS" : v}
                 </button>
               ))}
             </div>
@@ -544,54 +509,19 @@ export default function App() {
                     </span>
                   </div>
                 </div>
-
                 {isFeedLoading ? (
                   <div className="flex justify-center gap-8 px-10">
                     <div className="w-[300px] h-[400px] bg-zinc-200 border-2 border-black rounded-2xl animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]"></div>
                   </div>
-                ) : feedLayout.mode === "double" ? (
-                  // DOUBLE ROW MARQUEE (7+ items)
-                  <div className="flex flex-col gap-10">
-                    {/* Row 1: Left Scroll */}
-                    <div className="animate-scroll flex w-max gap-8 hover:pause">
-                      {feedLayout.row1.map((c, i) => (
-                        <ConfessionCard
-                          key={`r1-${i}`}
-                          data={c}
-                          onClick={() => {
-                            setSelectedConfession(c);
-                            setView("details");
-                          }}
-                        />
-                      ))}
-                    </div>
-                    {/* Row 2: Right Scroll (Reverse) */}
-                    <div
-                      className="animate-scroll flex w-max gap-8 hover:pause"
-                      style={{ animationDirection: "reverse" }}
-                    >
-                      {feedLayout.row2.map((c, i) => (
-                        <ConfessionCard
-                          key={`r2-${i}`}
-                          data={c}
-                          onClick={() => {
-                            setSelectedConfession(c);
-                            setView("details");
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
                 ) : (
-                  // SINGLE ROW MARQUEE (<7 items)
                   <div
                     className={
-                      feedLayout.isScrollable
-                        ? "animate-scroll flex w-max gap-8"
+                      isScrollable
+                        ? "animate-scroll flex w-max"
                         : "flex justify-center flex-wrap gap-8"
                     }
                   >
-                    {feedLayout.items.map((c, i) => (
+                    {displayFeed.map((c, i) => (
                       <ConfessionCard
                         key={i}
                         data={c}
