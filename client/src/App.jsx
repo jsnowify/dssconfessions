@@ -9,11 +9,9 @@ import axios from "axios";
 import html2canvas from "html2canvas";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
-// --- DYNAMIC API CONFIGURATION ---
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-// --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
   if (!id) return { bg: "from-zinc-100", hex: "#f4f4f5" };
   const vibes = [
@@ -30,7 +28,6 @@ const getVibe = (id) => {
   return vibes[index];
 };
 
-// --- SECURITY: Error Boundary ---
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -59,7 +56,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// --- UI ICONS ---
 const WriteIcon = () => (
   <svg
     width="24"
@@ -174,7 +170,6 @@ export default function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [useFallbackImage, setUseFallbackImage] = useState(false);
 
   const shareRef = useRef(null);
 
@@ -245,26 +240,8 @@ export default function App() {
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.warn("Standard capture failed. Switching to fallback.");
-      setUseFallbackImage(true);
-      // Re-try capture after state update
-      setTimeout(async () => {
-        try {
-          const canvas = await html2canvas(shareRef.current, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: null,
-          });
-          const link = document.createElement("a");
-          link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-          setUseFallbackImage(false); // Reset
-        } catch (e) {
-          alert("Export failed due to strict browser security.");
-        }
-      }, 100);
+      console.error(err);
+      alert("Image generation failed. Please try a screenshot.");
     }
   };
 
@@ -605,7 +582,7 @@ export default function App() {
 
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
-              {/* === THE GHOST CARD (OFF-SCREEN EXPORT) === */}
+              {/* === THE GHOST CARD (INVISIBLE, FOR EXPORT ONLY) === */}
               <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
                 <div
                   ref={shareRef}
@@ -619,27 +596,15 @@ export default function App() {
                       Hello, {selectedConfession.recipient_to}
                     </h1>
 
+                    {/* HARDCODED SAFE FALLBACK: MUSIC ICON ONLY */}
                     <div className="w-[400px] h-[400px] bg-white rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl flex flex-col items-center justify-center p-6 text-black">
-                      {/* LOGIC: Try Image, if fails (or fallback active), show SAFE Icon */}
-                      {useFallbackImage ? (
-                        <div className="flex flex-col items-center animate-fade-in">
-                          <MusicIcon />
-                          <div className="mt-6 text-3xl font-bold line-clamp-2 px-4 leading-tight">
-                            {selectedConfession.song_name}
-                          </div>
-                          <div className="text-xl font-medium text-zinc-500 mt-2">
-                            {selectedConfession.artist_name}
-                          </div>
-                        </div>
-                      ) : (
-                        <img
-                          src={selectedConfession.album_art}
-                          className="w-full h-full object-cover"
-                          alt="album"
-                          crossOrigin="anonymous"
-                          onError={() => setUseFallbackImage(true)}
-                        />
-                      )}
+                      <MusicIcon />
+                      <div className="mt-6 text-3xl font-bold line-clamp-2 px-4 leading-tight">
+                        {selectedConfession.song_name}
+                      </div>
+                      <div className="text-xl font-medium text-zinc-500 mt-2">
+                        {selectedConfession.artist_name}
+                      </div>
                     </div>
 
                     <p className="text-4xl font-script italic leading-tight px-4 text-balance">
@@ -652,7 +617,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* === REAL UI === */}
+              {/* === REAL UI (SHOWS REAL IMAGE) === */}
               <div
                 className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
               />
