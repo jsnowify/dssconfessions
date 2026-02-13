@@ -11,6 +11,7 @@ import { ConfessionCard } from "./components/ui/ConfessionCard";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
+// --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
   if (!id) return { bg: "from-zinc-100", hex: "#f4f4f5" };
   const vibes = [
@@ -25,6 +26,43 @@ const getVibe = (id) => {
     trackId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
     vibes.length;
   return vibes[index];
+};
+
+// --- HELPER: Canvas Text Wrapping ---
+const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
+  const words = text.split(" ");
+  let line = "";
+  let yPos = y;
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+    const testWidth = metrics.width;
+
+    if (testWidth > maxWidth && n > 0) {
+      ctx.fillText(line, x, yPos);
+      line = words[n] + " ";
+      yPos += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, yPos);
+  return yPos;
+};
+
+// --- HELPER: Canvas Rounded Rect ---
+const roundRect = (ctx, x, y, w, h, r) => {
+  if (w < 2 * r) r = w / 2;
+  if (h < 2 * r) r = h / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  return ctx;
 };
 
 class ErrorBoundary extends React.Component {
@@ -207,44 +245,18 @@ export default function App() {
     }
   };
 
-  // Helper function to wrap text
-  const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
-    const words = text.split(" ");
-    let line = "";
-    let yPos = y;
-
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + " ";
-      const metrics = ctx.measureText(testLine);
-      const testWidth = metrics.width;
-
-      if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, yPos);
-        line = words[n] + " ";
-        yPos += lineHeight;
-      } else {
-        line = testLine;
-      }
-    }
-    ctx.fillText(line, x, yPos);
-    return yPos;
-  };
-
+  // --- MANUAL CANVAS EXPORT (NO SPOTIFY IMAGES) ---
   const handleDownloadImage = async () => {
     if (!selectedConfession) return;
-
     setIsExporting(true);
 
     try {
-      // Create canvas
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
-      // Set canvas size
       canvas.width = 600;
       canvas.height = 900;
 
-      // Get vibe colors
+      // 1. Background
       const vibe = getVibe(selectedConfession.spotify_url);
       const vibeHexMap = {
         "from-rose-100": "#ffe4e6",
@@ -254,134 +266,78 @@ export default function App() {
         "from-teal-100": "#ccfbf1",
         "from-zinc-100": "#f4f4f5",
       };
-
-      // Create gradient background
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       gradient.addColorStop(0, vibeHexMap[vibe.bg] || "#f4f4f5");
       gradient.addColorStop(1, "#ffffff");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw border
+      // 2. Main Border
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.roundRect(3, 3, canvas.width - 6, canvas.height - 6, 40);
+      roundRect(ctx, 3, 3, canvas.width - 6, canvas.height - 6, 40);
       ctx.stroke();
 
-      // Draw header text (dssconfessions.vercel.app)
+      // 3. Header Text
       ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
       ctx.font = "bold 14px sans-serif";
       ctx.textAlign = "center";
-      ctx.letterSpacing = "0.1em";
       ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, 50);
 
-      // Draw "Hello, [recipient]"
+      // 4. "Hello, Name"
       ctx.fillStyle = "#000000";
       ctx.font = "bold 48px Georgia, serif";
-      ctx.textAlign = "center";
       ctx.fillText(
         "Hello, " + selectedConfession.recipient_to,
         canvas.width / 2,
         120,
       );
 
-      // Draw album art box
+      // 5. Album Box (Placeholder Only)
       const albumBoxX = 100;
       const albumBoxY = 160;
       const albumBoxSize = 400;
 
-      // White background for album
       ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.roundRect(albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
+      roundRect(ctx, albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
       ctx.fill();
 
-      // Border for album
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.roundRect(albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
+      roundRect(ctx, albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
       ctx.stroke();
 
-      // Try to load and draw album art
-      if (selectedConfession.album_art) {
-        try {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
+      // DRAW ICON (Safe Fallback)
+      ctx.fillStyle = "#000000";
+      ctx.font = "100px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🎵", canvas.width / 2, albumBoxY + albumBoxSize / 2 - 40);
 
-          await new Promise((resolve, reject) => {
-            img.onload = () => {
-              // Clip to rounded rectangle
-              ctx.save();
-              ctx.beginPath();
-              ctx.roundRect(
-                albumBoxX + 6,
-                albumBoxY + 6,
-                albumBoxSize - 12,
-                albumBoxSize - 12,
-                24,
-              );
-              ctx.clip();
-              ctx.drawImage(
-                img,
-                albumBoxX + 6,
-                albumBoxY + 6,
-                albumBoxSize - 12,
-                albumBoxSize - 12,
-              );
-              ctx.restore();
-              resolve();
-            };
-            img.onerror = () => reject(new Error("Image load failed"));
+      // DRAW SONG INFO TEXT
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 24px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      const songY = albumBoxY + albumBoxSize / 2 + 40;
+      wrapText(
+        ctx,
+        selectedConfession.song_name || "Unknown Track",
+        canvas.width / 2,
+        songY,
+        albumBoxSize - 40,
+        30,
+      );
 
-            // Use proxy or direct URL
-            img.src = selectedConfession.album_art;
-          });
-        } catch (error) {
-          console.log("Album art failed, using fallback icon");
-          // Draw music icon fallback
-          ctx.fillStyle = "#000000";
-          ctx.font = "100px sans-serif";
-          ctx.textAlign = "center";
-          ctx.fillText("🎵", canvas.width / 2, albumBoxY + 200);
-        }
-      } else {
-        // Draw music icon fallback
-        ctx.fillStyle = "#000000";
-        ctx.font = "100px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("🎵", canvas.width / 2, albumBoxY + 200);
-      }
+      ctx.fillStyle = "#666666";
+      ctx.font = "18px sans-serif";
+      ctx.fillText(
+        selectedConfession.artist_name || "Unknown Artist",
+        canvas.width / 2,
+        songY + 60,
+      );
 
-      // Draw song name below album (if no album art loaded)
-      if (
-        !selectedConfession.album_art ||
-        selectedConfession.album_art.includes("error")
-      ) {
-        ctx.fillStyle = "#000000";
-        ctx.font = "bold 24px sans-serif";
-        ctx.textAlign = "center";
-        const songY = albumBoxY + albumBoxSize / 2 + 60;
-        wrapText(
-          ctx,
-          selectedConfession.song_name || "",
-          canvas.width / 2,
-          songY,
-          albumBoxSize - 40,
-          30,
-        );
-
-        ctx.fillStyle = "#666666";
-        ctx.font = "18px sans-serif";
-        ctx.fillText(
-          selectedConfession.artist_name || "",
-          canvas.width / 2,
-          songY + 70,
-        );
-      }
-
-      // Draw confession text
+      // 6. Confession Text
       ctx.fillStyle = "#000000";
       ctx.font = "italic 32px Georgia, serif";
       ctx.textAlign = "center";
@@ -389,23 +345,18 @@ export default function App() {
       const quotedText = '"' + (selectedConfession.content || "") + '"';
       wrapText(ctx, quotedText, canvas.width / 2, confessionY, 500, 45);
 
-      // Draw "From" badge at bottom
+      // 7. "From" Badge
       const badgeY = canvas.height - 80;
       const badgeWidth = 300;
       const badgeHeight = 50;
       const badgeX = (canvas.width - badgeWidth) / 2;
 
-      // Black background
       ctx.fillStyle = "#000000";
-      ctx.beginPath();
-      ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 25);
+      roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 25);
       ctx.fill();
 
-      // White text
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 16px monospace";
-      ctx.textAlign = "center";
-      ctx.letterSpacing = "0.15em";
       ctx.fillText(
         "FROM: " +
           (selectedConfession.sender_from || "ANONYMOUS").toUpperCase(),
@@ -413,14 +364,14 @@ export default function App() {
         badgeY + 32,
       );
 
-      // Download
+      // 8. Download
       const link = document.createElement("a");
       link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.error("Canvas export error:", err);
-      alert("Export failed. Please try taking a screenshot instead.");
+      console.error("Export Error:", err);
+      alert("Failed to create image. Please screenshot instead.");
     } finally {
       setIsExporting(false);
     }
@@ -686,7 +637,6 @@ export default function App() {
                             <img
                               src={s.album.images[0].url}
                               className="w-10 h-10 rounded"
-                              alt="Album"
                             />{" "}
                             {s.name} - {s.artists[0].name}
                           </div>
@@ -779,7 +729,7 @@ export default function App() {
                   disabled={isExporting}
                   className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isExporting ? "⏳ Generating..." : "📸 Save for IG"}
+                  {isExporting ? "⏳ Saving..." : "📸 Save for IG"}
                 </button>
               </div>
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
