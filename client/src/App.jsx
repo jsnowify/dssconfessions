@@ -119,6 +119,22 @@ const MenuIcon = () => (
     <line x1="3" y1="18" x2="21" y2="18"></line>
   </svg>
 );
+const MusicIcon = () => (
+  <svg
+    width="64"
+    height="64"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 18V5l12-2v13"></path>
+    <circle cx="6" cy="18" r="3"></circle>
+    <circle cx="18" cy="16" r="3"></circle>
+  </svg>
+);
 
 const StepCard = ({ number, title, description, icon }) => (
   <div className="bg-white border-2 border-black p-8 rounded-xl flex flex-col items-center text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-full transition-transform hover:-translate-y-1">
@@ -158,7 +174,7 @@ export default function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [proxyImage, setProxyImage] = useState(null); // State for the "cleaned" image
+  const [useFallbackImage, setUseFallbackImage] = useState(false); // New State for Fallback
 
   const shareRef = useRef(null);
 
@@ -214,40 +230,43 @@ export default function App() {
     }
   };
 
-  // --- IMAGE GENERATION FIX ---
   const handleDownloadImage = async () => {
     if (!shareRef.current) return;
 
-    // 1. Pre-load the image through a CORS-friendly proxy (or base64 conversion)
-    // We use a public CORS proxy here for demonstration. In production, your backend should proxy this.
-    // Hack: Append a random query param to bust cache
-    const safeImageUrl = selectedConfession.album_art;
-
-    // We set the state to trigger a re-render with the "safe" image if needed,
-    // but html2canvas has a 'useCORS' option that usually works if the server allows it.
-    // Since Spotify denies it, we try to force it.
-
+    // Attempt standard generation first. If it fails, switch to fallback and retry.
     try {
       const canvas = await html2canvas(shareRef.current, {
         scale: 2,
         useCORS: true,
-        allowTaint: true, // Try allowing taint
+        allowTaint: false,
         backgroundColor: null,
         logging: false,
-        // Force the image to load
-        imageTimeout: 0,
       });
-
       const link = document.createElement("a");
       link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.error("CORS Error:", err);
-      // FALLBACK: If standard generation fails, alert the user.
-      alert(
-        "Spotify blocked the image export. Please take a manual screenshot!",
-      );
+      console.warn("CORS blocked image. Switching to fallback UI.");
+      setUseFallbackImage(true); // Trigger re-render with fallback
+      // Small delay to allow re-render before capturing again
+      setTimeout(async () => {
+        try {
+          const canvasFallback = await html2canvas(shareRef.current, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+          });
+          const link = document.createElement("a");
+          link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
+          link.href = canvasFallback.toDataURL("image/png");
+          link.click();
+          setUseFallbackImage(false); // Reset
+        } catch (e) {
+          alert("Even fallback failed. Browser is very strict!");
+        }
+      }, 500);
     }
   };
 
@@ -588,7 +607,7 @@ export default function App() {
 
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
-              {/* === THE GHOST CARD (INVISIBLE, FOR EXPORT ONLY) === */}
+              {/* === THE GHOST CARD (INVISIBLE) === */}
               <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
                 <div
                   ref={shareRef}
@@ -601,14 +620,26 @@ export default function App() {
                     <h1 className="text-6xl font-script mb-8">
                       Hello, {selectedConfession.recipient_to}
                     </h1>
-                    <div className="w-[400px] h-[400px] bg-black rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl">
-                      {/* PROXY FIX: We use the 'crossOrigin' attribute. If this fails, the only frontend fix is a proxy. */}
-                      <img
-                        src={selectedConfession.album_art}
-                        className="w-full h-full object-cover"
-                        alt="album"
-                        crossOrigin="anonymous"
-                      />
+                    <div className="w-[400px] h-[400px] bg-white rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl flex flex-col items-center justify-center p-6 text-black">
+                      {useFallbackImage ? (
+                        <>
+                          <MusicIcon />
+                          <div className="mt-6 text-2xl font-bold line-clamp-2">
+                            {selectedConfession.song_name}
+                          </div>
+                          <div className="text-xl font-medium text-zinc-500 mt-2">
+                            {selectedConfession.artist_name}
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={selectedConfession.album_art}
+                          className="w-full h-full object-cover"
+                          alt="album"
+                          crossOrigin="anonymous"
+                          onError={() => setUseFallbackImage(true)} // If load fails, trigger fallback
+                        />
+                      )}
                     </div>
                     <p className="text-4xl font-script italic leading-tight px-4 text-balance">
                       "{selectedConfession.content}"
@@ -624,7 +655,6 @@ export default function App() {
               <div
                 className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
               />
-
               <div className="w-full max-w-4xl flex justify-between items-center mb-8 z-10">
                 <button
                   onClick={() => setView("browse")}
@@ -639,11 +669,9 @@ export default function App() {
                   📸 Save for IG
                 </button>
               </div>
-
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
                 Hello, {selectedConfession.recipient_to}
               </h1>
-
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
                   src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
@@ -654,7 +682,6 @@ export default function App() {
                   loading="lazy"
                 />
               </div>
-
               <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
                 "{selectedConfession.content}"
               </p>
