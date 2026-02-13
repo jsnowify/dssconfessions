@@ -9,9 +9,11 @@ import axios from "axios";
 import html2canvas from "html2canvas";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
+// --- DYNAMIC API CONFIGURATION ---
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
+// --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
   if (!id) return { bg: "from-zinc-100", hex: "#f4f4f5" };
   const vibes = [
@@ -28,6 +30,7 @@ const getVibe = (id) => {
   return vibes[index];
 };
 
+// --- SECURITY: Error Boundary ---
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -56,6 +59,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// --- UI ICONS ---
 const WriteIcon = () => (
   <svg
     width="24"
@@ -170,8 +174,6 @@ export default function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [albumArtBase64, setAlbumArtBase64] = useState(null);
-  const [isExporting, setIsExporting] = useState(false);
 
   const shareRef = useRef(null);
 
@@ -180,31 +182,6 @@ export default function App() {
     localStorage.setItem("dssc_form", JSON.stringify(formData));
     localStorage.setItem("dssc_selected", JSON.stringify(selectedConfession));
   }, [view, formData, selectedConfession]);
-
-  // Convert album art to base64 when confession is selected
-  useEffect(() => {
-    if (!selectedConfession?.album_art) {
-      setAlbumArtBase64(null);
-      return;
-    }
-
-    const convertImageToBase64 = async () => {
-      try {
-        const response = await fetch(selectedConfession.album_art);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setAlbumArtBase64(reader.result);
-        };
-        reader.readAsDataURL(blob);
-      } catch (error) {
-        console.error("Failed to convert image to base64:", error);
-        setAlbumArtBase64(null);
-      }
-    };
-
-    convertImageToBase64();
-  }, [selectedConfession?.album_art]);
 
   const fetchFeed = useCallback(async () => {
     setIsFeedLoading(true);
@@ -252,43 +229,26 @@ export default function App() {
     }
   };
 
+  // --- FIXED: NUCLEAR OPTION (No Image Loading) ---
   const handleDownloadImage = async () => {
     if (!shareRef.current) return;
 
-    setIsExporting(true);
-
+    // We use a small timeout to ensure the DOM is ready, though usually not needed for static refs
     try {
-      // Wait a bit for the DOM to be ready
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
       const canvas = await html2canvas(shareRef.current, {
         scale: 2,
         useCORS: true,
-        allowTaint: true, // Changed to true to allow cross-origin images
+        allowTaint: false, // SAFE because we only use internal SVGs and text
         backgroundColor: null,
         logging: false,
-        onclone: (clonedDoc) => {
-          // Ensure the cloned element is visible
-          const clonedElement = clonedDoc.querySelector("[data-share-card]");
-          if (clonedElement) {
-            clonedElement.style.position = "relative";
-            clonedElement.style.left = "0";
-            clonedElement.style.opacity = "1";
-          }
-        },
       });
-
       const link = document.createElement("a");
       link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.error("Export error:", err);
-      alert(
-        "Image generation failed. The app will now take a different approach - please try again.",
-      );
-    } finally {
-      setIsExporting(false);
+      console.error(err);
+      alert("Browser blocked the download. Please use a screenshot.");
     }
   };
 
@@ -552,7 +512,6 @@ export default function App() {
                             <img
                               src={s.album.images[0].url}
                               className="w-10 h-10 rounded"
-                              alt="Album"
                             />{" "}
                             {s.name} - {s.artists[0].name}
                           </div>
@@ -630,14 +589,11 @@ export default function App() {
 
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
-              {/* === THE SHARE CARD (FOR EXPORT) === */}
-              <div
-                ref={shareRef}
-                data-share-card
-                className={`fixed left-0 top-0 ${isExporting ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-                style={{ zIndex: isExporting ? 9999 : -1 }}
-              >
+              {/* === THE GHOST CARD (ABSOLUTELY NO IMAGES) === */}
+              {/* This is positioned way off-screen so the user never sees it, but html2canvas can capture it safely. */}
+              <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
                 <div
+                  ref={shareRef}
                   className={`relative p-12 w-[600px] h-[900px] border-[6px] border-black rounded-[40px] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white flex flex-col items-center text-center justify-between`}
                 >
                   <div>
@@ -648,26 +604,15 @@ export default function App() {
                       Hello, {selectedConfession.recipient_to}
                     </h1>
 
-                    {/* Use base64 image if available, otherwise fallback to icon */}
+                    {/* ZERO IMAGES HERE. Only Vector Icon + Text. 100% Safe. */}
                     <div className="w-[400px] h-[400px] bg-white rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl flex flex-col items-center justify-center p-6 text-black">
-                      {albumArtBase64 ? (
-                        <img
-                          src={albumArtBase64}
-                          alt="Album Art"
-                          className="w-full h-full object-cover"
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <>
-                          <MusicIcon />
-                          <div className="mt-6 text-3xl font-bold line-clamp-2 px-4 leading-tight">
-                            {selectedConfession.song_name}
-                          </div>
-                          <div className="text-xl font-medium text-zinc-500 mt-2">
-                            {selectedConfession.artist_name}
-                          </div>
-                        </>
-                      )}
+                      <MusicIcon />
+                      <div className="mt-6 text-3xl font-bold line-clamp-2 px-4 leading-tight">
+                        {selectedConfession.song_name}
+                      </div>
+                      <div className="text-xl font-medium text-zinc-500 mt-2">
+                        {selectedConfession.artist_name}
+                      </div>
                     </div>
 
                     <p className="text-4xl font-script italic leading-tight px-4 text-balance">
@@ -680,7 +625,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* === REAL UI (SHOWS REAL SPOTIFY EMBED) === */}
+              {/* === REAL UI (VISIBLE TO USER, STILL HAS IMAGE) === */}
               <div
                 className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
               />
@@ -693,10 +638,9 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleDownloadImage}
-                  disabled={isExporting}
-                  className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2"
                 >
-                  {isExporting ? "⏳ Generating..." : "📸 Save for IG"}
+                  📸 Save for IG
                 </button>
               </div>
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
@@ -710,7 +654,6 @@ export default function App() {
                   frameBorder="0"
                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
-                  title="Spotify Player"
                 />
               </div>
               <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
