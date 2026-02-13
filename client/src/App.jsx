@@ -28,29 +28,6 @@ const getVibe = (id) => {
   return vibes[index];
 };
 
-// --- HELPER: Canvas Text Wrapping ---
-const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
-  const words = text.split(" ");
-  let line = "";
-  let yPos = y;
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
-    const testWidth = metrics.width;
-
-    if (testWidth > maxWidth && n > 0) {
-      ctx.fillText(line, x, yPos);
-      line = words[n] + " ";
-      yPos += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, x, yPos);
-  return yPos;
-};
-
 // --- HELPER: Canvas Rounded Rect ---
 const roundRect = (ctx, x, y, w, h, r) => {
   if (w < 2 * r) r = w / 2;
@@ -63,6 +40,54 @@ const roundRect = (ctx, x, y, w, h, r) => {
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
   return ctx;
+};
+
+// --- HELPER: Smart Text Wrapper & Sizer ---
+const drawSmartText = (ctx, text, x, centerY, maxWidth, maxHeight) => {
+  let fontSize = 60; // Start with big, beautiful text
+  const minFontSize = 24; // Don't go smaller than this (readability limit)
+  let lines = [];
+  let lineHeight = 0;
+
+  // Iteratively reduce font size until text fits in maxHeight
+  do {
+    ctx.font = `italic ${fontSize}px Georgia, serif`;
+    lineHeight = fontSize * 1.4;
+    lines = [];
+    const words = text.split(" ");
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const width = ctx.measureText(currentLine + " " + word).width;
+      if (width < maxWidth) {
+        currentLine += " " + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
+
+    const totalHeight = lines.length * lineHeight;
+
+    // If it fits, stop shrinking. If not, reduce font size.
+    if (totalHeight <= maxHeight) break;
+    fontSize -= 2;
+  } while (fontSize > minFontSize);
+
+  // Calculate starting Y to center the block vertically
+  const totalBlockHeight = lines.length * lineHeight;
+  let currentY = centerY - totalBlockHeight / 2 + fontSize / 2; // Center adjustment
+
+  ctx.fillStyle = "#000000";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  lines.forEach((line) => {
+    ctx.fillText(line, x, currentY);
+    currentY += lineHeight;
+  });
 };
 
 class ErrorBoundary extends React.Component {
@@ -150,6 +175,22 @@ const MenuIcon = () => (
     <line x1="3" y1="12" x2="21" y2="12"></line>
     <line x1="3" y1="6" x2="21" y2="6"></line>
     <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+);
+const MusicIcon = () => (
+  <svg
+    width="64"
+    height="64"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 18V5l12-2v13"></path>
+    <circle cx="6" cy="18" r="3"></circle>
+    <circle cx="18" cy="16" r="3"></circle>
   </svg>
 );
 
@@ -245,7 +286,7 @@ export default function App() {
     }
   };
 
-  // --- MANUAL CANVAS EXPORT (IG STORY SIZE: 1080x1920) ---
+  // --- SMART UI PUBMAT GENERATOR (Clean, No Outlines, Auto-Fit) ---
   const handleDownloadImage = async () => {
     if (!selectedConfession) return;
     setIsExporting(true);
@@ -254,11 +295,11 @@ export default function App() {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      // SET IG STORY DIMENSIONS
+      // IG STORY DIMENSIONS
       canvas.width = 1080;
       canvas.height = 1920;
 
-      // 1. Background (Vibe Gradient)
+      // 1. Background Gradient (Soft Vibes)
       const vibe = getVibe(selectedConfession.spotify_url);
       const vibeHexMap = {
         "from-rose-100": "#ffe4e6",
@@ -274,115 +315,118 @@ export default function App() {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Main Border (Thick & Modern)
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 12;
-      roundRect(ctx, 15, 15, canvas.width - 30, canvas.height - 30, 60);
-      ctx.stroke();
+      // --- LAYOUT CONSTANTS ---
+      const headerY = 120;
+      const helloY = 320;
+      const cardY = 480;
+      const cardSize = 500; // Smaller card to give text more room
+      const footerY = 1700; // Bottom Badge location
 
-      // 3. Header Text
-      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-      ctx.font = "bold 28px sans-serif";
+      // 2. Header (Subtle Watermark)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.font = "bold 24px sans-serif";
       ctx.textAlign = "center";
       ctx.letterSpacing = "0.2em";
-      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, 120);
+      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, headerY);
 
-      // 4. "Hello, Name"
+      // 3. "Hello, Recipient" (Big & Bold)
       ctx.fillStyle = "#000000";
-      ctx.font = "bold 90px Georgia, serif";
+      ctx.font = "bold 80px Georgia, serif";
       ctx.fillText(
         "Hello, " + selectedConfession.recipient_to,
         canvas.width / 2,
-        300,
+        helloY,
       );
 
-      // 5. Music Card (Centerpiece)
-      const cardWidth = 700;
-      const cardHeight = 700; // Square card looks good on stories
-      const cardX = (canvas.width - cardWidth) / 2; // Center horizontally
-      const cardY = 450; // Positioned in upper middle
+      // 4. Music Card (Clean, No Outline, Drop Shadow)
+      const cardX = (canvas.width - cardSize) / 2;
 
-      // Card Background
+      // Soft Shadow for Depth
+      ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+      ctx.shadowBlur = 40;
+      ctx.shadowOffsetY = 20;
+
       ctx.fillStyle = "#ffffff";
-      roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 50);
+      roundRect(ctx, cardX, cardY, cardSize, cardSize, 40);
       ctx.fill();
 
-      // Card Border
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 10;
-      roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 50);
-      ctx.stroke();
+      // Reset Shadow
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
 
-      // MUSIC ICON (Large & Centered in card)
+      // Icon & Info inside Card
       ctx.fillStyle = "#000000";
-      ctx.font = "200px sans-serif";
+      ctx.font = "160px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("🎵", canvas.width / 2, cardY + 250);
+      ctx.fillText("🎵", canvas.width / 2, cardY + cardSize / 2 - 40);
 
-      // SONG INFO (Inside Card, Bottom)
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 45px sans-serif";
-      ctx.textAlign = "center";
-      const songY = cardY + 500;
+      // Song Title & Artist (Inside Card, Bottom)
+      const textCenterCard = cardY + cardSize - 120;
+      ctx.font = "bold 32px sans-serif";
+      // Manually wrap song title if needed inside the card
+      const songTitle = selectedConfession.song_name || "Unknown Track";
+      if (ctx.measureText(songTitle).width > cardSize - 40) {
+        ctx.font = "bold 24px sans-serif"; // Shrink slightly if huge
+      }
+      ctx.fillText(songTitle, canvas.width / 2, textCenterCard);
 
-      // Title
-      wrapText(
-        ctx,
-        selectedConfession.song_name || "Unknown Track",
-        canvas.width / 2,
-        songY,
-        cardWidth - 60,
-        55,
-      );
-
-      // Artist
       ctx.fillStyle = "#666666";
-      ctx.font = "35px sans-serif";
+      ctx.font = "24px sans-serif";
       ctx.fillText(
         selectedConfession.artist_name || "Unknown Artist",
         canvas.width / 2,
-        songY + 80,
+        textCenterCard + 50,
       );
 
-      // 6. Confession Text (Bottom Half)
-      ctx.fillStyle = "#000000";
-      ctx.font = "italic 60px Georgia, serif";
-      ctx.textAlign = "center";
-      const confessionY = cardY + cardHeight + 150; // Spacing after card
+      // 5. Confession Text (SMART AUTO-SIZING)
+      // We calculate the available space between the Card and the Footer
+      const textSpaceTop = cardY + cardSize + 50; // 50px padding below card
+      const textSpaceBottom = footerY - 50; // 50px padding above footer
+      const availableHeight = textSpaceBottom - textSpaceTop;
+      const textCenterY = textSpaceTop + availableHeight / 2;
+
       const quotedText = '"' + (selectedConfession.content || "") + '"';
 
-      // Wrap text with generous width
-      wrapText(ctx, quotedText, canvas.width / 2, confessionY, 850, 80);
+      // Call our Smart Text Drawer
+      drawSmartText(
+        ctx,
+        quotedText,
+        canvas.width / 2, // Center X
+        textCenterY, // Center Y
+        900, // Max Width (leave margins)
+        availableHeight, // Max Height (don't overlap footer)
+      );
 
-      // 7. "From" Badge (Near Bottom)
+      // 6. Footer Badge (Clean Black Pill)
       const badgeWidth = 600;
-      const badgeHeight = 100;
+      const badgeHeight = 90;
       const badgeX = (canvas.width - badgeWidth) / 2;
-      const badgeY = canvas.height - 250;
 
       ctx.fillStyle = "#000000";
-      roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 50);
+      roundRect(ctx, badgeX, footerY, badgeWidth, badgeHeight, 45);
       ctx.fill();
 
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 32px monospace";
+      ctx.font = "bold 28px monospace";
+      ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(
         "FROM: " +
           (selectedConfession.sender_from || "ANONYMOUS").toUpperCase(),
         canvas.width / 2,
-        badgeY + badgeHeight / 2 + 2,
+        footerY + badgeHeight / 2 + 2,
       );
 
-      // 8. Download
+      // 7. Download
       const link = document.createElement("a");
       link.download = `dssc-story-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
       console.error("Export Error:", err);
-      alert("Failed to create image. Please screenshot instead.");
+      alert("Failed to create image.");
     } finally {
       setIsExporting(false);
     }
@@ -740,7 +784,7 @@ export default function App() {
                   disabled={isExporting}
                   className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isExporting ? "⏳ Saving..." : "📸 Save for IG"}
+                  {isExporting ? "⏳ Generating..." : "📸 Save for IG"}
                 </button>
               </div>
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
