@@ -6,14 +6,11 @@ import React, {
   useRef,
 } from "react";
 import axios from "axios";
-import html2canvas from "html2canvas";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
-// --- DYNAMIC API CONFIGURATION ---
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-// --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
   if (!id) return { bg: "from-zinc-100", hex: "#f4f4f5" };
   const vibes = [
@@ -30,7 +27,6 @@ const getVibe = (id) => {
   return vibes[index];
 };
 
-// --- SECURITY: Error Boundary ---
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -59,7 +55,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// --- UI ICONS ---
 const WriteIcon = () => (
   <svg
     width="24"
@@ -119,22 +114,6 @@ const MenuIcon = () => (
     <line x1="3" y1="18" x2="21" y2="18"></line>
   </svg>
 );
-const MusicIcon = () => (
-  <svg
-    width="64"
-    height="64"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M9 18V5l12-2v13"></path>
-    <circle cx="6" cy="18" r="3"></circle>
-    <circle cx="18" cy="16" r="3"></circle>
-  </svg>
-);
 
 const StepCard = ({ number, title, description, icon }) => (
   <div className="bg-white border-2 border-black p-8 rounded-xl flex flex-col items-center text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-full transition-transform hover:-translate-y-1">
@@ -174,8 +153,7 @@ export default function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const shareRef = useRef(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("dssc_view", view);
@@ -229,26 +207,222 @@ export default function App() {
     }
   };
 
-  // --- FIXED: NUCLEAR OPTION (No Image Loading) ---
-  const handleDownloadImage = async () => {
-    if (!shareRef.current) return;
+  // Helper function to wrap text
+  const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
+    const words = text.split(" ");
+    let line = "";
+    let yPos = y;
 
-    // We use a small timeout to ensure the DOM is ready, though usually not needed for static refs
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, yPos);
+        line = words[n] + " ";
+        yPos += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, yPos);
+    return yPos;
+  };
+
+  const handleDownloadImage = async () => {
+    if (!selectedConfession) return;
+
+    setIsExporting(true);
+
     try {
-      const canvas = await html2canvas(shareRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false, // SAFE because we only use internal SVGs and text
-        backgroundColor: null,
-        logging: false,
-      });
+      // Create canvas
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Set canvas size
+      canvas.width = 600;
+      canvas.height = 900;
+
+      // Get vibe colors
+      const vibe = getVibe(selectedConfession.spotify_url);
+      const vibeHexMap = {
+        "from-rose-100": "#ffe4e6",
+        "from-blue-100": "#dbeafe",
+        "from-amber-100": "#fef3c7",
+        "from-violet-100": "#ede9fe",
+        "from-teal-100": "#ccfbf1",
+        "from-zinc-100": "#f4f4f5",
+      };
+
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, vibeHexMap[vibe.bg] || "#f4f4f5");
+      gradient.addColorStop(1, "#ffffff");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw border
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.roundRect(3, 3, canvas.width - 6, canvas.height - 6, 40);
+      ctx.stroke();
+
+      // Draw header text (dssconfessions.vercel.app)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.font = "bold 14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.letterSpacing = "0.1em";
+      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, 50);
+
+      // Draw "Hello, [recipient]"
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 48px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "Hello, " + selectedConfession.recipient_to,
+        canvas.width / 2,
+        120,
+      );
+
+      // Draw album art box
+      const albumBoxX = 100;
+      const albumBoxY = 160;
+      const albumBoxSize = 400;
+
+      // White background for album
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.roundRect(albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
+      ctx.fill();
+
+      // Border for album
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.roundRect(albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
+      ctx.stroke();
+
+      // Try to load and draw album art
+      if (selectedConfession.album_art) {
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              // Clip to rounded rectangle
+              ctx.save();
+              ctx.beginPath();
+              ctx.roundRect(
+                albumBoxX + 6,
+                albumBoxY + 6,
+                albumBoxSize - 12,
+                albumBoxSize - 12,
+                24,
+              );
+              ctx.clip();
+              ctx.drawImage(
+                img,
+                albumBoxX + 6,
+                albumBoxY + 6,
+                albumBoxSize - 12,
+                albumBoxSize - 12,
+              );
+              ctx.restore();
+              resolve();
+            };
+            img.onerror = () => reject(new Error("Image load failed"));
+
+            // Use proxy or direct URL
+            img.src = selectedConfession.album_art;
+          });
+        } catch (error) {
+          console.log("Album art failed, using fallback icon");
+          // Draw music icon fallback
+          ctx.fillStyle = "#000000";
+          ctx.font = "100px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("🎵", canvas.width / 2, albumBoxY + 200);
+        }
+      } else {
+        // Draw music icon fallback
+        ctx.fillStyle = "#000000";
+        ctx.font = "100px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("🎵", canvas.width / 2, albumBoxY + 200);
+      }
+
+      // Draw song name below album (if no album art loaded)
+      if (
+        !selectedConfession.album_art ||
+        selectedConfession.album_art.includes("error")
+      ) {
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 24px sans-serif";
+        ctx.textAlign = "center";
+        const songY = albumBoxY + albumBoxSize / 2 + 60;
+        wrapText(
+          ctx,
+          selectedConfession.song_name || "",
+          canvas.width / 2,
+          songY,
+          albumBoxSize - 40,
+          30,
+        );
+
+        ctx.fillStyle = "#666666";
+        ctx.font = "18px sans-serif";
+        ctx.fillText(
+          selectedConfession.artist_name || "",
+          canvas.width / 2,
+          songY + 70,
+        );
+      }
+
+      // Draw confession text
+      ctx.fillStyle = "#000000";
+      ctx.font = "italic 32px Georgia, serif";
+      ctx.textAlign = "center";
+      const confessionY = albumBoxY + albumBoxSize + 60;
+      const quotedText = '"' + (selectedConfession.content || "") + '"';
+      wrapText(ctx, quotedText, canvas.width / 2, confessionY, 500, 45);
+
+      // Draw "From" badge at bottom
+      const badgeY = canvas.height - 80;
+      const badgeWidth = 300;
+      const badgeHeight = 50;
+      const badgeX = (canvas.width - badgeWidth) / 2;
+
+      // Black background
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 25);
+      ctx.fill();
+
+      // White text
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px monospace";
+      ctx.textAlign = "center";
+      ctx.letterSpacing = "0.15em";
+      ctx.fillText(
+        "FROM: " +
+          (selectedConfession.sender_from || "ANONYMOUS").toUpperCase(),
+        canvas.width / 2,
+        badgeY + 32,
+      );
+
+      // Download
       const link = document.createElement("a");
       link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.error(err);
-      alert("Browser blocked the download. Please use a screenshot.");
+      console.error("Canvas export error:", err);
+      alert("Export failed. Please try taking a screenshot instead.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -512,6 +686,7 @@ export default function App() {
                             <img
                               src={s.album.images[0].url}
                               className="w-10 h-10 rounded"
+                              alt="Album"
                             />{" "}
                             {s.name} - {s.artists[0].name}
                           </div>
@@ -589,43 +764,6 @@ export default function App() {
 
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
-              {/* === THE GHOST CARD (ABSOLUTELY NO IMAGES) === */}
-              {/* This is positioned way off-screen so the user never sees it, but html2canvas can capture it safely. */}
-              <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-                <div
-                  ref={shareRef}
-                  className={`relative p-12 w-[600px] h-[900px] border-[6px] border-black rounded-[40px] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white flex flex-col items-center text-center justify-between`}
-                >
-                  <div>
-                    <div className="text-xl font-black uppercase tracking-widest opacity-30 mb-8">
-                      dssconfessions.vercel.app
-                    </div>
-                    <h1 className="text-6xl font-script mb-8">
-                      Hello, {selectedConfession.recipient_to}
-                    </h1>
-
-                    {/* ZERO IMAGES HERE. Only Vector Icon + Text. 100% Safe. */}
-                    <div className="w-[400px] h-[400px] bg-white rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl flex flex-col items-center justify-center p-6 text-black">
-                      <MusicIcon />
-                      <div className="mt-6 text-3xl font-bold line-clamp-2 px-4 leading-tight">
-                        {selectedConfession.song_name}
-                      </div>
-                      <div className="text-xl font-medium text-zinc-500 mt-2">
-                        {selectedConfession.artist_name}
-                      </div>
-                    </div>
-
-                    <p className="text-4xl font-script italic leading-tight px-4 text-balance">
-                      "{selectedConfession.content}"
-                    </p>
-                  </div>
-                  <div className="bg-black text-white px-8 py-3 rounded-full font-mono text-xl font-bold uppercase tracking-widest">
-                    From: {selectedConfession.sender_from}
-                  </div>
-                </div>
-              </div>
-
-              {/* === REAL UI (VISIBLE TO USER, STILL HAS IMAGE) === */}
               <div
                 className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
               />
@@ -638,9 +776,10 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleDownloadImage}
-                  className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2"
+                  disabled={isExporting}
+                  className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  📸 Save for IG
+                  {isExporting ? "⏳ Generating..." : "📸 Save for IG"}
                 </button>
               </div>
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
@@ -654,6 +793,7 @@ export default function App() {
                   frameBorder="0"
                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
+                  title="Spotify Player"
                 />
               </div>
               <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
