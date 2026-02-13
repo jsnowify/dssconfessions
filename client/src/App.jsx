@@ -42,17 +42,17 @@ const roundRect = (ctx, x, y, w, h, r) => {
   return ctx;
 };
 
-// --- HELPER: Smart Text Wrapper & Sizer ---
+// --- HELPER: Smart Text Sizer (The "UI Designer" Logic) ---
 const drawSmartText = (ctx, text, x, centerY, maxWidth, maxHeight) => {
-  let fontSize = 60; // Start with big, beautiful text
-  const minFontSize = 24; // Don't go smaller than this (readability limit)
+  let fontSize = 70; // Start huge
+  const minFontSize = 24;
   let lines = [];
   let lineHeight = 0;
 
-  // Iteratively reduce font size until text fits in maxHeight
+  // Loop to find the perfect font size
   do {
     ctx.font = `italic ${fontSize}px Georgia, serif`;
-    lineHeight = fontSize * 1.4;
+    lineHeight = fontSize * 1.3;
     lines = [];
     const words = text.split(" ");
     let currentLine = words[0];
@@ -70,15 +70,13 @@ const drawSmartText = (ctx, text, x, centerY, maxWidth, maxHeight) => {
     lines.push(currentLine);
 
     const totalHeight = lines.length * lineHeight;
-
-    // If it fits, stop shrinking. If not, reduce font size.
-    if (totalHeight <= maxHeight) break;
-    fontSize -= 2;
+    if (totalHeight <= maxHeight) break; // It fits!
+    fontSize -= 2; // Shrink and try again
   } while (fontSize > minFontSize);
 
-  // Calculate starting Y to center the block vertically
+  // Draw the lines centered
   const totalBlockHeight = lines.length * lineHeight;
-  let currentY = centerY - totalBlockHeight / 2 + fontSize / 2; // Center adjustment
+  let currentY = centerY - totalBlockHeight / 2 + lineHeight / 3;
 
   ctx.fillStyle = "#000000";
   ctx.textAlign = "center";
@@ -177,22 +175,6 @@ const MenuIcon = () => (
     <line x1="3" y1="18" x2="21" y2="18"></line>
   </svg>
 );
-const MusicIcon = () => (
-  <svg
-    width="64"
-    height="64"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M9 18V5l12-2v13"></path>
-    <circle cx="6" cy="18" r="3"></circle>
-    <circle cx="18" cy="16" r="3"></circle>
-  </svg>
-);
 
 const StepCard = ({ number, title, description, icon }) => (
   <div className="bg-white border-2 border-black p-8 rounded-xl flex flex-col items-center text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-full transition-transform hover:-translate-y-1">
@@ -286,7 +268,7 @@ export default function App() {
     }
   };
 
-  // --- SMART UI PUBMAT GENERATOR (Clean, No Outlines, Auto-Fit) ---
+  // --- SMART UI PUBMAT GENERATOR ---
   const handleDownloadImage = async () => {
     if (!selectedConfession) return;
     setIsExporting(true);
@@ -295,11 +277,11 @@ export default function App() {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      // IG STORY DIMENSIONS
+      // IG STORY DIMENSIONS (Standard 9:16)
       canvas.width = 1080;
       canvas.height = 1920;
 
-      // 1. Background Gradient (Soft Vibes)
+      // 1. Background
       const vibe = getVibe(selectedConfession.spotify_url);
       const vibeHexMap = {
         "from-rose-100": "#ffe4e6",
@@ -315,91 +297,73 @@ export default function App() {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // --- LAYOUT CONSTANTS ---
-      const headerY = 120;
-      const helloY = 320;
+      // --- LAYOUT COORDINATES ---
+      const centerX = canvas.width / 2;
       const cardY = 480;
-      const cardSize = 500; // Smaller card to give text more room
-      const footerY = 1700; // Bottom Badge location
+      const cardSize = 500;
+      const footerY = 1700;
 
-      // 2. Header (Subtle Watermark)
-      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      // 2. Header (Clean, Small)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
       ctx.font = "bold 24px sans-serif";
       ctx.textAlign = "center";
-      ctx.letterSpacing = "0.2em";
-      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, headerY);
+      ctx.letterSpacing = "0.3em";
+      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", centerX, 120);
 
-      // 3. "Hello, Recipient" (Big & Bold)
+      // 3. "Hello, Recipient"
       ctx.fillStyle = "#000000";
       ctx.font = "bold 80px Georgia, serif";
-      ctx.fillText(
-        "Hello, " + selectedConfession.recipient_to,
-        canvas.width / 2,
-        helloY,
-      );
+      ctx.fillText("Hello, " + selectedConfession.recipient_to, centerX, 300);
 
-      // 4. Music Card (Clean, No Outline, Drop Shadow)
-      const cardX = (canvas.width - cardSize) / 2;
-
-      // Soft Shadow for Depth
+      // 4. Music Card (Clean White Box, No Outline, Soft Shadow)
       ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
-      ctx.shadowBlur = 40;
+      ctx.shadowBlur = 50;
       ctx.shadowOffsetY = 20;
 
+      const cardX = (canvas.width - cardSize) / 2;
       ctx.fillStyle = "#ffffff";
-      roundRect(ctx, cardX, cardY, cardSize, cardSize, 40);
+      roundRect(ctx, cardX, cardY, cardSize, cardSize, 60); // Rounded corners
       ctx.fill();
 
-      // Reset Shadow
+      // Reset Shadow for text
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
 
-      // Icon & Info inside Card
+      // Icon
       ctx.fillStyle = "#000000";
-      ctx.font = "160px sans-serif";
-      ctx.textAlign = "center";
+      ctx.font = "150px sans-serif";
       ctx.textBaseline = "middle";
-      ctx.fillText("🎵", canvas.width / 2, cardY + cardSize / 2 - 40);
+      ctx.fillText("🎵", centerX, cardY + cardSize / 2 - 50);
 
-      // Song Title & Artist (Inside Card, Bottom)
-      const textCenterCard = cardY + cardSize - 120;
+      // Song Info (Inside Card)
       ctx.font = "bold 32px sans-serif";
-      // Manually wrap song title if needed inside the card
       const songTitle = selectedConfession.song_name || "Unknown Track";
-      if (ctx.measureText(songTitle).width > cardSize - 40) {
-        ctx.font = "bold 24px sans-serif"; // Shrink slightly if huge
-      }
-      ctx.fillText(songTitle, canvas.width / 2, textCenterCard);
+      // Basic shrink if title is super long
+      if (ctx.measureText(songTitle).width > cardSize - 60)
+        ctx.font = "bold 24px sans-serif";
+
+      ctx.fillText(songTitle, centerX, cardY + cardSize - 120);
 
       ctx.fillStyle = "#666666";
       ctx.font = "24px sans-serif";
       ctx.fillText(
         selectedConfession.artist_name || "Unknown Artist",
-        canvas.width / 2,
-        textCenterCard + 50,
+        centerX,
+        cardY + cardSize - 80,
       );
 
-      // 5. Confession Text (SMART AUTO-SIZING)
-      // We calculate the available space between the Card and the Footer
-      const textSpaceTop = cardY + cardSize + 50; // 50px padding below card
-      const textSpaceBottom = footerY - 50; // 50px padding above footer
-      const availableHeight = textSpaceBottom - textSpaceTop;
-      const textCenterY = textSpaceTop + availableHeight / 2;
+      // 5. Smart Confession Text
+      // Calculate available space between Card and Footer
+      const textTop = cardY + cardSize + 60;
+      const textBottom = footerY - 60;
+      const maxTextHeight = textBottom - textTop;
+      const textCenterY = textTop + maxTextHeight / 2;
 
-      const quotedText = '"' + (selectedConfession.content || "") + '"';
+      const content = '"' + (selectedConfession.content || "") + '"';
+      drawSmartText(ctx, content, centerX, textCenterY, 900, maxTextHeight);
 
-      // Call our Smart Text Drawer
-      drawSmartText(
-        ctx,
-        quotedText,
-        canvas.width / 2, // Center X
-        textCenterY, // Center Y
-        900, // Max Width (leave margins)
-        availableHeight, // Max Height (don't overlap footer)
-      );
-
-      // 6. Footer Badge (Clean Black Pill)
+      // 6. Footer Badge
       const badgeWidth = 600;
       const badgeHeight = 90;
       const badgeX = (canvas.width - badgeWidth) / 2;
@@ -410,12 +374,11 @@ export default function App() {
 
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 28px monospace";
-      ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(
         "FROM: " +
           (selectedConfession.sender_from || "ANONYMOUS").toUpperCase(),
-        canvas.width / 2,
+        centerX,
         footerY + badgeHeight / 2 + 2,
       );
 
@@ -425,7 +388,7 @@ export default function App() {
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.error("Export Error:", err);
+      console.error("Pubmat Error:", err);
       alert("Failed to create image.");
     } finally {
       setIsExporting(false);
@@ -483,7 +446,7 @@ export default function App() {
                       : "text-zinc-400 hover:text-black"
                   }
                 >
-                  {v === "submit" ? "Confess" : v}
+                  {v === "submit" ? "Confess" : v === "home" ? "ABOUT" : v}
                 </button>
               ))}
             </div>
@@ -505,7 +468,7 @@ export default function App() {
                   }}
                   className={`text-left font-bold uppercase ${view === v ? "text-black" : "text-zinc-400"}`}
                 >
-                  {v === "submit" ? "Confess" : v}
+                  {v === "submit" ? "Confess" : v === "home" ? "ABOUT" : v}
                 </button>
               ))}
             </div>
@@ -737,31 +700,36 @@ export default function App() {
                 <h3 className="text-2xl font-bold uppercase mb-4 tracking-tighter">
                   The Creator
                 </h3>
-                <p className="text-zinc-600 leading-relaxed italic">
+                <p className="text-zinc-600 font-medium leading-relaxed">
                   Hi, I'm <span className="text-black font-bold">Snowi Wu</span>
-                  , a 4th-year BSIT student. I built this for DSSC to practice
-                  full-stack architecture and secure cloud data handling.
+                  , a 4th-year BSIT student. I built this for fun and to
+                  practice software engineering skills.
                 </p>
               </section>
               <section className="bg-zinc-50 border-2 border-black p-8 rounded-2xl">
                 <h3 className="text-2xl font-bold uppercase mb-4 italic tracking-tighter text-black/40">
                   Inspiration
                 </h3>
-                <p className="text-zinc-600 leading-relaxed">
-                  Inspired by{" "}
+                <p className="text-zinc-600 font-medium leading-relaxed">
+                  In the digital age, we often leave things unsaid. This project
+                  is a tribute to the raw, unspoken emotions that connect us
+                  all. Inspired by the poignant beauty of{" "}
                   <span className="text-black font-bold underline">
                     SendTheSong
                   </span>
-                  , localized for the DSSC community.
+                  , it serves as a digital vessel for your untold stories,
+                  carried by the melodies that define them.
                 </p>
               </section>
               <section className="bg-white border-2 border-black p-8 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <h3 className="text-2xl font-bold uppercase mb-4 text-rose-600 tracking-tighter">
                   Privacy Guarantee
                 </h3>
-                <p className="text-zinc-600 leading-relaxed">
-                  I believe in true anonymity. No personal data is tracked or
-                  sold. Everything is text and song metadata.
+                <p className="text-zinc-600 font-medium leading-relaxed">
+                  Your secrets are safe here. This platform operates on a
+                  philosophy of absolute anonymity. We do not track IP
+                  addresses, browser fingerprints, or personal metadata. What
+                  you say here remains between you, the music, and the void.
                 </p>
               </section>
             </div>
