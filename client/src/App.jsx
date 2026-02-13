@@ -1,25 +1,37 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import axios from "axios";
+import html2canvas from "html2canvas";
 import { ConfessionCard } from "./components/ui/ConfessionCard";
 
+// --- DYNAMIC API CONFIGURATION ---
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
+// --- UTILS: Theme & Vibe Logic ---
 const getVibe = (id) => {
-  if (!id) return { bg: "from-zinc-100" };
+  if (!id) return { bg: "from-zinc-100", hex: "#f4f4f5" };
   const vibes = [
-    "from-rose-100",
-    "from-blue-100",
-    "from-amber-100",
-    "from-violet-100",
-    "from-teal-100",
+    { bg: "from-rose-100", hex: "#ffe4e6" },
+    { bg: "from-blue-100", hex: "#dbeafe" },
+    { bg: "from-amber-100", hex: "#fef3c7" },
+    { bg: "from-violet-100", hex: "#ede9fe" },
+    { bg: "from-teal-100", hex: "#ccfbf1" },
   ];
+  // Extract ID reliably from Spotify URL
+  const trackId = id?.split("/track/")[1]?.split("?")[0] || id;
   const index =
-    id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
+    trackId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
     vibes.length;
-  return { bg: vibes[index] };
+  return vibes[index];
 };
 
+// --- SECURITY: Error Boundary ---
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -48,6 +60,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// --- UI ICONS ---
 const WriteIcon = () => (
   <svg
     width="24"
@@ -75,7 +88,7 @@ const SearchIcon = () => (
     strokeLinejoin="round"
   >
     <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    <line x1="21" x1="21" x2="16.65" y2="16.65"></line>
   </svg>
 );
 const ListenIcon = () => (
@@ -137,7 +150,6 @@ export default function App() {
   const [selectedConfession, setSelectedConfession] = useState(
     () => JSON.parse(localStorage.getItem("dssc_selected")) || null,
   );
-
   const [feed, setFeed] = useState([]);
   const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [searchResults, setSearchResults] = useState([]);
@@ -147,6 +159,8 @@ export default function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const shareRef = useRef(null); // Ref for capturing the image
 
   useEffect(() => {
     localStorage.setItem("dssc_view", view);
@@ -160,7 +174,7 @@ export default function App() {
       const res = await axios.get(`${API_BASE_URL}/api/confessions`);
       setFeed(res.data);
     } catch (e) {
-      console.error("Feed Fetch Error", e);
+      console.error("Feed Error", e);
     } finally {
       setIsFeedLoading(false);
     }
@@ -179,7 +193,7 @@ export default function App() {
         );
         setSongs(res.data);
       } catch (e) {
-        console.error("Spotify Search Error", e);
+        console.error("Spotify Error", e);
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -200,13 +214,23 @@ export default function App() {
     }
   };
 
-  const handleSubmit = async () => {
-    // --- UPDATED VALIDATION ---
-    if (!formData.to || !formData.content)
-      return alert("Please fill in the recipient and message!");
-    if (!selectedSong)
-      return alert("Please select a song! Every confession needs a vibe. 🎶");
+  const handleDownloadImage = async () => {
+    if (!shareRef.current) return;
+    const canvas = await html2canvas(shareRef.current, {
+      scale: 3, // High resolution for stories
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
+    const link = document.createElement("a");
+    link.download = `confession-${selectedConfession.recipient_to || "dssc"}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
 
+  const handleSubmit = async () => {
+    if (!formData.to || !formData.content)
+      return alert("Fill required fields!");
+    if (!selectedSong) return alert("Select a song vibe first! 🎶");
     try {
       await axios.post(`${API_BASE_URL}/api/confess`, {
         ...formData,
@@ -218,7 +242,7 @@ export default function App() {
       setView("home");
       fetchFeed();
     } catch (e) {
-      alert("Submission failed. Check connection.");
+      alert("Failed to post.");
     }
   };
 
@@ -243,43 +267,42 @@ export default function App() {
             >
               dssconfessions
             </div>
-
-            <div className="hidden md:flex gap-8 items-center">
+            <div className="hidden md:flex gap-8 items-center font-bold uppercase tracking-widest text-sm">
               {["home", "browse", "submit", "about"].map((v) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
-                  className={`text-sm font-bold uppercase tracking-widest ${view === v ? "underline underline-offset-8 decoration-2" : "text-zinc-400 hover:text-black"}`}
+                  className={
+                    view === v
+                      ? "underline underline-offset-8 decoration-2"
+                      : "text-zinc-400 hover:text-black"
+                  }
                 >
                   {v === "submit" ? "Confess" : v}
                 </button>
               ))}
             </div>
-
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 hover:bg-zinc-100 rounded-lg transition-colors"
+              className="md:hidden p-2"
             >
               <MenuIcon />
             </button>
           </div>
-
           {isMenuOpen && (
-            <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b-2 border-black animate-fade-in shadow-xl z-50">
-              <div className="flex flex-col p-6 gap-4">
-                {["home", "browse", "submit", "about"].map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => {
-                      setView(v);
-                      setIsMenuOpen(false);
-                    }}
-                    className={`text-left font-bold uppercase tracking-widest py-3 border-b border-zinc-100 last:border-0 ${view === v ? "text-black" : "text-zinc-400"}`}
-                  >
-                    {v === "submit" ? "Confess" : v}
-                  </button>
-                ))}
-              </div>
+            <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b-2 border-black p-6 flex flex-col gap-4 z-50 animate-fade-in shadow-xl">
+              {["home", "browse", "submit", "about"].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    setView(v);
+                    setIsMenuOpen(false);
+                  }}
+                  className={`text-left font-bold uppercase ${view === v ? "text-black" : "text-zinc-400"}`}
+                >
+                  {v === "submit" ? "Confess" : v}
+                </button>
+              ))}
             </div>
           )}
         </nav>
@@ -295,7 +318,6 @@ export default function App() {
               <p className="text-zinc-400 mb-20 font-medium">
                 Untold words, sent through the song.
               </p>
-
               <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-6 mb-24">
                 <StepCard
                   number="1"
@@ -316,9 +338,8 @@ export default function App() {
                   icon={<ListenIcon />}
                 />
               </div>
-
               <div className="border-t-2 border-black bg-zinc-50 py-16 overflow-hidden min-h-[400px]">
-                <div className="mb-8 flex flex-col items-center justify-center gap-2">
+                <div className="mb-8 flex flex-col items-center justify-center">
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-3 w-3">
                       <span
@@ -333,15 +354,9 @@ export default function App() {
                     </span>
                   </div>
                 </div>
-
                 {isFeedLoading ? (
-                  <div className="flex justify-center gap-8 px-10 overflow-hidden opacity-50">
-                    {[1, 2, 3].map((n) => (
-                      <div
-                        key={n}
-                        className="min-w-[300px] h-[400px] bg-zinc-200 border-2 border-black rounded-2xl animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]"
-                      ></div>
-                    ))}
+                  <div className="flex justify-center gap-8 px-10">
+                    <div className="w-[300px] h-[400px] bg-zinc-200 border-2 border-black rounded-2xl animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]"></div>
                   </div>
                 ) : (
                   <div
@@ -353,7 +368,7 @@ export default function App() {
                   >
                     {displayFeed.map((c, i) => (
                       <ConfessionCard
-                        key={`${c.id}-${i}`}
+                        key={i}
                         data={c}
                         onClick={() => {
                           setSelectedConfession(c);
@@ -385,11 +400,10 @@ export default function App() {
                   Search
                 </button>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {isLoading ? (
                   <div className="col-span-full py-20 text-zinc-400 font-bold animate-pulse">
-                    Searching the archives...
+                    Searching...
                   </div>
                 ) : searchResults.length > 0 ? (
                   searchResults.map((c) => (
@@ -404,8 +418,8 @@ export default function App() {
                   ))
                 ) : (
                   searchQuery && (
-                    <div className="col-span-full py-20 text-zinc-400 font-medium italic">
-                      No confessions found for "{searchQuery}".
+                    <div className="col-span-full py-20 text-zinc-400 italic">
+                      No results for "{searchQuery}".
                     </div>
                   )
                 )}
@@ -487,8 +501,7 @@ export default function App() {
                     Post Confession
                   </button>
                 </div>
-
-                <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0 overflow-hidden">
+                <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-8">
                     Live Preview
                   </span>
@@ -519,69 +532,98 @@ export default function App() {
                 <h3 className="text-2xl font-bold uppercase mb-4 tracking-tighter">
                   The Creator
                 </h3>
-                <p className="text-zinc-600 font-medium leading-relaxed">
-                  Hi, I'm{" "}
-                  <span className="text-black font-bold italic">Snowi Wu</span>,
-                  a 4th-year BSIT student. I built this project to practice
-                  software engineering skills, focusing on high-performance data
-                  retrieval and secure cloud architecture using Supabase.
+                <p className="text-zinc-600 leading-relaxed italic">
+                  Hi, I'm <span className="text-black font-bold">Snowi Wu</span>
+                  , a 4th-year BSIT student. I built this for DSSC to practice
+                  full-stack architecture and secure cloud data handling.
                 </p>
               </section>
               <section className="bg-zinc-50 border-2 border-black p-8 rounded-2xl">
                 <h3 className="text-2xl font-bold uppercase mb-4 italic tracking-tighter text-black/40">
                   Inspiration
                 </h3>
-                <p className="text-zinc-600 font-medium leading-relaxed">
-                  This website is inspired by the emotional experience of the{" "}
+                <p className="text-zinc-600 leading-relaxed">
+                  Inspired by{" "}
                   <span className="text-black font-bold underline">
                     SendTheSong
-                  </span>{" "}
-                  platform, localized for the DSSC community.
+                  </span>
+                  , localized for the DSSC community.
                 </p>
               </section>
               <section className="bg-white border-2 border-black p-8 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <h3 className="text-2xl font-bold uppercase mb-4 text-rose-600 tracking-tighter">
                   Privacy Guarantee
                 </h3>
-                <p className="text-zinc-600 font-medium leading-relaxed">
-                  I believe in true anonymity. No personal data is tracked,
-                  stored, or sold. Confessions are purely text and Spotify
-                  metadata.
+                <p className="text-zinc-600 leading-relaxed">
+                  I believe in true anonymity. No personal data is tracked or
+                  sold. Everything is text and song metadata.
                 </p>
               </section>
             </div>
           )}
 
           {view === "details" && selectedConfession && (
-            <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20">
+            <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
               <div
-                className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]).bg} to-white pointer-events-none`}
+                className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
               />
-              <button
-                onClick={() => setView("browse")}
-                className="mt-10 mb-8 px-6 py-2 bg-white border border-black rounded-full z-10 text-[10px] font-bold uppercase tracking-widest"
-              >
-                ← Back
-              </button>
-              <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
-                Hello, {selectedConfession.recipient_to}
-              </h1>
-              <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
+
+              {/* BUTTONS ROW */}
+              <div className="flex gap-3 z-10 mb-8">
+                <button
+                  onClick={() => setView("browse")}
+                  className="px-6 py-2 bg-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={handleDownloadImage}
+                  className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2"
+                >
+                  📸 Save for IG/MyDSSC
+                </button>
+              </div>
+
+              {/* CAPTURE WRAPPER: This is what gets turned into an image */}
+              <div className="w-full flex justify-center mb-10">
+                <div
+                  ref={shareRef}
+                  className={`relative p-8 md:p-12 w-full max-w-[400px] border-4 border-black rounded-3xl bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-center`}
+                >
+                  <div className="absolute top-4 right-6 text-[8px] font-black uppercase tracking-tighter opacity-20">
+                    dssconfessions.vercel.app
+                  </div>
+                  <h1 className="text-4xl md:text-5xl font-script mb-8">
+                    Hello, {selectedConfession.recipient_to}
+                  </h1>
+                  <div className="aspect-square w-full bg-black rounded-2xl mb-8 overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                    <img
+                      src={selectedConfession.album_art}
+                      className="w-full h-full object-cover"
+                      alt="album"
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                  <p className="text-2xl md:text-3xl font-script italic leading-tight mb-8 px-2 text-balance">
+                    "{selectedConfession.content}"
+                  </p>
+                  <p className="text-[10px] font-mono font-black uppercase tracking-widest bg-black text-white inline-block px-4 py-1 rounded-full">
+                    FROM: {selectedConfession.sender_from}
+                  </p>
+                </div>
+              </div>
+
+              {/* THE REAL INTERACTIVE SPOTIFY PLAYER (Not captured in image) */}
+              <div className="w-full max-w-[450px] z-10 mb-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black">
                 <iframe
                   src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  allow="autoplay; encrypted-media;"
                   loading="lazy"
                 />
               </div>
-              <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
-                "{selectedConfession.content}"
-              </p>
-              <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 text-center">
-                SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
-              </p>
             </div>
           )}
         </ErrorBoundary>
