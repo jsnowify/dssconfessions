@@ -245,7 +245,7 @@ export default function App() {
     }
   };
 
-  // --- MANUAL CANVAS EXPORT (NO SPOTIFY IMAGES) ---
+  // --- MANUAL CANVAS EXPORT (IG STORY SIZE: 1080x1920) ---
   const handleDownloadImage = async () => {
     if (!selectedConfession) return;
     setIsExporting(true);
@@ -253,10 +253,12 @@ export default function App() {
     try {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      canvas.width = 600;
-      canvas.height = 900;
 
-      // 1. Background
+      // SET IG STORY DIMENSIONS
+      canvas.width = 1080;
+      canvas.height = 1920;
+
+      // 1. Background (Vibe Gradient)
       const vibe = getVibe(selectedConfession.spotify_url);
       const vibeHexMap = {
         "from-rose-100": "#ffe4e6",
@@ -272,101 +274,110 @@ export default function App() {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Main Border
+      // 2. Main Border (Thick & Modern)
       ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 6;
-      roundRect(ctx, 3, 3, canvas.width - 6, canvas.height - 6, 40);
+      ctx.lineWidth = 12;
+      roundRect(ctx, 15, 15, canvas.width - 30, canvas.height - 30, 60);
       ctx.stroke();
 
       // 3. Header Text
-      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-      ctx.font = "bold 14px sans-serif";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+      ctx.font = "bold 28px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, 50);
+      ctx.letterSpacing = "0.2em";
+      ctx.fillText("DSSCONFESSIONS.VERCEL.APP", canvas.width / 2, 120);
 
       // 4. "Hello, Name"
       ctx.fillStyle = "#000000";
-      ctx.font = "bold 48px Georgia, serif";
+      ctx.font = "bold 90px Georgia, serif";
       ctx.fillText(
         "Hello, " + selectedConfession.recipient_to,
         canvas.width / 2,
-        120,
+        300,
       );
 
-      // 5. Album Box (Placeholder Only)
-      const albumBoxX = 100;
-      const albumBoxY = 160;
-      const albumBoxSize = 400;
+      // 5. Music Card (Centerpiece)
+      const cardWidth = 700;
+      const cardHeight = 700; // Square card looks good on stories
+      const cardX = (canvas.width - cardWidth) / 2; // Center horizontally
+      const cardY = 450; // Positioned in upper middle
 
+      // Card Background
       ctx.fillStyle = "#ffffff";
-      roundRect(ctx, albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
+      roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 50);
       ctx.fill();
 
+      // Card Border
       ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 6;
-      roundRect(ctx, albumBoxX, albumBoxY, albumBoxSize, albumBoxSize, 30);
+      ctx.lineWidth = 10;
+      roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 50);
       ctx.stroke();
 
-      // DRAW ICON (Safe Fallback)
+      // MUSIC ICON (Large & Centered in card)
       ctx.fillStyle = "#000000";
-      ctx.font = "100px sans-serif";
+      ctx.font = "200px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("🎵", canvas.width / 2, albumBoxY + albumBoxSize / 2 - 40);
+      ctx.fillText("🎵", canvas.width / 2, cardY + 250);
 
-      // DRAW SONG INFO TEXT
+      // SONG INFO (Inside Card, Bottom)
       ctx.fillStyle = "#000000";
-      ctx.font = "bold 24px sans-serif";
+      ctx.font = "bold 45px sans-serif";
       ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
-      const songY = albumBoxY + albumBoxSize / 2 + 40;
+      const songY = cardY + 500;
+
+      // Title
       wrapText(
         ctx,
         selectedConfession.song_name || "Unknown Track",
         canvas.width / 2,
         songY,
-        albumBoxSize - 40,
-        30,
+        cardWidth - 60,
+        55,
       );
 
+      // Artist
       ctx.fillStyle = "#666666";
-      ctx.font = "18px sans-serif";
+      ctx.font = "35px sans-serif";
       ctx.fillText(
         selectedConfession.artist_name || "Unknown Artist",
         canvas.width / 2,
-        songY + 60,
+        songY + 80,
       );
 
-      // 6. Confession Text
+      // 6. Confession Text (Bottom Half)
       ctx.fillStyle = "#000000";
-      ctx.font = "italic 32px Georgia, serif";
+      ctx.font = "italic 60px Georgia, serif";
       ctx.textAlign = "center";
-      const confessionY = albumBoxY + albumBoxSize + 60;
+      const confessionY = cardY + cardHeight + 150; // Spacing after card
       const quotedText = '"' + (selectedConfession.content || "") + '"';
-      wrapText(ctx, quotedText, canvas.width / 2, confessionY, 500, 45);
 
-      // 7. "From" Badge
-      const badgeY = canvas.height - 80;
-      const badgeWidth = 300;
-      const badgeHeight = 50;
+      // Wrap text with generous width
+      wrapText(ctx, quotedText, canvas.width / 2, confessionY, 850, 80);
+
+      // 7. "From" Badge (Near Bottom)
+      const badgeWidth = 600;
+      const badgeHeight = 100;
       const badgeX = (canvas.width - badgeWidth) / 2;
+      const badgeY = canvas.height - 250;
 
       ctx.fillStyle = "#000000";
-      roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 25);
+      roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 50);
       ctx.fill();
 
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px monospace";
+      ctx.font = "bold 32px monospace";
+      ctx.textBaseline = "middle";
       ctx.fillText(
         "FROM: " +
           (selectedConfession.sender_from || "ANONYMOUS").toUpperCase(),
         canvas.width / 2,
-        badgeY + 32,
+        badgeY + badgeHeight / 2 + 2,
       );
 
       // 8. Download
       const link = document.createElement("a");
-      link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
+      link.download = `dssc-story-${selectedConfession.id || Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
