@@ -174,7 +174,7 @@ export default function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [useFallbackImage, setUseFallbackImage] = useState(false); // New State for Fallback
+  const [useFallbackImage, setUseFallbackImage] = useState(false);
 
   const shareRef = useRef(null);
 
@@ -232,13 +232,11 @@ export default function App() {
 
   const handleDownloadImage = async () => {
     if (!shareRef.current) return;
-
-    // Attempt 1: Standard generation (Try to get the album art)
     try {
       const canvas = await html2canvas(shareRef.current, {
         scale: 2,
         useCORS: true,
-        allowTaint: false, // Must be false to export
+        allowTaint: false, // Must be false for export
         backgroundColor: null,
         logging: false,
       });
@@ -247,29 +245,26 @@ export default function App() {
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.warn("CORS blocked image. Switching to fallback UI.");
-      setUseFallbackImage(true); // Switch UI to Generic Icon
-
-      // Wait for React to re-render the DOM with the Icon instead of the Image
+      console.warn("Standard capture failed. Switching to fallback.");
+      setUseFallbackImage(true);
+      // Re-try capture after state update
       setTimeout(async () => {
         try {
-          // Attempt 2: Fallback generation (No external image, just SVG)
-          const canvasFallback = await html2canvas(shareRef.current, {
+          const canvas = await html2canvas(shareRef.current, {
             scale: 2,
             useCORS: true,
-            allowTaint: false, // CRITICAL FIX: Must be false!
+            allowTaint: false,
             backgroundColor: null,
           });
           const link = document.createElement("a");
           link.download = `dssc-confession-${selectedConfession.id || Date.now()}.png`;
-          link.href = canvasFallback.toDataURL("image/png");
+          link.href = canvas.toDataURL("image/png");
           link.click();
-          setUseFallbackImage(false); // Reset state after success
+          setUseFallbackImage(false); // Reset
         } catch (e) {
-          console.error(e);
-          alert("Export failed. Your browser is blocking script execution.");
+          alert("Export failed due to strict browser security.");
         }
-      }, 100); // 100ms delay is usually enough for a DOM update
+      }, 100);
     }
   };
 
@@ -610,7 +605,7 @@ export default function App() {
 
           {view === "details" && selectedConfession && (
             <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
-              {/* === THE GHOST CARD (INVISIBLE) === */}
+              {/* === THE GHOST CARD (OFF-SCREEN EXPORT) === */}
               <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
                 <div
                   ref={shareRef}
@@ -623,27 +618,30 @@ export default function App() {
                     <h1 className="text-6xl font-script mb-8">
                       Hello, {selectedConfession.recipient_to}
                     </h1>
+
                     <div className="w-[400px] h-[400px] bg-white rounded-3xl overflow-hidden border-[6px] border-black mx-auto mb-10 shadow-2xl flex flex-col items-center justify-center p-6 text-black">
+                      {/* LOGIC: Try Image, if fails (or fallback active), show SAFE Icon */}
                       {useFallbackImage ? (
-                        <>
+                        <div className="flex flex-col items-center animate-fade-in">
                           <MusicIcon />
-                          <div className="mt-6 text-2xl font-bold line-clamp-2">
+                          <div className="mt-6 text-3xl font-bold line-clamp-2 px-4 leading-tight">
                             {selectedConfession.song_name}
                           </div>
                           <div className="text-xl font-medium text-zinc-500 mt-2">
                             {selectedConfession.artist_name}
                           </div>
-                        </>
+                        </div>
                       ) : (
                         <img
                           src={selectedConfession.album_art}
                           className="w-full h-full object-cover"
                           alt="album"
                           crossOrigin="anonymous"
-                          onError={() => setUseFallbackImage(true)} // If load fails, trigger fallback
+                          onError={() => setUseFallbackImage(true)}
                         />
                       )}
                     </div>
+
                     <p className="text-4xl font-script italic leading-tight px-4 text-balance">
                       "{selectedConfession.content}"
                     </p>
