@@ -79,7 +79,7 @@ const SearchIcon = () => (
     strokeLinejoin="round"
   >
     <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" x1="21" x2="16.65" y2="16.65"></line>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
   </svg>
 );
 const ListenIcon = () => (
@@ -141,7 +141,9 @@ export default function App() {
   const [selectedConfession, setSelectedConfession] = useState(
     () => JSON.parse(localStorage.getItem("dssc_selected")) || null,
   );
+
   const [feed, setFeed] = useState([]);
+  const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [songSearch, setSongSearch] = useState("");
@@ -156,12 +158,16 @@ export default function App() {
     localStorage.setItem("dssc_selected", JSON.stringify(selectedConfession));
   }, [view, formData, selectedConfession]);
 
+  // --- API CALLS ---
   const fetchFeed = useCallback(async () => {
+    setIsFeedLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/confessions`);
       setFeed(res.data);
     } catch (e) {
       console.error("Feed Fetch Error", e);
+    } finally {
+      setIsFeedLoading(false);
     }
   }, []);
 
@@ -238,6 +244,7 @@ export default function App() {
             >
               dssconfessions
             </div>
+
             <div className="hidden md:flex gap-8 items-center">
               {["home", "browse", "submit", "about"].map((v) => (
                 <button
@@ -249,6 +256,7 @@ export default function App() {
                 </button>
               ))}
             </div>
+
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2 hover:bg-zinc-100 rounded-lg transition-colors"
@@ -256,6 +264,7 @@ export default function App() {
               <MenuIcon />
             </button>
           </div>
+
           {isMenuOpen && (
             <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b-2 border-black animate-fade-in shadow-xl z-50">
               <div className="flex flex-col p-6 gap-4">
@@ -287,6 +296,7 @@ export default function App() {
               <p className="text-zinc-400 mb-20 font-medium">
                 Untold words, sent through the song.
               </p>
+
               <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-6 mb-24">
                 <StepCard
                   number="1"
@@ -307,34 +317,53 @@ export default function App() {
                   icon={<ListenIcon />}
                 />
               </div>
-              <div className="border-t-2 border-black bg-zinc-50 py-16 overflow-hidden">
-                <div className="mb-8 flex items-center justify-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                    Live Feed
-                  </span>
+
+              <div className="border-t-2 border-black bg-zinc-50 py-16 overflow-hidden min-h-[400px]">
+                <div className="mb-8 flex flex-col items-center justify-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span
+                        className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isFeedLoading ? "bg-zinc-300" : "bg-rose-400"} opacity-75`}
+                      ></span>
+                      <span
+                        className={`relative inline-flex rounded-full h-3 w-3 ${isFeedLoading ? "bg-zinc-400" : "bg-rose-500"}`}
+                      ></span>
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      {isFeedLoading ? "Synchronizing Vibes..." : "Live Feed"}
+                    </span>
+                  </div>
                 </div>
-                <div
-                  className={
-                    isScrollable
-                      ? "animate-scroll flex w-max"
-                      : "flex justify-center flex-wrap gap-8"
-                  }
-                >
-                  {displayFeed.map((c, i) => (
-                    <ConfessionCard
-                      key={`${c.id}-${i}`}
-                      data={c}
-                      onClick={() => {
-                        setSelectedConfession(c);
-                        setView("details");
-                      }}
-                    />
-                  ))}
-                </div>
+
+                {isFeedLoading ? (
+                  <div className="flex justify-center gap-8 px-10 overflow-hidden opacity-50">
+                    {[1, 2, 3].map((n) => (
+                      <div
+                        key={n}
+                        className="min-w-[300px] h-[400px] bg-zinc-200 border-2 border-black rounded-2xl animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]"
+                      ></div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className={
+                      isScrollable
+                        ? "animate-scroll flex w-max"
+                        : "flex justify-center flex-wrap gap-8"
+                    }
+                  >
+                    {displayFeed.map((c, i) => (
+                      <ConfessionCard
+                        key={`${c.id}-${i}`}
+                        data={c}
+                        onClick={() => {
+                          setSelectedConfession(c);
+                          setView("details");
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -357,7 +386,7 @@ export default function App() {
                   Search
                 </button>
               </div>
-              {/* SEARCH RESULTS GRID: justify-items-center added for centering on mobile */}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {isLoading ? (
                   <div className="col-span-full py-20 text-zinc-400 font-bold animate-pulse">
@@ -452,6 +481,7 @@ export default function App() {
                     Post Confession
                   </button>
                 </div>
+
                 <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0 overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-8">
                     Live Preview
@@ -475,20 +505,17 @@ export default function App() {
           )}
 
           {view === "about" && (
-            <div className="max-w-3xl mx-auto px-6 animate-fade-in space-y-12 pb-20">
+            <div className="max-w-3xl mx-auto px-6 animate-fade-in space-y-12 pb-20 text-center md:text-left">
               <h2 className="text-6xl font-script text-center mb-12 font-bold">
                 About
               </h2>
               <section className="bg-white border-2 border-black p-8 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <h3 className="text-2xl font-bold uppercase mb-4 tracking-tighter text-black">
+                <h3 className="text-2xl font-bold uppercase mb-4 tracking-tighter">
                   The Creator
                 </h3>
-                <p className="text-zinc-600 font-medium leading-relaxed">
-                  Hi, I'm{" "}
-                  <span className="text-black font-bold italic">Snowi Wu</span>,
-                  a 4th-year BSIT student. I built this project to practice
-                  software engineering skills, focusing on high-performance data
-                  retrieval and secure cloud architecture using Supabase.
+                <p className="text-zinc-600 font-medium leading-relaxed italic">
+                  Hi, I'm **Snowi Wu**, a 4th-year BSIT student specializing in
+                  full-stack architecture and interactive user experiences.
                 </p>
               </section>
               <section className="bg-zinc-50 border-2 border-black p-8 rounded-2xl">
@@ -496,27 +523,15 @@ export default function App() {
                   Inspiration
                 </h3>
                 <p className="text-zinc-600 font-medium leading-relaxed">
-                  This website is inspired by the emotional experience of the{" "}
-                  <span className="text-black font-bold underline">
-                    SendTheSong
-                  </span>{" "}
-                  platform.
-                </p>
-              </section>
-              <section className="bg-white border-2 border-black p-8 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <h3 className="text-2xl font-bold uppercase mb-4 text-rose-600 tracking-tighter">
-                  Privacy Guarantee
-                </h3>
-                <p className="text-zinc-600 font-medium leading-relaxed">
-                  I believe in true anonymity. No personal data is tracked or
-                  sold.
+                  Inspired by SendTheSong, customized for the DSSC student
+                  community.
                 </p>
               </section>
             </div>
           )}
 
           {view === "details" && selectedConfession && (
-            <div className="min-h-screen bg-white flex flex-col items-center px-4 relative">
+            <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20">
               <div
                 className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]).bg} to-white pointer-events-none`}
               />
@@ -529,20 +544,22 @@ export default function App() {
               <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
                 Hello, {selectedConfession.recipient_to}
               </h1>
+
               <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
                 <iframe
-                  src={`https://open.spotify.com/track/2vdBo4ALPYbHRUPKgtE5iC${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
+                  src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
                   width="100%"
                   height="380"
                   frameBorder="0"
-                  allow="autoplay"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
                 />
               </div>
-              <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance">
+
+              <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
                 "{selectedConfession.content}"
               </p>
-              <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 mb-10 text-center">
+              <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 text-center">
                 SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
               </p>
             </div>
