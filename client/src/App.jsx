@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./components/layout/Navbar";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import HomeView from "./views/HomeView";
-import BrowseView from "./views/BrowseView";
+import BrowseView from "./views/Browseview";
 import SubmitView from "./views/SubmitView";
 import AboutView from "./views/AboutView";
 import DetailsView from "./views/DetailsView";
