@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ConfessionCard } from "../components/ui/ConfessionCard";
 import StepCard from "../components/ui/StepCard";
-import { WriteIcon, SearchIcon, ListenIcon } from "../components/icons";
+import { WriteIcon, SearchIcon, ListenIcon } from "../components/icons/Index";
 import { computeFeedLayout } from "../utils/feedLayout";
 
 const HomeView = ({ feed, isFeedLoading, onSelectConfession }) => {
