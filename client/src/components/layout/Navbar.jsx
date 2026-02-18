@@ -1,4 +1,4 @@
-import { MenuIcon } from "../icons";
+import { MenuIcon } from "../icons/Index";
 
 const Navbar = ({ view, setView, isMenuOpen, setIsMenuOpen }) => (
   <nav className="fixed top-0 w-full bg-white border-b-2 border-black z-50 h-20 px-6">
