@@ -37,7 +37,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
-      {/* NAVBAR */}
       {view !== "details" && (
         <Navbar
           view={view}
