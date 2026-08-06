@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- Favicon: must live in /public, not /src/assets (Vite doesn't serve /src at runtime) -->
+    <!-- Icons -->
     <link
       rel="icon"
       type="image/png"
@@ -14,78 +14,132 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>DSSC Confessions | Davao del Sur State College</title>
+    <!-- Primary SEO -->
+    <title>DSSC Confessions | DSSC Community Confession</title>
+
     <meta
       name="description"
-      content="Anonymous confessions from Davao del Sur State College (DSSC) students. Read and submit confessions from your campus community."
+      content="DSSC Confessions is an anonymous student confession platform for the Davao del Sur State College (DSSC) community. Read, share, and discover authentic student experiences, stories, opinions, and campus life."
     />
 
-    <!-- Canonical: prevents duplicate-content issues if the site is ever reachable via multiple URLs -->
-    <link rel="canonical" href="https://dssconfessions.vercel.app/" />
+    <meta
+      name="keywords"
+      content="DSSC, DSSC Confessions, DSSC Confession, Davao del Sur State College, Davao del Sur State College Confessions, DSSC Students, DSSC Community, Student Confessions, Anonymous Confessions, College Confessions, Campus Stories, Digos College, DSSC Student Community"
+    />
 
-    <!-- Explicit robots directive, belt-and-braces alongside Search Console settings -->
-    <meta name="robots" content="index, follow" />
+    <meta name="author" content="DSSC Confessions" />
+    <meta name="application-name" content="DSSC Confessions" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <link rel="canonical" href="https://dssconfessions.vercel.app/" />
 
     <meta
       name="google-site-verification"
       content="iB53T08hbGrfdsAmrKTVhocsuFV5rgOwT5imiFu2Iu8"
     />
 
-    <!-- Open Graph: controls how the link looks when shared in chats/social, and fixes the "Vercel" branding issue in search results -->
+    <!-- Open Graph -->
+    <meta property="og:locale" content="en_PH" />
+    <meta property="og:type" content="website" />
     <meta property="og:site_name" content="DSSC Confessions" />
     <meta
       property="og:title"
-      content="DSSC Confessions | Davao del Sur State College"
+      content="DSSC Confessions | Anonymous Student Community"
     />
     <meta
       property="og:description"
-      content="Anonymous confessions from DSSC students. Read and submit confessions from your campus community."
+      content="Read and submit anonymous confessions from students of Davao del Sur State College (DSSC). Join the campus community and share your stories."
     />
     <meta property="og:url" content="https://dssconfessions.vercel.app/" />
-    <meta property="og:type" content="website" />
     <meta
       property="og:image"
       content="https://dssconfessions.vercel.app/public/og-image.png"
     />
-    <meta property="og:locale" content="en_PH" />
+    <meta
+      property="og:image:alt"
+      content="DSSC Confessions - Anonymous Student Community"
+    />
 
-    <!-- Twitter Card: falls back to OG tags on most platforms, but explicit is safer -->
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="DSSC Confessions | Davao del Sur State College"
+      content="DSSC Confessions | Anonymous Student Community"
     />
     <meta
       name="twitter:description"
-      content="Anonymous confessions from DSSC students."
+      content="Anonymous confessions, campus stories, and student discussions from the Davao del Sur State College (DSSC) community."
     />
     <meta
       name="twitter:image"
       content="https://dssconfessions.vercel.app/public/og-image.png"
     />
 
-    <!-- Structured data: WebSite entity, ties "DSSC" and the full school name to the same site -->
+    <!-- WebSite -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "DSSC Confessions",
-        "alternateName": "Davao del Sur State College Confessions",
-        "url": "https://dssconfessions.vercel.app/"
+        "alternateName": [
+          "DSSC Confession",
+          "DSSC Confessions",
+          "Davao del Sur State College Confessions",
+          "Davao del Sur State College",
+          "DSSC Portal",
+          "DSSC"
+        ],
+        "url": "https://dssconfessions.vercel.app/",
+        "description": "Anonymous confession platform for students of Davao del Sur State College (DSSC).",
+        "inLanguage": "en-PH",
+        "publisher": {
+          "@type": "Organization",
+          "name": "DSSC Confessions"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://dssconfessions.vercel.app/?search={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
       }
     </script>
 
-    <!-- Structured data: Organization entity, reinforces brand identity over the "Vercel" fallback -->
+    <!-- Organization -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "DSSC Confessions",
         "url": "https://dssconfessions.vercel.app/",
-        "logo": "https://dssconfessions.vercel.app/public/logoicon.jpg"
+        "logo": "https://dssconfessions.vercel.app/public/logoicon.jpg",
+        "sameAs": [],
+        "description": "Anonymous confession platform dedicated to the Davao del Sur State College community."
+      }
+    </script>
+
+    <!-- WebPage -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "DSSC Confessions",
+        "url": "https://dssconfessions.vercel.app/",
+        "description": "Anonymous student confessions from Davao del Sur State College (DSSC).",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "DSSC Confessions",
+          "url": "https://dssconfessions.vercel.app/"
+        },
+        "about": {
+          "@type": "CollegeOrUniversity",
+          "name": "Davao del Sur State College"
+        },
+        "inLanguage": "en-PH"
       }
     </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
