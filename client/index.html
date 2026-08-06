@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/assets/logoicon.jpg" />
+
+    <!-- Favicon: must live in /public, not /src/assets (Vite doesn't serve /src at runtime) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/logoicon.png" />
+    <link rel="apple-touch-icon" href="/logoicon.png" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>DSSC Confessions | Davao del Sur State College</title>
@@ -11,12 +15,19 @@
       content="Anonymous confessions from Davao del Sur State College (DSSC) students. Read and submit confessions from your campus community."
     />
 
+    <!-- Canonical: prevents duplicate-content issues if the site is ever reachable via multiple URLs -->
+    <link rel="canonical" href="https://dssconfessions.vercel.app/" />
+
+    <!-- Explicit robots directive, belt-and-braces alongside Search Console settings -->
+    <meta name="robots" content="index, follow" />
+
     <meta
       name="google-site-verification"
       content="iB53T08hbGrfdsAmrKTVhocsuFV5rgOwT5imiFu2Iu8"
     />
 
-    <!-- Open Graph: controls how the link looks when shared in chats/social -->
+    <!-- Open Graph: controls how the link looks when shared in chats/social, and fixes the "Vercel" branding issue in search results -->
+    <meta property="og:site_name" content="DSSC Confessions" />
     <meta
       property="og:title"
       content="DSSC Confessions | Davao del Sur State College"
@@ -27,8 +38,28 @@
     />
     <meta property="og:url" content="https://dssconfessions.vercel.app/" />
     <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://dssconfessions.vercel.app/og-image.png"
+    />
+    <meta property="og:locale" content="en_PH" />
 
-    <!-- Structured data: tells Google "DSSC" and the full school name are the same entity -->
+    <!-- Twitter Card: falls back to OG tags on most platforms, but explicit is safer -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="DSSC Confessions | Davao del Sur State College"
+    />
+    <meta
+      name="twitter:description"
+      content="Anonymous confessions from DSSC students."
+    />
+    <meta
+      name="twitter:image"
+      content="https://dssconfessions.vercel.app/og-image.png"
+    />
+
+    <!-- Structured data: WebSite entity, ties "DSSC" and the full school name to the same site -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -38,15 +69,20 @@
         "url": "https://dssconfessions.vercel.app/"
       }
     </script>
+
+    <!-- Structured data: Organization entity, reinforces brand identity over the "Vercel" fallback -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "DSSC Confessions",
+        "url": "https://dssconfessions.vercel.app/",
+        "logo": "https://dssconfessions.vercel.app/logoicon.png"
+      }
+    </script>
   </head>
   <body>
-    <div id="root">
-      <h1>DSSC Confessions</h1>
-      <p>
-        Anonymous confessions from Davao del Sur State College (DSSC) students.
-        Loading confessions...
-      </p>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
