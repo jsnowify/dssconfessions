@@ -2,12 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./src/assets/logoicon.jpg" />
+    <link rel="icon" type="image/svg+xml" href="/src/assets/logoicon.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DSSConfessions</title>
+    <meta
+      name="description"
+      content="Anonymous confessions from DSSC students. Share and read confessions from your school community."
+    />
+
+    <!-- Optional but recommended: makes links look better when shared in chats/social -->
+    <meta property="og:title" content="DSSConfessions" />
+    <meta
+      property="og:description"
+      content="Anonymous confessions from DSS students."
+    />
+    <meta property="og:url" content="https://dssconfessions.vercel.app/" />
+    <meta property="og:type" content="website" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <h1>DSSConfessions</h1>
+      <p>Loading anonymous confessions from DSSC students...</p>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
