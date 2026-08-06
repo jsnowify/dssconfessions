@@ -4,29 +4,48 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/src/assets/logoicon.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DSSConfessions</title>
+
+    <title>DSSC Confessions | Davao del Sur State College</title>
     <meta
       name="description"
-      content="Anonymous confessions from DSSC students. Share and read confessions from your school community."
+      content="Anonymous confessions from Davao del Sur State College (DSSC) students. Read and submit confessions from your campus community."
     />
 
-    <!-- Optional but recommended: makes links look better when shared in chats/social -->
     <meta
       name="google-site-verification"
       content="iB53T08hbGrfdsAmrKTVhocsuFV5rgOwT5imiFu2Iu8"
     />
-    <meta property="og:title" content="DSSConfessions" />
+
+    <!-- Open Graph: controls how the link looks when shared in chats/social -->
+    <meta
+      property="og:title"
+      content="DSSC Confessions | Davao del Sur State College"
+    />
     <meta
       property="og:description"
-      content="Anonymous confessions from DSS students."
+      content="Anonymous confessions from DSSC students. Read and submit confessions from your campus community."
     />
     <meta property="og:url" content="https://dssconfessions.vercel.app/" />
     <meta property="og:type" content="website" />
+
+    <!-- Structured data: tells Google "DSSC" and the full school name are the same entity -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "DSSC Confessions",
+        "alternateName": "Davao del Sur State College Confessions",
+        "url": "https://dssconfessions.vercel.app/"
+      }
+    </script>
   </head>
   <body>
     <div id="root">
-      <h1>DSSConfessions</h1>
-      <p>Loading anonymous confessions from DSSC students...</p>
+      <h1>DSSC Confessions</h1>
+      <p>
+        Anonymous confessions from Davao del Sur State College (DSSC) students.
+        Loading confessions...
+      </p>
     </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
