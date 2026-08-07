@@ -28,7 +28,7 @@ body,
 .animate-scroll {
   display: flex;
   width: max-content;
-  animation: scroll 55s linear infinite;
+  animation: scroll 65s linear infinite;
 }
 
 .animate-scroll:hover {
