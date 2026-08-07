@@ -4,6 +4,7 @@ import { useSongSearch } from "../hooks";
 
 const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
   const [formData, setFormData] = useState({ to: "", from: "", content: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     songSearch,
     setSongSearch,
@@ -14,9 +15,11 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
   } = useSongSearch();
 
   const handleSubmit = async () => {
-    if (!formData.to || !formData.content)
+    if (!formData.to.trim() || !formData.content.trim())
       return alert("Fill required fields!");
     if (!selectedSong) return alert("Select a song vibe first! 🎶");
+
+    setIsSubmitting(true);
     try {
       await submitConfession(formData, selectedSong);
       setFormData({ to: "", from: "", content: "" });
@@ -24,7 +27,10 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
       setView("home");
       fetchFeed();
     } catch (e) {
+      console.error(e);
       alert("Failed to post.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -37,12 +43,14 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
             <input
               className="border-2 border-black p-4 rounded-xl font-bold"
               placeholder="To:"
+              maxLength={50}
               value={formData.to}
               onChange={(e) => setFormData({ ...formData, to: e.target.value })}
             />
             <input
               className="border-2 border-black p-4 rounded-xl font-bold"
               placeholder="From (Optional):"
+              maxLength={50}
               value={formData.from}
               onChange={(e) =>
                 setFormData({ ...formData, from: e.target.value })
@@ -52,6 +60,7 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
           <textarea
             className="w-full border-2 border-black p-4 rounded-xl h-48 font-medium outline-none resize-none"
             placeholder="Your words..."
+            maxLength={500}
             value={formData.content}
             onChange={(e) =>
               setFormData({ ...formData, content: e.target.value })
@@ -76,11 +85,17 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
                     onClick={() => selectSong(s)}
                     className="p-3 hover:bg-black hover:text-white cursor-pointer flex gap-3 items-center border-b border-black text-xs font-bold"
                   >
-                    <img
-                      src={s.album.images[0].url}
-                      className="w-10 h-10 rounded"
-                    />{" "}
-                    {s.name} - {s.artists[0].name}
+                    {/* Safe fallback: not every track guarantees an image */}
+                    {s.album?.images?.[0]?.url ? (
+                      <img
+                        src={s.album.images[0].url}
+                        className="w-10 h-10 rounded"
+                        alt=""
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-zinc-200 flex-shrink-0" />
+                    )}
+                    {s.name} - {s.artists?.[0]?.name ?? "Unknown Artist"}
                   </div>
                 ))}
               </div>
@@ -88,9 +103,10 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
           </div>
           <button
             onClick={handleSubmit}
-            className="w-full bg-black text-white py-5 rounded-xl font-bold text-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-zinc-800 transition-all"
+            disabled={isSubmitting}
+            className="w-full bg-black text-white py-5 rounded-xl font-bold text-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-zinc-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Post Confession
+            {isSubmitting ? "Posting..." : "Post Confession"}
           </button>
         </div>
         <div className="flex flex-col items-center p-6 md:p-10 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-300 mt-10 lg:mt-0 overflow-hidden">
@@ -105,8 +121,8 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
                 sender_from: formData.from,
                 content: formData.content,
                 song_name: selectedSong?.name,
-                album_art: selectedSong?.album?.images[0]?.url,
-                artist_name: selectedSong?.artists[0]?.name,
+                album_art: selectedSong?.album?.images?.[0]?.url,
+                artist_name: selectedSong?.artists?.[0]?.name,
               }}
             />
           </div>
