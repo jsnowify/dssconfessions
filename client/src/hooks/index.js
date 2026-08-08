@@ -68,13 +68,26 @@ export const useSongSearch = () => {
   const [songSearch, setSongSearch] = useState("");
   const [songs, setSongs] = useState([]);
   const [selectedSong, setSelectedSong] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [retryTrigger, setRetryTrigger] = useState(0);
   const abortControllerRef = useRef(null);
 
+  const MIN_CHARS = 3;
+
   useEffect(() => {
-    if (songSearch.trim().length < 3) {
+    setSearchError(null);
+
+    if (songSearch.trim().length < MIN_CHARS) {
       setSongs([]);
+      setIsSearching(false);
+      setHasSearched(false);
       return;
     }
+
+    setIsSearching(true);
+    setHasSearched(false);
 
     const timer = setTimeout(async () => {
       // Cancel any in-flight request so a slow older response can't
@@ -87,6 +100,7 @@ export const useSongSearch = () => {
         const res = await axios.get(`${BASE_URL}/api/search-song`, {
           params: { q: songSearch },
           signal: controller.signal,
+          timeout: 8000,
         });
         // Filter out any tracks missing the fields the UI relies on,
         // instead of letting a malformed result crash the render.
@@ -94,25 +108,46 @@ export const useSongSearch = () => {
           (s) => s?.id && s?.name && s?.artists?.[0]?.name,
         );
         setSongs(safeResults);
+        setHasSearched(true);
       } catch (e) {
         if (axios.isCancel(e) || e.name === "CanceledError") return;
         console.error("Spotify Error", e);
+        setSongs([]);
+        setHasSearched(true);
+        setSearchError(
+          e.code === "ECONNABORTED"
+            ? "This is taking longer than usual. Check your connection."
+            : "Couldn't load songs right now.",
+        );
+      } finally {
+        setIsSearching(false);
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [songSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songSearch, retryTrigger]);
 
   const selectSong = (song) => {
     setSelectedSong(song);
     setSongs([]);
     setSongSearch(song.name);
+    setHasSearched(false);
+    setSearchError(null);
   };
 
   const resetSong = () => {
     setSelectedSong(null);
     setSongs([]);
     setSongSearch("");
+    setHasSearched(false);
+    setSearchError(null);
+  };
+
+  const retrySearch = () => {
+    // Bumping this number is what actually re-runs the effect above,
+    // since songSearch itself hasn't changed on a retry.
+    setRetryTrigger((n) => n + 1);
   };
 
   return {
@@ -125,5 +160,10 @@ export const useSongSearch = () => {
     selectedSong,
     selectSong,
     resetSong,
+    isSearching,
+    searchError,
+    hasSearched,
+    minChars: MIN_CHARS,
+    retrySearch,
   };
 };

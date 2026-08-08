@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { ConfessionCard } from "../components/ui/ConfessionCard";
+import Toast from "../components/ui/Toast";
 import { useSongSearch } from "../hooks";
 
 const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
   const [formData, setFormData] = useState({ to: "", from: "", content: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "" });
   const {
     songSearch,
     setSongSearch,
@@ -12,12 +14,20 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
     selectedSong,
     selectSong,
     resetSong,
+    isSearching,
+    searchError,
+    hasSearched,
+    minChars,
+    retrySearch,
   } = useSongSearch();
+
+  const showToast = (message) => setToast({ show: true, message });
+  const closeToast = () => setToast((t) => ({ ...t, show: false }));
 
   const handleSubmit = async () => {
     if (!formData.to.trim() || !formData.content.trim())
-      return alert("Fill required fields!");
-    if (!selectedSong) return alert("Select a song vibe first! 🎶");
+      return showToast("Please fill in the required fields.");
+    if (!selectedSong) return showToast("Select a song vibe first! 🎶");
 
     setIsSubmitting(true);
     try {
@@ -28,11 +38,23 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
       fetchFeed();
     } catch (e) {
       console.error(e);
-      alert("Failed to post.");
+      showToast("Failed to post. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Only show the dropdown panel when there's actually something to say —
+  // either an in-progress search, a finished search, or an error. This
+  // keeps it from popping up prematurely while the user is mid-keystroke
+  // below the character minimum.
+  const showDropdown =
+    !selectedSong &&
+    songSearch.trim().length > 0 &&
+    (songSearch.trim().length < minChars ||
+      isSearching ||
+      hasSearched ||
+      searchError);
 
   return (
     <div className="max-w-7xl mx-auto px-6">
@@ -67,37 +89,76 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
             }
           />
           <div className="relative">
-            <input
-              className="w-full border-2 border-black p-4 rounded-xl font-bold"
-              placeholder={
-                selectedSong
-                  ? `Selected: ${selectedSong.name}`
-                  : "Search for a song (Required)..."
-              }
-              value={songSearch}
-              onChange={(e) => setSongSearch(e.target.value)}
-            />
-            {songs.length > 0 && !selectedSong && (
-              <div className="absolute bottom-full left-0 w-full bg-white border-2 border-black rounded-xl mb-2 max-h-48 overflow-y-auto z-20 shadow-xl">
-                {songs.map((s) => (
-                  <div
-                    key={s.id}
-                    onClick={() => selectSong(s)}
-                    className="p-3 hover:bg-black hover:text-white cursor-pointer flex gap-3 items-center border-b border-black text-xs font-bold"
-                  >
-                    {/* Safe fallback: not every track guarantees an image */}
-                    {s.album?.images?.[0]?.url ? (
-                      <img
-                        src={s.album.images[0].url}
-                        className="w-10 h-10 rounded"
-                        alt=""
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded bg-zinc-200 flex-shrink-0" />
-                    )}
-                    {s.name} - {s.artists?.[0]?.name ?? "Unknown Artist"}
+            <div className="relative">
+              <input
+                className="w-full border-2 border-black p-4 rounded-xl font-bold pr-12"
+                placeholder={
+                  selectedSong
+                    ? `Selected: ${selectedSong.name}`
+                    : "Search for a song (Required)..."
+                }
+                value={songSearch}
+                onChange={(e) => setSongSearch(e.target.value)}
+              />
+              {/* Inline spinner so the user gets feedback right where
+                  they're looking, not just inside the dropdown below. */}
+              {isSearching && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <div className="w-5 h-5 border-2 border-zinc-300 border-t-black rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+
+            {showDropdown && (
+              <div className="absolute bottom-full left-0 w-full bg-white border-2 border-black rounded-xl mb-2 max-h-56 overflow-y-auto z-20 shadow-xl">
+                {songSearch.trim().length < minChars ? (
+                  <div className="p-4 text-xs font-bold text-zinc-400 text-center">
+                    Keep typing... ({minChars - songSearch.trim().length} more
+                    character
+                    {minChars - songSearch.trim().length === 1 ? "" : "s"})
                   </div>
-                ))}
+                ) : isSearching ? (
+                  <div className="p-4 flex items-center justify-center gap-3 text-xs font-bold text-zinc-500">
+                    <div className="w-4 h-4 border-2 border-zinc-300 border-t-black rounded-full animate-spin" />
+                    Searching for "{songSearch}"...
+                  </div>
+                ) : searchError ? (
+                  <div className="p-4 flex flex-col items-center gap-2 text-center">
+                    <span className="text-xs font-bold text-rose-600">
+                      {searchError}
+                    </span>
+                    <button
+                      onClick={retrySearch}
+                      className="text-xs font-bold underline hover:text-black text-zinc-500"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : songs.length === 0 ? (
+                  <div className="p-4 text-xs font-bold text-zinc-400 text-center">
+                    No songs found for "{songSearch}". Try a different title or
+                    artist.
+                  </div>
+                ) : (
+                  songs.map((s) => (
+                    <div
+                      key={s.id}
+                      onClick={() => selectSong(s)}
+                      className="p-3 hover:bg-black hover:text-white cursor-pointer flex gap-3 items-center border-b border-black text-xs font-bold"
+                    >
+                      {s.album?.images?.[0]?.url ? (
+                        <img
+                          src={s.album.images[0].url}
+                          className="w-10 h-10 rounded"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-zinc-200 flex-shrink-0" />
+                      )}
+                      {s.name} - {s.artists?.[0]?.name ?? "Unknown Artist"}
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </div>
@@ -128,6 +189,8 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
           </div>
         </div>
       </div>
+
+      <Toast message={toast.message} show={toast.show} onClose={closeToast} />
     </div>
   );
 };
