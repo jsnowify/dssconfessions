@@ -36,7 +36,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
+    // min-h-screen + flex flex-col: makes the page at least as tall as the
+    // viewport and stacks navbar/main/footer vertically, so the footer
+    // never floats up when a view (like Browse before a search) is short.
+    <div className="min-h-screen flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white overflow-x-hidden">
       {view !== "details" && (
         <Navbar
           view={view}
@@ -46,13 +49,16 @@ export default function App() {
         />
       )}
 
-      <main className={view === "details" ? "" : "pt-32 pb-20"}>
+      {/* flex-1: lets main grow to fill any leftover vertical space,
+          pushing the footer down to the bottom of the viewport. */}
+      <main className={`flex-1 ${view === "details" ? "" : "pt-32 pb-20"}`}>
         <ErrorBoundary key={view}>
           {view === "home" && (
             <HomeView
               feed={feed}
               isFeedLoading={isFeedLoading}
               onSelectConfession={handleSelectConfession}
+              setView={setView}
             />
           )}
           {view === "browse" && (
@@ -78,7 +84,7 @@ export default function App() {
         </ErrorBoundary>
       </main>
 
-      <footer className="text-center py-12 border-t-2 border-black font-mono text-[10px] tracking-widest text-zinc-400 uppercase">
+      <footer className="h-24 flex items-center justify-center border-t-2 border-black font-mono text-[10px] tracking-widest text-zinc-400 uppercase">
         DSSCONFESSIONS © 2026
       </footer>
     </div>
