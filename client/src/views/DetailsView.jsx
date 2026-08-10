@@ -26,7 +26,7 @@ const DetailsView = ({ selectedConfession, setView }) => {
           {isExporting ? "⏳ Generating..." : "📸 Save for IG"}
         </button>
       </div>
-      <h1 className="text-5xl md:text-7xl font-script mb-10 z-10 text-center px-4">
+      <h1 className="text-5xl md:text-7xl font-handwritten mb-10 z-10 text-center px-4">
         Hello, {selectedConfession.recipient_to}
       </h1>
       <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
@@ -40,7 +40,7 @@ const DetailsView = ({ selectedConfession, setView }) => {
           title="Spotify Player"
         />
       </div>
-      <p className="text-3xl md:text-4xl font-script italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
+      <p className="text-3xl md:text-4xl font-handwritten italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
         "{selectedConfession.content}"
       </p>
       <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 text-center">

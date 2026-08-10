@@ -33,7 +33,7 @@ export const ConfessionCard = React.memo(
         </div>
 
         {/* Content Section */}
-        <p className="text-2xl font-script leading-snug mb-6 line-clamp-3 h-24 whitespace-pre-line text-black">
+        <p className="text-2xl font-handwritten leading-snug mb-6 line-clamp-3 h-24 whitespace-pre-line text-black">
           "{data.content || "Your untold words..."}"
         </p>
 
