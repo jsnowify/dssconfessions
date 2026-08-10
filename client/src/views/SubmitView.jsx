@@ -82,7 +82,7 @@ const SubmitView = ({ submitConfession, fetchFeed, setView }) => {
           <textarea
             className="w-full border-2 border-black p-4 rounded-xl h-48 font-medium outline-none resize-none"
             placeholder="Your words..."
-            maxLength={500}
+            maxLength={3000}
             value={formData.content}
             onChange={(e) =>
               setFormData({ ...formData, content: e.target.value })
