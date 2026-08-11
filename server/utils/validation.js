@@ -44,7 +44,7 @@ const validateConfessionInput = (body) => {
     data: {
       recipient_to: clean(to, 50),
       sender_from: isNonEmptyString(from) ? clean(from, 50) : "Anonymous",
-      content: clean(content, 500),
+      content: clean(content, 3000),
       songId: song.id,
     },
   };
