@@ -1,12 +1,27 @@
 import { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, "") || "",
   timeout: 35000,
 });
 
 // --- HOOK: Fetch & manage confession feed ---
+export const fetchTopSearches = async (signal) => {
+  try {
+    const { data } = await api.get("/api/top-searches", {
+      params: { limit: 8 },
+      signal,
+    });
+    if (!Array.isArray(data)) return [];
+    return data
+      .filter((item) => typeof item?.term === "string" && item.hits >= 3)
+      .slice(0, 8);
+  } catch {
+    return [];
+  }
+};
+
 export const useConfessions = () => {
   const [feed, setFeed] = useState([]);
   const [isFeedLoading, setIsFeedLoading] = useState(true);
@@ -21,7 +36,8 @@ export const useConfessions = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-    api.get("/api/confessions", { signal: controller.signal })
+    api
+      .get("/api/confessions", { signal: controller.signal })
       .then((res) => {
         if (controller.signal.aborted) return;
         if (!Array.isArray(res.data)) throw new Error("Invalid feed response");
@@ -49,14 +65,22 @@ export const useConfessions = () => {
       from: formData.from,
       content: formData.content,
       song: { id: selectedSong.id },
+      allowReplies: formData.allowReplies ?? true,
     });
-    if (res.data?.status !== "success") throw new Error("Invalid submission response");
+    if (res.data?.status !== "success")
+      throw new Error("Invalid submission response");
+    if (typeof res.data.deleteKey !== "string")
+      throw new Error(
+        "Delete key was not returned. Please contact the site owner before retrying.",
+      );
+    return res.data;
   };
 
-  const searchConfessions = async (query) => {
+  const searchConfessions = async (query, signal) => {
     if (!query || !query.trim()) return [];
     const res = await api.get("/api/confessions", {
       params: { to: query.trim() },
+      signal,
     });
     if (!Array.isArray(res.data)) throw new Error("Invalid search response");
     return res.data;
@@ -70,6 +94,18 @@ export const useConfessions = () => {
     submitConfession,
     searchConfessions,
   };
+};
+
+export const fetchConfessionById = async (id, signal) => {
+  if (!id || typeof id !== "string") return null;
+  const res = await api.get("/api/confessions", {
+    params: { id: id.trim() },
+    signal,
+  });
+  if (Array.isArray(res.data) && res.data.length > 0) {
+    return res.data[0];
+  }
+  return null;
 };
 
 // --- HOOK: Spotify song search ---
@@ -89,7 +125,6 @@ export const useSongSearch = () => {
 
     const controller = new AbortController();
     const timer = setTimeout(async () => {
-
       try {
         const res = await api.get("/api/search-song", {
           params: { q: songSearch },

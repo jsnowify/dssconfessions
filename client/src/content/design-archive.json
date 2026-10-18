@@ -1,0 +1,176 @@
+{
+  "intro": "dssconfessions is also where I practice being more creative. I'm revamping my older projects to push myself past 'it works' and into 'it feels good': new layouts, new colors, new ideas. Each redesign teaches me something, so I keep the older versions here. This is the journey so far.",
+  "disclaimer": "Screenshots use placeholder text. Real confessions are never shown here.",
+  "versions": [
+    {
+      "id": "v1",
+      "name": "Black & White Brutalist",
+      "period": "February 2026 – August 2026",
+      "current": false,
+      "summary": "Stark high-contrast neo-brutalist aesthetic with pure monochrome surfaces, heavy ink borders, and an infinite marquee ribbon.",
+      "learned": [
+        "What worked: Bold visual punch, distinctive handwriting accent font pairing (Caveat and Reenie Beanie), and raw student-built character.",
+        "What needed improvement: Gray metadata had low contrast (~2.5:1), handwriting text truncated on cards made confessions hard to read, and the lack of warm color felt stark."
+      ],
+      "images": [
+        {
+          "page": "home",
+          "device": "desktop",
+          "thumb": "/design-archive/v1/home-desktop-thumb.webp",
+          "full": "/design-archive/v1/home-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Black & White Brutalist - Home page with hero header and confession feed (Desktop)"
+        },
+        {
+          "page": "home",
+          "device": "mobile",
+          "thumb": "/design-archive/v1/home-mobile-thumb.webp",
+          "full": "/design-archive/v1/home-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Black & White Brutalist - Home page with hero header and confession feed (Mobile)"
+        },
+        {
+          "page": "browse",
+          "device": "desktop",
+          "thumb": "/design-archive/v1/browse-desktop-thumb.webp",
+          "full": "/design-archive/v1/browse-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Black & White Brutalist - Browse page with recipient search and song cards (Desktop)"
+        },
+        {
+          "page": "browse",
+          "device": "mobile",
+          "thumb": "/design-archive/v1/browse-mobile-thumb.webp",
+          "full": "/design-archive/v1/browse-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Black & White Brutalist - Browse page with recipient search and song cards (Mobile)"
+        },
+        {
+          "page": "confess",
+          "device": "desktop",
+          "thumb": "/design-archive/v1/confess-desktop-thumb.webp",
+          "full": "/design-archive/v1/confess-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Black & White Brutalist - Confess submission form with song search (Desktop)"
+        },
+        {
+          "page": "confess",
+          "device": "mobile",
+          "thumb": "/design-archive/v1/confess-mobile-thumb.webp",
+          "full": "/design-archive/v1/confess-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Black & White Brutalist - Confess submission form with song search (Mobile)"
+        },
+        {
+          "page": "about",
+          "device": "desktop",
+          "thumb": "/design-archive/v1/about-desktop-thumb.webp",
+          "full": "/design-archive/v1/about-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Black & White Brutalist - About page with platform values and student credits (Desktop)"
+        },
+        {
+          "page": "about",
+          "device": "mobile",
+          "thumb": "/design-archive/v1/about-mobile-thumb.webp",
+          "full": "/design-archive/v1/about-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Black & White Brutalist - About page with platform values and student credits (Mobile)"
+        }
+      ]
+    },
+    {
+      "id": "v2",
+      "name": "Sunny Mixtape",
+      "period": "October 2026 – Present",
+      "current": true,
+      "summary": "Light, warm, and playful neo-brutalist theme featuring a gentle pastel wash background, soft navy ink, electric blue primary accents, modular pinboard cards, and a floating Mixtape Scrubber.",
+      "learned": [
+        "What worked: Welcoming community feel that feels optimistic rather than gloomy, strict WCAG AA contrast on every pastel card, and interactive touches like the Mixtape Scrubber and unlimited Poke button.",
+        "What we're keeping: Live-text handwriting wordmark, tactile 2px ink borders, solid offset drop shadows, and zero-tracking privacy promise."
+      ],
+      "images": [
+        {
+          "page": "home",
+          "device": "desktop",
+          "thumb": "/design-archive/v2/home-desktop-thumb.webp",
+          "full": "/design-archive/v2/home-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Sunny Mixtape - Home page with hero header and confession feed (Desktop)"
+        },
+        {
+          "page": "home",
+          "device": "mobile",
+          "thumb": "/design-archive/v2/home-mobile-thumb.webp",
+          "full": "/design-archive/v2/home-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Sunny Mixtape - Home page with hero header and confession feed (Mobile)"
+        },
+        {
+          "page": "browse",
+          "device": "desktop",
+          "thumb": "/design-archive/v2/browse-desktop-thumb.webp",
+          "full": "/design-archive/v2/browse-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Sunny Mixtape - Browse page with recipient search and song cards (Desktop)"
+        },
+        {
+          "page": "browse",
+          "device": "mobile",
+          "thumb": "/design-archive/v2/browse-mobile-thumb.webp",
+          "full": "/design-archive/v2/browse-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Sunny Mixtape - Browse page with recipient search and song cards (Mobile)"
+        },
+        {
+          "page": "confess",
+          "device": "desktop",
+          "thumb": "/design-archive/v2/confess-desktop-thumb.webp",
+          "full": "/design-archive/v2/confess-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Sunny Mixtape - Confess submission form with song search (Desktop)"
+        },
+        {
+          "page": "confess",
+          "device": "mobile",
+          "thumb": "/design-archive/v2/confess-mobile-thumb.webp",
+          "full": "/design-archive/v2/confess-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Sunny Mixtape - Confess submission form with song search (Mobile)"
+        },
+        {
+          "page": "about",
+          "device": "desktop",
+          "thumb": "/design-archive/v2/about-desktop-thumb.webp",
+          "full": "/design-archive/v2/about-desktop.webp",
+          "width": 1440,
+          "height": 900,
+          "alt": "Sunny Mixtape - About page with platform values and student credits (Desktop)"
+        },
+        {
+          "page": "about",
+          "device": "mobile",
+          "thumb": "/design-archive/v2/about-mobile-thumb.webp",
+          "full": "/design-archive/v2/about-mobile.webp",
+          "width": 390,
+          "height": 844,
+          "alt": "Sunny Mixtape - About page with platform values and student credits (Mobile)"
+        }
+      ]
+    }
+  ]
+}

@@ -4,13 +4,11 @@
     <meta charset="UTF-8" />
 
     <!-- Icons -->
-    <link
-      rel="icon"
-      type="image/jpeg"
-      sizes="192x192"
-      href="/logoicon.jpg"
-    />
-    <link rel="apple-touch-icon" href="/logoicon.jpg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -29,7 +27,7 @@
 
     <meta name="author" content="DSSC Confessions" />
     <meta name="application-name" content="DSSC Confessions" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#F6F9FF" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
 
     <link rel="canonical" href="https://dssconfessions.vercel.app/" />
@@ -54,11 +52,13 @@
     <meta property="og:url" content="https://dssconfessions.vercel.app/" />
     <meta
       property="og:image"
-      content="https://dssconfessions.vercel.app/og-image.png"
+      content="https://dssconfessions.vercel.app/og-default.png"
     />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="DSSC Confessions - Anonymous Student Community"
+      content="dssconfessions - Untold words, sent through the song."
     />
 
     <!-- Twitter -->
@@ -73,7 +73,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://dssconfessions.vercel.app/og-image.png"
+      content="https://dssconfessions.vercel.app/og-default.png"
     />
 
     <!-- WebSite -->
@@ -95,7 +95,11 @@
         "inLanguage": "en-PH",
         "publisher": {
           "@type": "Organization",
-          "name": "DSSC Confessions"
+          "name": "DSSC Confessions",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://dssconfessions.vercel.app/logo-mark.svg"
+          }
         },
         "potentialAction": {
           "@type": "SearchAction",
@@ -112,7 +116,8 @@
         "@type": "Organization",
         "name": "DSSC Confessions",
         "url": "https://dssconfessions.vercel.app/",
-        "logo": "https://dssconfessions.vercel.app/logoicon.jpg",
+        "logo": "https://dssconfessions.vercel.app/logo-mark.svg",
+        "image": "https://dssconfessions.vercel.app/og-default.png",
         "sameAs": [],
         "description": "Anonymous confession platform dedicated to the Davao del Sur State College community."
       }

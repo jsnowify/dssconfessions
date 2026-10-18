@@ -1,0 +1,20 @@
+module.exports = Object.freeze({
+  autoHideReports: 3,
+  reviewReasons: ["names_me", "private_info", "hate_or_threat"],
+  reportReasons: [
+    "names_me",
+    "harassment",
+    "private_info",
+    "hate_or_threat",
+    "spam",
+    "other",
+  ],
+  reportHashRetentionDays: 14,
+  maxReplies: 20,
+  deletePerTarget: { windowMs: 900000, limit: 5 },
+  deletePerClient: { windowMs: 900000, limit: 15 },
+  reportsPerClient: { windowMs: 3600000, limit: 10 },
+  repliesPerClient: { windowMs: 3600000, limit: 10 },
+  repliesPerTarget: { windowMs: 86400000, limit: 3 },
+  pokesPerClient: { windowMs: 60000, limit: 240 },
+});

@@ -8,6 +8,18 @@
   "functions": { "api/index.js": { "maxDuration": 45 } },
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
+    {
+      "source": "/confession/:id",
+      "has": [{ "type": "query", "key": "_spa", "value": "1" }],
+      "destination": "/index.html"
+    },
+    { "source": "/confession/:id", "destination": "/api/index" },
     { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/confession/:id",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
   ]
 }

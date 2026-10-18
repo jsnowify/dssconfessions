@@ -1,51 +1,129 @@
-import { getVibe } from "../utils/vibes";
+import { ConfessionCard } from "../components/ui/ConfessionCard";
 import { useExport } from "../hooks/useExport";
+import { useState } from "react";
+import ConfessionFeatures from "../components/ui/ConfessionFeatures";
 
-const DetailsView = ({ selectedConfession, setView }) => {
+const DetailsView = ({
+  selectedConfession,
+  onBack,
+  fromView = "home",
+  isLoading = false,
+  error = null,
+  onDeleted,
+}) => {
   const { isExporting, handleDownloadImage } = useExport();
+  const [replyTrack, setReplyTrack] = useState(null);
 
-  if (!selectedConfession) return null;
+  if (isLoading) {
+    return (
+      <div className="details-view min-h-screen flex flex-col items-center justify-center px-4 text-center">
+        <h1 className="sr-only">Confession</h1>
+        <div className="w-8 h-8 border-2 border-[var(--ink)] border-t-[var(--mustard)] rounded-full animate-spin mb-4" />
+        <p className="font-mono text-sm uppercase tracking-wider text-[var(--text-soft)]">
+          Loading confession...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !selectedConfession) {
+    return (
+      <div className="details-view min-h-screen flex flex-col items-center justify-center px-4 text-center">
+        <h1 className="text-4xl md:text-5xl font-script font-bold mb-3 text-[var(--ink)]">
+          Confession not found
+        </h1>
+        <p className="text-[var(--ink-soft)] text-base mb-6 max-w-md">
+          {error ||
+            "This confession might have been removed, or the link may be incorrect."}
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          className="btn btn-paper px-6 py-2.5 text-[13px] font-bold uppercase tracking-widest cursor-pointer"
+        >
+          ← {fromView === "browse" ? "Back to Browse" : "Back to Home"}
+        </button>
+      </div>
+    );
+  }
+
+  const trackId =
+    replyTrack ||
+    selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center px-4 relative pb-20 pt-10">
-      <div
-        className={`absolute top-0 w-full h-[50vh] bg-gradient-to-b ${getVibe(selectedConfession.spotify_url).bg} to-white pointer-events-none`}
-      />
+    <div className="details-view min-h-screen flex flex-col items-center px-4 relative pb-20 pt-10">
+      {/* Top Navigation */}
       <div className="w-full max-w-4xl flex justify-between items-center mb-8 z-10">
         <button
-          onClick={() => setView("browse")}
-          className="px-6 py-2 bg-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+          type="button"
+          onClick={onBack}
+          className="btn btn-paper px-5 py-2.5 text-[13px] font-bold uppercase tracking-widest cursor-pointer"
         >
-          ← Back
+          ← {fromView === "browse" ? "Back to Browse" : "Back to Home"}
         </button>
         <button
+          type="button"
           onClick={() => handleDownloadImage(selectedConfession)}
           disabled={isExporting}
-          className="px-6 py-2 bg-rose-500 text-white border-2 border-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn btn-paper px-5 py-2.5 text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isExporting ? "⏳ Generating..." : "📸 Save for IG"}
+          {isExporting ? "Generating..." : "Save for IG"}
         </button>
       </div>
-      <h1 className="text-5xl md:text-7xl font-handwritten mb-10 z-10 text-center px-4">
+
+      {/* Recipient Title (keeping handwriting font) */}
+      <h1 className="text-5xl md:text-7xl font-handwritten mb-8 z-10 text-center px-4 text-[var(--ink)] break-words max-w-full">
         Hello, {selectedConfession.recipient_to}
       </h1>
-      <div className="w-full max-w-[450px] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] rounded-2xl border-2 border-black overflow-hidden bg-black z-10 mb-10">
-        <iframe
-          src={`https://open.spotify.com/embed/track/${selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0]}?utm_source=generator&theme=0`}
-          width="100%"
-          height="380"
-          frameBorder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-          title="Spotify Player"
+
+      <div className="detail-card-wrap">
+        <ConfessionCard
+          data={selectedConfession}
+          full
+          onClick={() =>
+            document.querySelector('iframe[title="Spotify Player"]')?.focus()
+          }
         />
       </div>
-      <p className="text-3xl md:text-4xl font-handwritten italic z-10 text-center max-w-xl px-4 text-balance animate-fade-in">
-        "{selectedConfession.content}"
+
+      {/* Spotify Embed Player */}
+      {trackId ? (
+        <div className="w-full max-w-[450px] shadow-[6px_6px_0_var(--ink)] rounded-xl border-2 border-[var(--ink)] overflow-hidden bg-[var(--surface)] z-10 mb-8">
+          <iframe
+            src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
+            width="100%"
+            height="380"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            title="Spotify Player"
+          />
+        </div>
+      ) : (
+        <div className="w-full max-w-[450px] p-6 bg-[var(--sleeve)] border-2 border-[var(--ink)] rounded-xl text-center mb-8 z-10 shadow-[4px_4px_0_var(--ink)]">
+          <p className="font-bold text-sm text-[var(--ink)]">
+            {selectedConfession.song_name}
+          </p>
+          <p className="text-[13px] text-[var(--ink-soft)]">
+            {selectedConfession.artist_name}
+          </p>
+        </div>
+      )}
+
+      {/* Metadata */}
+      <p className="mt-6 text-[13px] font-mono text-[var(--ink-soft)] uppercase tracking-wider z-10 text-center">
+        SENT VIA DSSCONFESSIONS • FROM:{" "}
+        {selectedConfession.sender_from || "ANONYMOUS"}
       </p>
-      <p className="mt-10 text-[10px] font-mono font-bold uppercase z-10 text-center">
-        SENT VIA DSSCONFESSIONS • FROM: {selectedConfession.sender_from}
-      </p>
+      <ConfessionFeatures
+        key={selectedConfession.id}
+        data={selectedConfession}
+        onDeleted={onDeleted}
+        onPlayReply={(id) => {
+          if (/^[A-Za-z0-9]{22}$/.test(id)) setReplyTrack(id);
+        }}
+      />
     </div>
   );
 };
