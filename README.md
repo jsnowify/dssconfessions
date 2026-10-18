@@ -42,7 +42,7 @@ npm test
 npm run check:live -- https://dssconfessions.vercel.app
 ```
 
-The live check performs only reads and fails if the deployment serves HTML instead of API JSON. `/api/health` checks database connectivity and reports whether Spotify credentials are configured; it does not validate those credentials with Spotify.
+The live check performs only reads and fails if the deployment serves HTML instead of API JSON or posting is not configured. `/api/health` checks database connectivity, Spotify credential presence and the Delete Key secret required for posting. It returns HTTP 503 when posting configuration is invalid; it does not verify Spotify credentials or perform a database insert.
 
 ## Deploying to Vercel
 
@@ -54,6 +54,10 @@ Configure these server environment variables:
 - `SUPABASE_SERVICE_ROLE`
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
+- `DELETE_KEY_PEPPER` — a separate random secret of at least 32 characters, required for posting and author deletion
+- `REPORT_HASH_SECRET` — another independent random secret of at least 32 characters, required for anonymous reports
+
+Store secrets as server-only Vercel environment variables for each intended environment, then redeploy: existing deployments keep their original environment. Never rotate `DELETE_KEY_PEPPER` during a routine release, because existing author Delete Keys depend on it. Keep both secrets distinct from each other and from `SUPABASE_SERVICE_ROLE`. Check `/api/health` and run `npm run check:live -- <deployment-url>` before promoting a production build.
 
 Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/api`. The [shared rate-limit migration](supabase/migrations/20261018080243_serverless_rate_limits.sql) and [feed/search indexes](supabase/migrations/20261018080247_confession_indexes.sql) have been applied to the restored dssconfessions project. For another database, restore the existing confession schema/data first, then apply these migrations before deploying the API. Vercel always uses shared database limits; unavailable limits return HTTP 503. See [operations](docs/operations.md) for verification and cutover details.
 
@@ -61,7 +65,7 @@ Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/a
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET /api/health` | Database connectivity and Spotify configuration |
+| `GET /api/health` | Database connectivity, Spotify configuration and posting configuration |
 | `GET /api/confessions` | Latest 20 public stories |
 | `GET /api/confessions?to=name` | Up to 50 recipient matches |
 | `GET /api/search-song?q=title` | Up to five Spotify tracks |

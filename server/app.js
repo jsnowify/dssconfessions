@@ -7,7 +7,11 @@ const { getSpotifyToken } = require("./utils/spotify");
 const { validateConfessionInput } = require("./utils/validation");
 const { createLimiter } = require("./utils/rate-limit");
 const { createSearchTracker } = require("./utils/search-trends");
-const { generateDeleteKey, hashDeleteKey } = require("./utils/delete-key");
+const {
+  generateDeleteKey,
+  hashDeleteKey,
+  isDeleteKeyConfigured,
+} = require("./utils/delete-key");
 const { verifiedTrack } = require("./utils/verified-track");
 const { mountFeatures } = require("./features");
 const { mountOg } = require("./og");
@@ -126,11 +130,18 @@ function createApp({
       env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET
         ? "configured"
         : "missing";
-    const ready = databaseStatus === "ok" && spotifyStatus === "configured";
+    const postingStatus = isDeleteKeyConfigured(env)
+      ? "configured"
+      : "unavailable";
+    const ready =
+      databaseStatus === "ok" &&
+      spotifyStatus === "configured" &&
+      postingStatus === "configured";
     return res.status(ready ? 200 : 503).json({
       status: ready ? "ok" : "degraded",
       database: databaseStatus,
       spotify: spotifyStatus,
+      posting: postingStatus,
     });
   });
 
@@ -147,11 +158,7 @@ function createApp({
       return res
         .status(400)
         .json({ error: "Allow replies must be a boolean." });
-    if (
-      typeof env.DELETE_KEY_PEPPER !== "string" ||
-      env.DELETE_KEY_PEPPER.length < 32 ||
-      env.DELETE_KEY_PEPPER === env.SUPABASE_SERVICE_ROLE
-    ) {
+    if (!isDeleteKeyConfigured(env)) {
       console.error("DELETE_KEY_PEPPER is not configured independently");
       return res
         .status(503)

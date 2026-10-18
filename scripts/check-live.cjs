@@ -11,7 +11,7 @@ const paths = ["/", "/api/health", "/api/confessions", "/api/search-song?q=hello
       const type = response.headers.get("content-type") || "";
       const body = type.includes("application/json") ? await response.json() : await response.text();
       const valid = response.ok && (path === "/" ? type.includes("text/html") || body?.status === "online"
-        : path === "/api/health" ? body?.status === "ok" : Array.isArray(body));
+        : path === "/api/health" ? body?.status === "ok" && body?.posting === "configured" : Array.isArray(body));
       console.log(JSON.stringify({ path, status: response.status, ms: Math.round(performance.now() - start),
         valid, ...(path === "/api/health" && type.includes("application/json") ? { health: body } : {}) }));
       if (!valid) process.exitCode = 1;

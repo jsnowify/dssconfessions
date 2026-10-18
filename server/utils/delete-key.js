@@ -3,6 +3,14 @@ const alphabet = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 const KEY_PATTERN =
   /^DSS-(?:[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-){3}[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/;
 
+function isDeleteKeyConfigured(env) {
+  return (
+    typeof env.DELETE_KEY_PEPPER === "string" &&
+    env.DELETE_KEY_PEPPER.length >= 32 &&
+    env.DELETE_KEY_PEPPER !== env.SUPABASE_SERVICE_ROLE
+  );
+}
+
 function generateDeleteKey() {
   let letters = "";
   while (letters.length < 16) {
@@ -26,6 +34,7 @@ function matchesDeleteKey(key, storedHash, pepper) {
   return timingSafeEqual(candidate, stored) && valid;
 }
 module.exports = {
+  isDeleteKeyConfigured,
   generateDeleteKey,
   hashDeleteKey,
   matchesDeleteKey,

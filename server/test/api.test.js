@@ -80,6 +80,7 @@ test("health reports database outages without exposing upstream details", async 
     status: "degraded",
     database: "unavailable",
     spotify: "configured",
+    posting: "configured",
   });
   assert.equal(res.headers.get("cache-control"), "no-store");
 });
@@ -91,9 +92,64 @@ test("missing config still serves diagnostics instead of crashing the function",
   assert.equal((await request("/api/confessions")).status, 503);
 });
 
-test("health returns 200 with a working database and configured Spotify", async (t) => {
+test("health returns 200 with a working database, Spotify and posting configuration", async (t) => {
   const request = await serve(t, { database: fakeDatabase() });
-  assert.equal((await request("/api/health")).status, 200);
+  const response = await request("/api/health");
+  assert.equal(response.status, 200);
+  assert.equal(response.body.posting, "configured");
+});
+
+test("health detects posting configuration failures before release without exposing secrets or writing data", async (t) => {
+  for (const pepper of [undefined, "too-short", "service-role-".repeat(4)]) {
+    const name =
+      pepper === undefined
+        ? "missing"
+        : pepper === "too-short"
+          ? "short"
+          : "reused service role";
+    await t.test(name, async (t) => {
+      const database = fakeDatabase();
+      let tokenCalls = 0;
+      const request = await serve(t, {
+        database,
+        env: {
+          ...env,
+          SUPABASE_SERVICE_ROLE: "service-role-".repeat(4),
+          DELETE_KEY_PEPPER: pepper,
+        },
+        getToken: async () => {
+          tokenCalls++;
+          throw new Error("Spotify must not be called");
+        },
+      });
+      const health = await request("/api/health");
+      assert.equal(health.status, 503);
+      assert.deepEqual(health.body, {
+        status: "degraded",
+        database: "ok",
+        spotify: "configured",
+        posting: "unavailable",
+      });
+      assert.equal(health.headers.get("cache-control"), "no-store");
+      const post = await request("/api/confess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: "SAMPLE",
+          content: "SAMPLE",
+          song: { id: TRACK_ID },
+        }),
+      });
+      assert.equal(post.status, 503);
+      assert.equal(
+        post.body.error,
+        "Posting is unavailable. Please try again shortly.",
+      );
+      assert.equal(database.calls.some(([name]) => name === "insert"), false);
+      assert.equal(tokenCalls, 0);
+      assert.equal((await request("/api/confessions")).status, 200);
+    });
+  }
 });
 
 test("feed limits data and selects only public fields", async (t) => {

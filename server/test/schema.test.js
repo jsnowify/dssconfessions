@@ -229,7 +229,11 @@ test("checker fails on missing columns/functions and never prints rows or diagno
 
 async function serve(t, database) {
   const server = createApp({
-    env: { SPOTIFY_CLIENT_ID: "fixture", SPOTIFY_CLIENT_SECRET: "fixture" },
+    env: {
+      SPOTIFY_CLIENT_ID: "fixture",
+      SPOTIFY_CLIENT_SECRET: "fixture",
+      DELETE_KEY_PEPPER: "fixture-pepper-".repeat(4),
+    },
     database,
   }).listen(0, "127.0.0.1");
   await once(server, "listening");
