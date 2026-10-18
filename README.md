@@ -1,78 +1,74 @@
-# 📝 dssconfessions
+﻿# dssconfessions
 
-**Untold words, sent through the song.**
+Untold words, sent through the song. An anonymous confession platform for the DSSC student community, built with React, Vite, Express, Spotify and Supabase PostgreSQL.
 
-An anonymous confession platform built specifically for the **DSSC Student Community**. Inspired by the emotional resonance of _SendTheSong_, this version focuses on secure cloud architecture, high-performance data retrieval, and a minimalist "Neo-Brutalism" UI/UX design.
+Live frontend: https://dssconfessions.vercel.app/
 
-## 🚀 Live Demo
+The frontend and API are live together on Vercel, with Supabase storing the 56 existing confessions. Shared rate limits and feed/search indexes have been applied. The production app no longer depends on Render. See the [deployment and verification report](docs/operations.md).
 
-- **Frontend:** [https://dssconfessions.vercel.app/](https://dssconfessions.vercel.app/)
-- **Backend API:** [https://dssconfessions.onrender.com/](https://dssconfessions.onrender.com/)
+## Architecture
 
----
+The browser calls same-origin `/api` endpoints. `api/index.js` exports the Express app as a Vercel Function, while Vercel serves `client/dist` as static assets. The API reads/writes Supabase and proxies Spotify; server credentials stay out of the browser. A separate Render service is unnecessary after the Vercel cutover.
 
-## ✨ Features
+## Local development
 
-- **Anonymous Confessions:** Post messages without the need for an account, ensuring 100% privacy.
-- **Spotify Integration:** Search for and attach specific songs to your messages via the Spotify API.
-- **Neo-Brutalist UI:** A bold, high-contrast design with responsive "Vibe-based" dynamic gradients.
-- **Fuzzy Search:** Case-insensitive search functionality to find confessions easily.
-- **Responsive Navigation:** Mobile-ready burger menu and stacked live preview for all devices.
+Use Node.js 24.x, then install both applications:
 
----
-
-## 🛠️ Tech Stack
-
-| Layer          | Technology                 | Purpose                               |
-| :------------- | :------------------------- | :------------------------------------ |
-| **Frontend**   | React + Tailwind CSS       | UI/UX & State Management              |
-| **Backend**    | Node.js + Express          | API Logic & Spotify Proxy             |
-| **Database**   | Supabase (PostgreSQL)      | Cloud Data Storage                    |
-| **Security**   | RLS + Helmet + XSS-Filters | Secure Data Layer & Header Protection |
-| **Deployment** | Vercel & Render            | Continuous Integration / Deployment   |
-
----
-
-## 🔒 Security Architecture
-
-As an IT capstone-level project, security was a primary focus:
-
-- **Row Level Security (RLS):** Enabled on Supabase to prevent unauthorized public access. Data is strictly accessible via the backend's Service Role master key.
-- **Rate Limiting:** Implemented `express-rate-limit` to prevent spamming and API abuse.
-- **Data Sanitization:** All user inputs are sanitized using `xss-filters` before being committed to the database.
-- **Reverse Proxy Trust:** Configured `trust proxy` for Render's infrastructure to ensure accurate IP identification.
-
----
-
-## ⚙️ Local Setup
-
-To run this project locally, create a `.env` file:
-
-### Backend (.env)
-
-```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE=your_service_role_key
-SPOTIFY_CLIENT_ID=your_id
-SPOTIFY_CLIENT_SECRET=your_secret
-PORT=5000
+```powershell
+npm ci --prefix server
+npm ci --prefix client
 ```
 
-### Frontend (.env)
+Configure `server/.env` using the names in [server/.env.example](server/.env.example). Preserve existing credentials if this file is already configured. Leave `VITE_API_BASE_URL` unset in the frontend environment; Vite proxies `/api` to `http://localhost:5000`.
 
-```env
-VITE_API_BASE_URL=http://localhost:5000
+Run the backend and frontend in separate terminals:
+
+```powershell
+npm start
 ```
 
----
+```powershell
+npm run dev
+```
 
-## 👨‍💻 Author
+The development UI runs on port 5173. The backend defaults to port 5000; `PORT` can override it, but the Vite proxy target must then be adjusted to match.
 
-**Snowi Wu** _4th-year BS Information Technology Student_ _Focusing on UI/UX Design, Machine Learning, and System Architecture._
+## Checks
 
----
+```powershell
+npm run lint
+npm run build
+npm test
+npm run check:live -- https://dssconfessions.vercel.app
+```
 
-## 📜 License
+The live check performs only reads and fails if the deployment serves HTML instead of API JSON. `/api/health` checks database connectivity and reports whether Spotify credentials are configured; it does not validate those credentials with Spotify.
 
-This project is for educational purposes and inspired by the SendTheSong platform.
-EOF
+## Deploying to Vercel
+
+Use the repository root as the Vercel project Root Directory, with Node.js 24.x. Root `vercel.json` defines the build, static output, function region and API routes.
+
+Configure these server environment variables:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE`
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+
+Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/api`. The [shared rate-limit migration](supabase/migrations/20261018080243_serverless_rate_limits.sql) and [feed/search indexes](supabase/migrations/20261018080247_confession_indexes.sql) have been applied to the restored dssconfessions project. For another database, restore the existing confession schema/data first, then apply these migrations before deploying the API. Vercel always uses shared database limits; unavailable limits return HTTP 503. See [operations](docs/operations.md) for verification and cutover details.
+
+## API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/health` | Database connectivity and Spotify configuration |
+| `GET /api/confessions` | Latest 20 public stories |
+| `GET /api/confessions?to=name` | Up to 50 recipient matches |
+| `GET /api/search-song?q=title` | Up to five Spotify tracks |
+| `POST /api/confess` | Validate and save a story with a server-verified Spotify track |
+
+Submissions accept a recipient of up to 50 characters, optional sender, content of up to 3,000 characters, and `song: { id: "SPOTIFY_TRACK_ID" }`. The server obtains the song title, artist and artwork from Spotify.
+
+## Author
+
+Snowi Wu. Built for educational purposes and inspired by SendTheSong.

@@ -21,8 +21,8 @@ const validateConfessionInput = (body) => {
   if (!isNonEmptyString(to)) errors.push("Recipient ('to') is required.");
   if (!isNonEmptyString(content))
     errors.push("Confession content is required.");
-  if (typeof content === "string" && content.trim().length > 500) {
-    errors.push("Confession content must be 500 characters or fewer.");
+  if (typeof content === "string" && content.trim().length > 3000) {
+    errors.push("Confession content must be 3000 characters or fewer.");
   }
   if (typeof to === "string" && to.trim().length > 50) {
     errors.push("Recipient name must be 50 characters or fewer.");
@@ -30,7 +30,7 @@ const validateConfessionInput = (body) => {
 
   if (!song || typeof song !== "object") {
     errors.push("A song selection is required.");
-  } else if (!isNonEmptyString(song.id)) {
+  } else if (typeof song.id !== "string" || !/^[A-Za-z0-9]{22}$/.test(song.id)) {
     errors.push("Song is missing a valid id.");
   }
 

@@ -1,36 +1,42 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-if (!API_BASE_URL && import.meta.env.PROD) {
-  // Fail loudly in production instead of silently calling localhost
-  // on the visitor's own machine.
-  console.error("VITE_API_BASE_URL is not set. API requests will fail.");
-}
-
-const BASE_URL = API_BASE_URL || "http://localhost:5000";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, "") || "",
+  timeout: 35000,
+});
 
 // --- HOOK: Fetch & manage confession feed ---
 export const useConfessions = () => {
   const [feed, setFeed] = useState([]);
   const [isFeedLoading, setIsFeedLoading] = useState(true);
+  const [feedError, setFeedError] = useState(null);
+  const [refreshSequence, setRefreshSequence] = useState(0);
 
-  const fetchFeed = useCallback(async () => {
+  const fetchFeed = useCallback(() => {
     setIsFeedLoading(true);
-    try {
-      const res = await axios.get(`${BASE_URL}/api/confessions`);
-      setFeed(Array.isArray(res.data) ? res.data : []);
-    } catch (e) {
-      console.error("Feed Error", e);
-    } finally {
-      setIsFeedLoading(false);
-    }
+    setFeedError(null);
+    setRefreshSequence((sequence) => sequence + 1);
   }, []);
 
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    const controller = new AbortController();
+    api.get("/api/confessions", { signal: controller.signal })
+      .then((res) => {
+        if (controller.signal.aborted) return;
+        if (!Array.isArray(res.data)) throw new Error("Invalid feed response");
+        setFeed(res.data);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        console.error("Feed Error", error);
+        setFeedError("Stories couldn't load. Please try again shortly.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsFeedLoading(false);
+      });
+    return () => controller.abort();
+  }, [refreshSequence]);
 
   const submitConfession = async (formData, selectedSong) => {
     if (!selectedSong?.id) {
@@ -38,25 +44,28 @@ export const useConfessions = () => {
     }
     // Only the song ID is sent — the server re-verifies the real track
     // details itself rather than trusting whatever the client sends.
-    await axios.post(`${BASE_URL}/api/confess`, {
+    const res = await api.post("/api/confess", {
       to: formData.to,
       from: formData.from,
       content: formData.content,
       song: { id: selectedSong.id },
     });
+    if (res.data?.status !== "success") throw new Error("Invalid submission response");
   };
 
   const searchConfessions = async (query) => {
     if (!query || !query.trim()) return [];
-    const res = await axios.get(`${BASE_URL}/api/confessions`, {
+    const res = await api.get("/api/confessions", {
       params: { to: query.trim() },
     });
-    return Array.isArray(res.data) ? res.data : [];
+    if (!Array.isArray(res.data)) throw new Error("Invalid search response");
+    return res.data;
   };
 
   return {
     feed,
     isFeedLoading,
+    feedError,
     fetchFeed,
     submitConfession,
     searchConfessions,
@@ -72,39 +81,24 @@ export const useSongSearch = () => {
   const [searchError, setSearchError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [retryTrigger, setRetryTrigger] = useState(0);
-  const abortControllerRef = useRef(null);
 
   const MIN_CHARS = 3;
 
   useEffect(() => {
-    setSearchError(null);
+    if (songSearch.trim().length < MIN_CHARS || selectedSong) return;
 
-    if (songSearch.trim().length < MIN_CHARS) {
-      setSongs([]);
-      setIsSearching(false);
-      setHasSearched(false);
-      return;
-    }
-
-    setIsSearching(true);
-    setHasSearched(false);
-
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
-      // Cancel any in-flight request so a slow older response can't
-      // overwrite results from a newer, faster one.
-      abortControllerRef.current?.abort();
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
 
       try {
-        const res = await axios.get(`${BASE_URL}/api/search-song`, {
+        const res = await api.get("/api/search-song", {
           params: { q: songSearch },
           signal: controller.signal,
-          timeout: 8000,
         });
         // Filter out any tracks missing the fields the UI relies on,
         // instead of letting a malformed result crash the render.
-        const safeResults = (res.data || []).filter(
+        if (!Array.isArray(res.data)) throw new Error("Invalid song response");
+        const safeResults = res.data.filter(
           (s) => s?.id && s?.name && s?.artists?.[0]?.name,
         );
         setSongs(safeResults);
@@ -120,13 +114,15 @@ export const useSongSearch = () => {
             : "Couldn't load songs right now.",
         );
       } finally {
-        setIsSearching(false);
+        if (!controller.signal.aborted) setIsSearching(false);
       }
     }, 500);
 
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songSearch, retryTrigger]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [songSearch, retryTrigger, selectedSong]);
 
   const selectSong = (song) => {
     setSelectedSong(song);
@@ -134,6 +130,7 @@ export const useSongSearch = () => {
     setSongSearch(song.name);
     setHasSearched(false);
     setSearchError(null);
+    setIsSearching(false);
   };
 
   const resetSong = () => {
@@ -142,9 +139,13 @@ export const useSongSearch = () => {
     setSongSearch("");
     setHasSearched(false);
     setSearchError(null);
+    setIsSearching(false);
   };
 
   const retrySearch = () => {
+    setSearchError(null);
+    setHasSearched(false);
+    setIsSearching(songSearch.trim().length >= MIN_CHARS && !selectedSong);
     // Bumping this number is what actually re-runs the effect above,
     // since songSearch itself hasn't changed on a retry.
     setRetryTrigger((n) => n + 1);
@@ -155,6 +156,10 @@ export const useSongSearch = () => {
     setSongSearch: (val) => {
       setSongSearch(val);
       setSelectedSong(null);
+      setSongs([]);
+      setSearchError(null);
+      setHasSearched(false);
+      setIsSearching(val.trim().length >= MIN_CHARS);
     },
     songs,
     selectedSong,

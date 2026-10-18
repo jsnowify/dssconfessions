@@ -6,16 +6,19 @@ const BrowseView = ({ onSelectConfession, searchConfessions }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
   const executeSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsLoading(true);
+    setSearchError(null);
     try {
       const results = await searchConfessions(searchQuery);
       setSearchResults(results);
       setHasSearched(true);
     } catch (e) {
       console.error("Search Error", e);
+      setSearchError("Search is unavailable. Please try again shortly.");
     } finally {
       setIsLoading(false);
     }
@@ -28,12 +31,15 @@ const BrowseView = ({ onSelectConfession, searchConfessions }) => {
         <input
           className="flex-1 border-2 border-black p-4 rounded-xl font-bold"
           placeholder="Recipient name..."
+          aria-label="Recipient name"
+          maxLength={50}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && executeSearch()}
         />
         <button
           onClick={executeSearch}
+          disabled={isLoading}
           className="bg-black text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-xs"
         >
           Search
@@ -44,6 +50,8 @@ const BrowseView = ({ onSelectConfession, searchConfessions }) => {
           <div className="col-span-full py-16 text-zinc-400 font-bold animate-pulse">
             Searching...
           </div>
+        ) : searchError ? (
+          <p role="alert" className="col-span-full py-16 text-zinc-500">{searchError}</p>
         ) : hasSearched && searchResults.length > 0 ? (
           searchResults.map((c) => (
             <ConfessionCard

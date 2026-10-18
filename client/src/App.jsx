@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "./components/layout/Navbar";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import HomeView from "./views/HomeView";
-import BrowseView from "./views/Browseview";
+import BrowseView from "./views/BrowseView";
 import SubmitView from "./views/SubmitView";
 import AboutView from "./views/AboutView";
 import DetailsView from "./views/DetailsView";
@@ -20,6 +20,7 @@ export default function App() {
   const {
     feed,
     isFeedLoading,
+    feedError,
     fetchFeed,
     submitConfession,
     searchConfessions,
@@ -57,6 +58,8 @@ export default function App() {
             <HomeView
               feed={feed}
               isFeedLoading={isFeedLoading}
+              feedError={feedError}
+              onRetry={fetchFeed}
               onSelectConfession={handleSelectConfession}
               setView={setView}
             />

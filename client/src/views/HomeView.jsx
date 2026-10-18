@@ -3,7 +3,7 @@ import { ConfessionCard } from "../components/ui/ConfessionCard";
 import StepCard from "../components/ui/StepCard";
 import { computeFeedLayout } from "../utils/feedLayout";
 
-const HomeView = ({ feed, isFeedLoading, onSelectConfession, setView }) => {
+const HomeView = ({ feed, isFeedLoading, feedError, onRetry, onSelectConfession, setView }) => {
   const feedLayout = useMemo(() => computeFeedLayout(feed), [feed]);
 
   return (
@@ -48,6 +48,15 @@ const HomeView = ({ feed, isFeedLoading, onSelectConfession, setView }) => {
           <div className="flex justify-center gap-8 px-10">
             <div className="w-[300px] h-[400px] bg-zinc-200 border-2 border-black rounded-2xl animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]"></div>
           </div>
+        ) : feedError ? (
+          <div role="alert" className="px-6 py-12">
+            <p className="font-medium text-zinc-600">{feedError}</p>
+            <button onClick={onRetry} className="mt-6 rounded-xl border-2 border-black px-6 py-3 font-bold">
+              Try again
+            </button>
+          </div>
+        ) : feed.length === 0 ? (
+          <p className="px-6 py-12 text-zinc-500">No stories yet. Share the first one.</p>
         ) : feedLayout.mode === "double" ? (
           <div className="flex flex-col gap-10">
             {/* Row 1: Left Scroll */}

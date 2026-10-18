@@ -1,3 +1,9 @@
 server/.env
 node_modules/
 .env
+.env.*
+!.env.example
+dist/
+.vercel/
+.supabase/
+supabase/.temp/

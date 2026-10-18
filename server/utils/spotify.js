@@ -5,6 +5,7 @@ const axios = require("axios");
 // and only refetch when it's actually expired (with a small safety margin).
 let cachedToken = null;
 let tokenExpiresAt = 0; // epoch ms
+let pendingToken = null;
 
 const fetchNewToken = async () => {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
@@ -41,7 +42,10 @@ const getSpotifyToken = async () => {
   if (cachedToken && Date.now() < tokenExpiresAt) {
     return cachedToken;
   }
-  return fetchNewToken();
+  if (!pendingToken) {
+    pendingToken = fetchNewToken().finally(() => { pendingToken = null; });
+  }
+  return pendingToken;
 };
 
 module.exports = { getSpotifyToken };
