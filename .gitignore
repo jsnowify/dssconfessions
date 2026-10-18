@@ -7,3 +7,4 @@ dist/
 .vercel/
 .supabase/
 supabase/.temp/
+docs/

@@ -1,0 +1,30 @@
+# robots.txt for DSSC Confessions (dssconfessions)
+# Policy: Public informational & submission pages are allowed.
+# Private confessions, search queries, and backend API routes are disallowed.
+
+User-agent: *
+Allow: /
+Allow: /dssc-confessions
+Allow: /browse$
+Allow: /confess$
+Allow: /about$
+Allow: /faq$
+Allow: /privacy$
+Allow: /guides/
+
+# Disallow individual confessions (privacy protection for mentioned students)
+Disallow: /confession/
+Disallow: /confessions/
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Disallow query parameters that filter by name or track
+Disallow: /*?to=
+Disallow: /*?search=
+Disallow: /*?id=
+Disallow: /*?confession=
+
+# Reference XML Sitemap
+Sitemap: https://dssconfessions.vercel.app/sitemap.xml
+

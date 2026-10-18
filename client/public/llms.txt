@@ -1,0 +1,31 @@
+# DSSC Confessions (dssconfessions)
+
+> DSSC Confessions (dssconfessions) is a free, independent website where people in the Davao del Sur State College community can send an anonymous message to someone, paired with a song, without creating an account. It is not affiliated with or endorsed by Davao del Sur State College.
+
+## Audience and Region
+- **Target Community**: Students, alumni, and friends across the Davao del Sur State College (DSSC) community.
+- **Geographic Area**: Digos City, Davao del Sur, Region XI (Davao Region), Philippines.
+
+## What This Site Is NOT
+- Not the official Davao del Sur State College (DSSC) website or student portal.
+- Does not handle student enrollment, grades, academic records, tuition, or official administrative admissions.
+- For official college services, visit the official institution portal at https://www.dssc.edu.ph/.
+
+## Core Features & Guarantees
+- **Song Pairing**: Every confession is paired with an authentic track verified via the Spotify Web API.
+- **Complete Anonymity**: No accounts, usernames, emails, or phone numbers required.
+- **Zero-IP Logging**: No client IP addresses or hardware fingerprints are stored in any database table.
+- **Author Control**: Authors receive a private 16-character Delete Key for permanent self-deletion.
+- **Mixtape Song Replies**: Confessions can receive up to 10 anonymous song replies in a collaborative 10-track mixtape format.
+- **Community Safety**: In-app reporting automatically hides contested confessions upon urgent review.
+
+## Key Indexable URLs
+- Overview & Community Guide: https://dssconfessions.vercel.app/dssc-confessions
+- Home & Feed: https://dssconfessions.vercel.app/
+- Search by Recipient Name: https://dssconfessions.vercel.app/browse
+- Write a Confession: https://dssconfessions.vercel.app/confess
+- About the Project: https://dssconfessions.vercel.app/about
+- Frequently Asked Questions: https://dssconfessions.vercel.app/faq
+- Privacy & Zero-IP Policy: https://dssconfessions.vercel.app/privacy
+- Full Context: https://dssconfessions.vercel.app/llms-full.txt
+

@@ -40,8 +40,22 @@ const HomeView = ({
               </svg>
             </span>
           </h1>
-          <p className="text-lg md:text-xl mb-8">
+          <p className="text-lg md:text-xl mb-3">
             Untold words, sent through the song.
+          </p>
+          <p className="text-xs font-mono text-[var(--ink-soft)] mb-8">
+            An anonymous music space for the{" "}
+            <a
+              href="/dssc-confessions"
+              onClick={(e) => {
+                e.preventDefault();
+                setView("dssc-landing");
+              }}
+              className="font-bold underline text-[var(--ink)] hover:text-[var(--primary)]"
+            >
+              DSSC (Davao del Sur State College) community
+            </a>
+            . Independent student project, not affiliated with the college.
           </p>
           <div className="hero-actions flex flex-wrap gap-4">
             {tellStory}

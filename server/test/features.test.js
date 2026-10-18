@@ -13,6 +13,8 @@ const {
 } = require("../utils/delete-key");
 const { reporterHash } = require("../utils/report-hash");
 
+const config = require("../config/features");
+
 const TRACK = "0123456789ABCDEFGHIJKL";
 const env = {
   VERCEL: "1",
@@ -23,6 +25,7 @@ const env = {
   SPOTIFY_CLIENT_SECRET: "test",
 };
 const migration = "20261018110837_schema_catch_up.sql";
+const repliesMigration = "20261018140000_replies_tracklist_cap.sql";
 
 // Real SQL under the API, with a minimal Supabase query adapter for local tests.
 function adapter(db, calls) {
@@ -64,11 +67,14 @@ function adapter(db, calls) {
         const args = Object.keys(params)
           .map((key, i) => `${identifier(key)} => $${i + 1}`)
           .join(",");
+        const values = Object.values(params).map((v) =>
+          typeof v === "object" && v !== null ? JSON.stringify(v) : v,
+        );
         return {
           data: (
             await db.query(
               `select public.${identifier(name)}(${args}) as result`,
-              Object.values(params),
+              values,
             )
           ).rows[0].result,
         };
@@ -175,12 +181,15 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
   t.after(() => db.close());
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
     create table public.confessions (id uuid primary key default gen_random_uuid(), created_at timestamptz not null default now(), recipient_to text not null, sender_from text default 'Anonymous', content text not null, song_name text, artist_name text, album_art text, spotify_url text);`);
-  for (const file of [`supabase/migrations/${migration}`])
+  for (const file of [
+    `supabase/migrations/${migration}`,
+    `supabase/migrations/${repliesMigration}`,
+  ])
     await db.exec(readFileSync(join(__dirname, "../..", file), "utf8"));
   // Reapplying the new migration preserves existing rows and definitions.
   await db.exec(
     readFileSync(
-      join(__dirname, "../../supabase/migrations", migration),
+      join(__dirname, "../../supabase/migrations", repliesMigration),
       "utf8",
     ),
   );
@@ -310,7 +319,7 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
             note: "hello",
           })
         ).status,
-        200,
+        201,
       );
       await request("/api/reports", {
         targetType: "confession",
@@ -505,88 +514,174 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
         400,
       );
       // Invalid attempts consumed quotas as abuse prevention; use a fresh client.
-      assert.equal(
-        (
-          await request(
-            route,
-            { song: { id: TRACK, name: "Forged" }, note: " hello " },
-            "192.0.2.2",
-          )
-        ).status,
-        200,
+      const firstPost = await request(
+        route,
+        { song: { id: TRACK, name: "Forged" }, note: " hello " },
+        "192.0.2.2",
       );
+      assert.equal(firstPost.status, 201);
+      assert.ok(firstPost.body.reply);
+      assert.equal(firstPost.body.meta.count, 1);
+      assert.equal(firstPost.body.meta.max, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(firstPost.body.meta.canReply, true);
+      assert.equal(firstPost.body.meta.reason, null);
+
       const replies = await request(route);
-      assert.equal(replies.body[0].song_name, "Verified song");
-      assert.equal(replies.body[0].note, "hello");
-      const replyId = replies.body[0].id;
+      assert.equal(replies.body.replies[0].song_name, "Verified song");
+      assert.equal(replies.body.replies[0].note, "hello");
+      assert.equal(replies.body.meta.count, 1);
+      assert.equal(replies.body.meta.max, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(replies.body.meta.canReply, true);
+      const replyId = replies.body.replies[0].id;
+
       await request(
         "/api/reports",
         { targetType: "reply", targetId: replyId, reason: "spam" },
         "192.0.2.9",
       );
-      assert.equal(
-        (
-          await request(
-            `/api/confessions/${row.id}/replies/${replyId}/delete`,
-            { key: row.key },
-          )
-        ).status,
-        200,
+      const deleteRes = await request(
+        `/api/confessions/${row.id}/replies/${replyId}/delete`,
+        { key: row.key },
       );
+      assert.equal(deleteRes.status, 200);
+      assert.equal(deleteRes.body.meta.count, 0);
+      assert.equal(deleteRes.body.meta.canReply, true);
       assert.equal(
         (await db.query("select count(*)::int as n from public.reports"))
           .rows[0].n,
         0,
       );
-      assert.deepEqual((await request(route)).body, []);
+      assert.deepEqual((await request(route)).body.replies, []);
+
+      // Rate limit per target (3 per day per client)
       for (let i = 0; i < 3; i++)
         assert.equal(
           (await request(route, { song: { id: TRACK } }, "192.0.2.3")).status,
-          200,
+          201,
         );
       assert.equal(
         (await request(route, { song: { id: TRACK } }, "192.0.2.3")).status,
         429,
       );
-      const track = {
-        song_name: "Verified song",
-        artist_name: "Artist",
-        spotify_track_id: TRACK,
-      };
-      await Promise.all(
-        Array.from({ length: 25 }, () =>
-          database.rpc("add_song_reply", {
-            p_parent: row.id,
-            p_track: track,
-            p_note: null,
-            p_cap: 20,
-          }),
+
+      // Concurrency & 10-reply limit test:
+      // Firing 15 simultaneous reply POSTs to one confession results in exactly 10 successes
+      const freshRow = await post();
+      const freshRoute = `/api/confessions/${freshRow.id}/replies`;
+
+      const concurrentResults = await Promise.all(
+        Array.from({ length: 15 }, (_, i) =>
+          request(
+            freshRoute,
+            { song: { id: TRACK }, note: `reply ${i}` },
+            `192.0.2.${10 + i}`,
+          ),
         ),
       );
-      assert.equal(
-        (await db.query("select count(*)::int as n from public.replies"))
-          .rows[0].n,
-        20,
+
+      const successes = concurrentResults.filter((r) => r.status === 201);
+      const fulls = concurrentResults.filter((r) => r.status === 409);
+
+      assert.equal(successes.length, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(fulls.length, 15 - config.MAX_REPLIES_PER_CONFESSION);
+      for (const full of fulls) {
+        assert.equal(full.body.code, "REPLIES_FULL");
+        assert.equal(full.body.max, config.MAX_REPLIES_PER_CONFESSION);
+        assert.match(full.body.error, /full/i);
+      }
+
+      const visibleInDb = (
+        await db.query(
+          "select count(*)::int as n from public.replies where confession_id = $1 and is_hidden = false",
+          [freshRow.id],
+        )
+      ).rows[0].n;
+      assert.equal(visibleInDb, config.MAX_REPLIES_PER_CONFESSION);
+
+      const fullGet = await request(freshRoute);
+      assert.equal(fullGet.body.replies.length, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(fullGet.body.meta.count, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(fullGet.body.meta.canReply, false);
+      assert.equal(fullGet.body.meta.reason, "full");
+
+      // Author removal frees a slot
+      const toRemove = fullGet.body.replies[0].id;
+      const removeRes = await request(
+        `/api/confessions/${freshRow.id}/replies/${toRemove}/delete`,
+        { key: freshRow.key },
       );
-      assert.equal(
-        (await request(route, { song: { id: TRACK } }, "192.0.2.4")).status,
-        409,
+      assert.equal(removeRes.status, 200);
+      assert.equal(removeRes.body.meta.count, config.MAX_REPLIES_PER_CONFESSION - 1);
+      assert.equal(removeRes.body.meta.canReply, true);
+
+      // Now a new reply can be posted and succeeds
+      const freedPost = await request(
+        freshRoute,
+        { song: { id: TRACK }, note: "freed slot reply" },
+        "192.0.2.99",
       );
+      assert.equal(freedPost.status, 201);
+      assert.equal(freedPost.body.meta.count, config.MAX_REPLIES_PER_CONFESSION);
+
+      // Legacy thread test:
+      // A confession seeded with 12 replies directly via SQL (exceeding cap)
+      const legacyRow = await post();
+      const legacyRoute = `/api/confessions/${legacyRow.id}/replies`;
+      for (let i = 0; i < 12; i++) {
+        await db.query(
+          "insert into public.replies(confession_id, song_name, artist_name, spotify_track_id) values($1, $2, $3, $4)",
+          [legacyRow.id, `Legacy Song ${i + 1}`, "Legacy Artist", TRACK],
+        );
+      }
+      const legacyGet = await request(legacyRoute);
+      assert.equal(legacyGet.body.replies.length, 12, "must return all 12 legacy replies");
+      assert.equal(legacyGet.body.meta.count, 12);
+      assert.equal(legacyGet.body.meta.max, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(legacyGet.body.meta.canReply, false);
+      assert.equal(legacyGet.body.meta.reason, "full");
+
+      // Attempting to post to full legacy thread returns 409 REPLIES_FULL
+      const legacyPost = await request(
+        legacyRoute,
+        { song: { id: TRACK } },
+        "192.0.2.100",
+      );
+      assert.equal(legacyPost.status, 409);
+      assert.equal(legacyPost.body.code, "REPLIES_FULL");
+
+      // Verify that no legacy replies were deleted or trimmed
+      const legacyCountAfter = (
+        await db.query(
+          "select count(*)::int as n from public.replies where confession_id = $1 and is_hidden = false",
+          [legacyRow.id],
+        )
+      ).rows[0].n;
+      assert.equal(legacyCountAfter, 12);
+
+      // Disabled replies test
       await db.query(
         "update public.confessions set allow_replies=false where id=$1",
-        [row.id],
+        [legacyRow.id],
       );
-      assert.equal(
-        (await request(route, { song: { id: TRACK } }, "192.0.2.5")).status,
-        409,
+      const disabledPost = await request(
+        legacyRoute,
+        { song: { id: TRACK } },
+        "192.0.2.101",
       );
-      assert.deepEqual((await request(route)).body, []);
+      assert.equal(disabledPost.status, 409);
+      assert.equal(disabledPost.body.code, "REPLIES_DISABLED");
+
+      const disabledGet = await request(legacyRoute);
+      assert.equal(disabledGet.body.meta.canReply, false);
+      assert.equal(disabledGet.body.meta.reason, "disabled");
+      assert.equal(disabledGet.body.replies.length, 12, "existing replies remain readable when disabled");
+
       await db.query(
         "update public.confessions set is_hidden=true where id=$1",
-        [row.id],
+        [legacyRow.id],
       );
       assert.equal(
-        (await request(route, { song: { id: TRACK } }, "192.0.2.6")).status,
+        (await request(legacyRoute, { song: { id: TRACK } }, "192.0.2.102")).status,
         404,
       );
       assert.equal(
@@ -681,7 +776,7 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
         song: { id: TRACK },
       });
       const reply = (await request(`/api/confessions/${row.id}/replies`))
-        .body[0];
+        .body.replies[0];
       for (let i = 2; i <= 4; i++)
         await request(
           "/api/reports",
@@ -692,10 +787,10 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
           },
           `192.0.2.${i}`,
         );
-      assert.deepEqual(
-        (await request(`/api/confessions/${row.id}/replies`)).body,
-        [],
-      );
+      const reportedGet = await request(`/api/confessions/${row.id}/replies`);
+      assert.deepEqual(reportedGet.body.replies, []);
+      assert.equal(reportedGet.body.meta.count, 0);
+      assert.equal(reportedGet.body.meta.canReply, true);
       await db.exec(
         "update public.reports set created_at=now()-interval '15 days'; select public.purge_report_hashes(14)",
       );

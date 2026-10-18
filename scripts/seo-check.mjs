@@ -2,10 +2,19 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import {
+  ROUTES_CONFIG,
+  INDEXABLE_ROUTES,
+  DEFAULT_SITE_URL,
+  CANONICAL_DEFINITION,
+  DISCLOSURE_SENTENCE,
+  OFFICIAL_COLLEGE_URL,
+} from "../client/src/seo/routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "client", "public");
+const distDir = path.join(rootDir, "client", "dist");
 const indexHtmlPath = path.join(rootDir, "client", "index.html");
 const manifestPath = path.join(publicDir, "site.webmanifest");
 const archiveJsonPath = path.join(rootDir, "client", "src", "content", "design-archive.json");
@@ -30,12 +39,33 @@ const BUDGETS = {
   MOBILE_FULL: 120 * 1024,
 };
 
+const FORBIDDEN_SCHEMAS = [
+  "CollegeOrUniversity",
+  "EducationalOrganization",
+  "LocalBusiness",
+];
+
+function calculateKeywordDensity(htmlText, keyword) {
+  const cleanText = htmlText
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[^\w\s]/g, " ")
+    .toLowerCase();
+
+  const words = cleanText.split(/\s+/).filter((w) => w.length > 0);
+  const keywordLower = keyword.toLowerCase();
+  const occurrences = words.filter((w) => w === keywordLower).length;
+  const density = words.length > 0 ? (occurrences / words.length) * 100 : 0;
+  return { density, occurrences, totalWords: words.length };
+}
+
 async function main() {
-  console.log("🔍 Running SEO, Brand Assets & Design Archive Verification (seo:check)...");
+  console.log("🔍 Running Comprehensive SEO, Brand, Local SEO & AEO Verification (seo:check)...");
   let passed = true;
 
   // 1. Verify Brand Assets
-  console.log("\n[1/4] Verifying Brand Assets...");
+  console.log("\n[1/6] Verifying Brand Assets...");
   for (const asset of REQUIRED_BRAND_ASSETS) {
     const filePath = path.join(publicDir, asset.file);
     try {
@@ -63,7 +93,7 @@ async function main() {
   }
 
   // 2. Verify site.webmanifest
-  console.log("\n[2/4] Verifying site.webmanifest...");
+  console.log("\n[2/6] Verifying site.webmanifest...");
   try {
     const manifestText = await fs.readFile(manifestPath, "utf8");
     const manifest = JSON.parse(manifestText);
@@ -79,24 +109,35 @@ async function main() {
   }
 
   // 3. Verify client/index.html Head Metadata
-  console.log("\n[3/4] Verifying client/index.html Head Metadata...");
+  console.log("\n[3/6] Verifying client/index.html Head Metadata...");
   try {
     const html = await fs.readFile(indexHtmlPath, "utf8");
     const requiredChecks = [
+      { name: "lang='en-PH' attribute", test: html.includes('lang="en-PH"') },
+      { name: "geo.region='PH-DAS' meta", test: html.includes('content="PH-DAS"') },
+      { name: "og:locale='en_PH' meta", test: html.includes('content="en_PH"') },
+      { name: "hreflang='en-PH' alternate", test: html.includes('hreflang="en-PH"') },
+      { name: "hreflang='x-default' alternate", test: html.includes('hreflang="x-default"') },
       { name: "favicon.svg link", test: html.includes('href="/favicon.svg"') },
       { name: "site.webmanifest link", test: html.includes('href="/site.webmanifest"') },
       { name: "theme-color meta", test: html.includes('content="#F6F9FF"') },
       { name: "og-default.png meta", test: html.includes('og-default.png') },
-      { name: "og:image:width 1200", test: html.includes('content="1200"') },
-      { name: "og:image:height 630", test: html.includes('content="630"') },
       { name: "JSON-LD logo schema", test: html.includes('logo-mark.svg') },
+      { name: "No 'DSSC Portal' in alternateName", test: !html.includes('"DSSC Portal"') },
     ];
 
     for (const check of requiredChecks) {
       if (check.test) {
         console.log(`  ✓ ${check.name}`);
       } else {
-        console.error(`  ❌ Missing in index.html: ${check.name}`);
+        console.error(`  ❌ Missing or failed in index.html: ${check.name}`);
+        passed = false;
+      }
+    }
+
+    for (const forbidden of FORBIDDEN_SCHEMAS) {
+      if (html.includes(`"@type": "${forbidden}"`) || html.includes(`"@type":"${forbidden}"`)) {
+        console.error(`  ❌ Forbidden schema type found in index.html: ${forbidden}`);
         passed = false;
       }
     }
@@ -106,7 +147,7 @@ async function main() {
   }
 
   // 4. Verify design-archive.json and Images
-  console.log("\n[4/4] Verifying Design Archive Content and Image Budgets...");
+  console.log("\n[4/6] Verifying Design Archive Content and Image Budgets...");
   try {
     const archiveText = await fs.readFile(archiveJsonPath, "utf8");
     const archive = JSON.parse(archiveText);
@@ -169,12 +210,168 @@ async function main() {
     passed = false;
   }
 
+  // 5. Verify Prerendered Static Pages (client/dist/)
+  console.log("\n[5/6] Verifying Prerendered HTML Outputs & Local SEO Invariants...");
+  const dsscLandingPath = path.join(distDir, "dssc-confessions", "index.html");
+  const homeHtmlPath = path.join(distDir, "index.html");
+  const aboutHtmlPath = path.join(distDir, "about", "index.html");
+
+  try {
+    const landingHtml = await fs.readFile(dsscLandingPath, "utf8");
+
+    // 5.1 One and only one <h1>
+    const h1Matches = landingHtml.match(/<h1\b[^>]*>/gi);
+    if (!h1Matches || h1Matches.length !== 1) {
+      console.error(`  ❌ /dssc-confessions expected exactly 1 <h1>, found ${h1Matches ? h1Matches.length : 0}`);
+      passed = false;
+    } else {
+      console.log("  ✓ /dssc-confessions has exactly one <h1>");
+    }
+
+    // 5.2 Non-affiliation disclosure sentence
+    if (!landingHtml.toLowerCase().includes("not affiliated with or endorsed by davao del sur state college")) {
+      console.error("  ❌ /dssc-confessions missing non-affiliation disclosure sentence");
+      passed = false;
+    } else {
+      console.log("  ✓ /dssc-confessions contains non-affiliation disclosure");
+    }
+
+    // 5.3 Disambiguation link to official college
+    if (!landingHtml.includes(OFFICIAL_COLLEGE_URL)) {
+      console.error(`  ❌ /dssc-confessions missing official college link (${OFFICIAL_COLLEGE_URL})`);
+      passed = false;
+    } else {
+      console.log(`  ✓ /dssc-confessions contains official disambiguation link: ${OFFICIAL_COLLEGE_URL}`);
+    }
+
+    // 5.4 JSON-LD disambiguatingDescription check
+    if (!landingHtml.includes('"disambiguatingDescription"')) {
+      console.error("  ❌ /dssc-confessions JSON-LD missing disambiguatingDescription");
+      passed = false;
+    } else {
+      console.log("  ✓ /dssc-confessions JSON-LD contains disambiguatingDescription");
+    }
+
+    // 5.5 No blacklisted schema types
+    for (const forbidden of FORBIDDEN_SCHEMAS) {
+      if (
+        landingHtml.includes(`"@type": "${forbidden}"`) ||
+        landingHtml.includes(`"@type":"${forbidden}"`)
+      ) {
+        console.error(`  ❌ Forbidden schema type found in /dssc-confessions: ${forbidden}`);
+        passed = false;
+      }
+    }
+
+    // 5.6 Keyword density for "DSSC" <= 3%
+    const densityResult = calculateKeywordDensity(landingHtml, "dssc");
+    if (densityResult.density > 3.0) {
+      console.error(
+        `  ❌ Keyword density for "DSSC" too high: ${densityResult.density.toFixed(2)}% (${densityResult.occurrences}/${densityResult.totalWords} words) > 3.0%`,
+      );
+      passed = false;
+    } else {
+      console.log(
+        `  ✓ Keyword density for "DSSC" is natural: ${densityResult.density.toFixed(2)}% (${densityResult.occurrences}/${densityResult.totalWords} words <= 3.0%)`,
+      );
+    }
+
+    // 5.7 Check home and about prerendered files for disclosure
+    const homeHtml = await fs.readFile(homeHtmlPath, "utf8");
+    if (!homeHtml.toLowerCase().includes("not affiliated with or endorsed by davao del sur state college")) {
+      console.error("  ❌ Prerendered Home (/) missing non-affiliation disclosure");
+      passed = false;
+    } else {
+      console.log("  ✓ Prerendered Home (/) contains non-affiliation disclosure");
+    }
+
+    const aboutHtml = await fs.readFile(aboutHtmlPath, "utf8");
+    if (!aboutHtml.toLowerCase().includes("not affiliated with or endorsed by davao del sur state college")) {
+      console.error("  ❌ Prerendered About (/about) missing non-affiliation disclosure");
+      passed = false;
+    } else {
+      console.log("  ✓ Prerendered About (/about) contains non-affiliation disclosure");
+    }
+  } catch (err) {
+    console.error(`  ❌ Failed verifying prerendered HTML files (run npm run build first): ${err.message}`);
+    passed = false;
+  }
+
+  // 6. Verify Crawlers, AI Orientation (llms.txt) & Sitemap
+  console.log("\n[6/6] Verifying robots.txt, sitemap.xml, llms.txt, and llms-full.txt...");
+  try {
+    // 6.1 robots.txt
+    const robotsPath = path.join(publicDir, "robots.txt");
+    const robots = await fs.readFile(robotsPath, "utf8");
+    if (!robots.includes("Disallow: /confession/") || !robots.includes("Disallow: /api/")) {
+      console.error("  ❌ robots.txt must disallow /confession/ and /api/");
+      passed = false;
+    } else {
+      console.log("  ✓ robots.txt correctly disallows /confession/ and /api/");
+    }
+
+    if (!robots.includes("Sitemap: https://dssconfessions.vercel.app/sitemap.xml")) {
+      console.error("  ❌ robots.txt missing Sitemap declaration");
+      passed = false;
+    } else {
+      console.log("  ✓ robots.txt points to correct canonical sitemap.xml");
+    }
+
+    // 6.2 sitemap.xml
+    const sitemapPath = path.join(publicDir, "sitemap.xml");
+    const sitemap = await fs.readFile(sitemapPath, "utf8");
+    if (sitemap.includes("/confession/")) {
+      console.error("  ❌ sitemap.xml must NEVER contain individual /confession/ URLs");
+      passed = false;
+    } else {
+      console.log("  ✓ sitemap.xml contains 0 /confession/ URLs (privacy preserved)");
+    }
+
+    for (const route of INDEXABLE_ROUTES) {
+      const expectedUrl = `<loc>${DEFAULT_SITE_URL}${route === "/" ? "/" : route}</loc>`;
+      const occurrences = (sitemap.match(new RegExp(expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+      if (occurrences !== 1) {
+        console.error(`  ❌ sitemap.xml missing or duplicate entry for ${route} (count: ${occurrences})`);
+        passed = false;
+      }
+    }
+    console.log(`  ✓ sitemap.xml contains all ${INDEXABLE_ROUTES.length} indexable routes exactly once`);
+
+    // 6.3 llms.txt and llms-full.txt
+    const llmsPath = path.join(publicDir, "llms.txt");
+    const llms = await fs.readFile(llmsPath, "utf8");
+    if (!llms.includes(CANONICAL_DEFINITION)) {
+      console.error("  ❌ llms.txt missing canonical definition");
+      passed = false;
+    } else {
+      console.log("  ✓ llms.txt contains canonical definition");
+    }
+    if (!llms.toLowerCase().includes("not affiliated with or endorsed by davao del sur state college")) {
+      console.error("  ❌ llms.txt missing non-affiliation disclosure");
+      passed = false;
+    } else {
+      console.log("  ✓ llms.txt contains non-affiliation disclosure");
+    }
+
+    const llmsFullPath = path.join(publicDir, "llms-full.txt");
+    const llmsFull = await fs.readFile(llmsFullPath, "utf8");
+    if (!llmsFull.includes(CANONICAL_DEFINITION) || !llmsFull.includes(OFFICIAL_COLLEGE_URL)) {
+      console.error("  ❌ llms-full.txt missing canonical definition or official college URL");
+      passed = false;
+    } else {
+      console.log("  ✓ llms-full.txt contains canonical definition and official college URL");
+    }
+  } catch (err) {
+    console.error(`  ❌ Failed verifying crawler/AI orientation files: ${err.message}`);
+    passed = false;
+  }
+
   if (!passed) {
     console.error("\n❌ seo:check failed. Please fix the reported issues.");
     process.exit(1);
   }
 
-  console.log("\n✅ All SEO, Brand Assets & Design Archive checks PASSED!");
+  console.log("\n✅ All Brand, SEO, Local SEO, Schema & AEO checks PASSED!");
 }
 
 main().catch((err) => {

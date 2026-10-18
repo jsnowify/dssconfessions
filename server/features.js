@@ -157,7 +157,26 @@ function mountFeatures(
         .eq("id", req.params.replyId)
         .eq("confession_id", req.params.id);
       if (error) throw error;
-      res.json({ status: "success" });
+
+      const item = await parent(req.params.id);
+      const { data: repliesData } = await getDatabase().rpc(
+        "visible_song_replies",
+        { p_id: req.params.id },
+      );
+      const count = Array.isArray(repliesData) ? repliesData.length : 0;
+      const max = config.MAX_REPLIES_PER_CONFESSION;
+      const canReply = item ? item.allow_replies && count < max : false;
+      const reason = !item || !item.allow_replies ? "disabled" : count >= max ? "full" : null;
+
+      res.json({
+        status: "success",
+        meta: {
+          count,
+          max,
+          canReply,
+          reason,
+        },
+      });
     }),
   );
   app.get(
@@ -177,12 +196,28 @@ function mountFeatures(
     safe(async (req, res) => {
       const item = await parent(req.params.id);
       if (!item) return fail(res, 404, "Confession not found.");
-      if (!item.allow_replies) return res.json([]);
       const { data, error } = await getDatabase().rpc("visible_song_replies", {
         p_id: req.params.id,
       });
       if (error) throw error;
-      res.json(data || []);
+      const replies = data || [];
+      const count = replies.length;
+      const max = config.MAX_REPLIES_PER_CONFESSION;
+      const canReply = item.allow_replies && count < max;
+      const reason = !item.allow_replies
+        ? "disabled"
+        : count >= max
+          ? "full"
+          : null;
+      res.json({
+        replies,
+        meta: {
+          count,
+          max,
+          canReply,
+          reason,
+        },
+      });
     }),
   );
   app.post(
@@ -204,10 +239,6 @@ function mountFeatures(
           400,
           "Choose a valid song and a note of at most 140 characters.",
         );
-      const item = await parent(req.params.id);
-      if (!item) return fail(res, 404, "Confession not found.");
-      if (!item.allow_replies)
-        return fail(res, 409, "Song replies are turned off.");
       let track;
       try {
         track = await verifiedTrack(song.id, spotify, getToken);
@@ -218,24 +249,77 @@ function mountFeatures(
           "Could not verify selected song. Please try again.",
         );
       }
-      const { data, error } = await getDatabase().rpc("add_song_reply", {
-        p_parent: req.params.id,
+      let { data, error } = await getDatabase().rpc("add_reply", {
+        p_confession_id: req.params.id,
         p_track: track,
         p_note: note?.trim() || null,
-        p_cap: config.maxReplies,
+        p_max: config.MAX_REPLIES_PER_CONFESSION,
       });
-      if (error) throw error;
-      if (data === "missing") return fail(res, 404, "Confession not found.");
-      if (data === "disabled")
-        return fail(res, 409, "Song replies are turned off.");
-      if (data === "full")
-        return fail(
-          res,
-          409,
-          "This confession has reached its 20-reply limit.",
+      if (error && error.code === "PGRST202") {
+        const legacyRes = await getDatabase().rpc("add_song_reply", {
+          p_parent: req.params.id,
+          p_track: track,
+          p_note: note?.trim() || null,
+          p_cap: config.MAX_REPLIES_PER_CONFESSION,
+        });
+        if (legacyRes.error) throw legacyRes.error;
+        if (legacyRes.data === "missing")
+          return fail(res, 404, "Confession not found.");
+        if (legacyRes.data === "disabled")
+          return res
+            .status(409)
+            .json({ error: "Song replies are turned off.", code: "REPLIES_DISABLED" });
+        if (legacyRes.data === "full")
+          return res.status(409).json({
+            error: "This thread is full.",
+            code: "REPLIES_FULL",
+            max: config.MAX_REPLIES_PER_CONFESSION,
+          });
+
+        const { data: latestRows } = await getDatabase().rpc(
+          "visible_song_replies",
+          { p_id: req.params.id },
         );
-      if (data !== "created") throw new Error("Invalid reply response");
-      res.json({ status: "success" });
+        const list = Array.isArray(latestRows) ? latestRows : [];
+        const count = list.length;
+        const max = config.MAX_REPLIES_PER_CONFESSION;
+        return res.status(201).json({
+          reply: list[list.length - 1],
+          meta: {
+            count,
+            max,
+            canReply: count < max,
+            reason: count >= max ? "full" : null,
+          },
+        });
+      }
+      if (error) throw error;
+      if (data?.status === "not_found")
+        return fail(res, 404, "Confession not found.");
+      if (data?.status === "disabled")
+        return res
+          .status(409)
+          .json({ error: "Song replies are turned off.", code: "REPLIES_DISABLED" });
+      if (data?.status === "full")
+        return res.status(409).json({
+          error: "This thread is full.",
+          code: "REPLIES_FULL",
+          max: data.max || config.MAX_REPLIES_PER_CONFESSION,
+        });
+      if (data?.status !== "ok" || !data.reply)
+        throw new Error("Invalid reply response");
+
+      const count = data.count;
+      const max = data.max || config.MAX_REPLIES_PER_CONFESSION;
+      res.status(201).json({
+        reply: data.reply,
+        meta: {
+          count,
+          max,
+          canReply: count < max,
+          reason: count >= max ? "full" : null,
+        },
+      });
     }),
   );
 

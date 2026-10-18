@@ -97,7 +97,21 @@ This document provides architectural rules, operational constraints, and critica
 - Built on the premise: *"I want to improve my creativity by revamping my older projects."*
 - **Zero initial image load**: Images and thumbnails are only mounted after the user clicks the disclosure button (`{isOpen && ...}`).
 - **Strict Privacy**: Capture pipeline ([`scripts/capture-design-archive.mjs`](file:///c:/Coding/JavaScript/Project/dss-confessions/scripts/capture-design-archive.mjs)) intercepts all `/api/*` and CDN traffic with neutral mock data (`SAMPLE`, `ANONYMOUS`, `Sample Song`). Zero real student confessions or external art are ever captured.
-- Includes accessible lightbox dialog [`DesignArchiveLightbox.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/components/ui/DesignArchiveLightbox.jsx) with keyboard navigation (`Esc`, arrows), scroll locking, and preloading.
+### 3.7 Local SEO, GEO & AEO Architecture (DSSC & Davao del Sur)
+- **Target Locality**: Digos City, Davao del Sur, Region XI, Philippines (`geo.region="PH-DAS"`, `en-PH`, `en_PH`).
+- **Canonical Definition & Non-Affiliation**: *"Independent student project. Not affiliated with or endorsed by Davao del Sur State College."*
+- **Disambiguation Link**: Direct link to official college portal `https://www.dssc.edu.ph/` for lost users seeking enrollment, student records, or portal login.
+- **Dedicated Landing Page**: [`DsscLandingView.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/views/DsscLandingView.jsx) at `/dssc-confessions` featuring an AEO answer box (40–60 words), portal comparison table, submission steps, name search tips, and a single `<h1>`.
+- **Privacy-Guarded Indexation**: Individual `/confession/:id` posts and name search queries (`?to=`, `?search=`) are strictly `noindex`, excluded from sitemaps, and disallowed in `robots.txt`. Only 10 public informational pages are indexable.
+- **Generative AI Orientation**: Root-level `llms.txt` and `llms-full.txt` provide canonical definitions, scope boundaries, and citable facts for LLMs (Perplexity, ChatGPT, Claude).
+- **Static Prerender**: `scripts/prerender.mjs` runs on `npm run build` to output fully populated HTML documents into `client/dist/` for search crawlers while preserving client-side React hydration.
+- **Execution Region**: `vercel.json` functions run in `sin1` (Singapore, $\sim 45\text{ms}$) instead of `syd1` for optimal Core Web Vitals in the Philippines.
+
+### 3.8 Song Replies & Mixtape Tracklist (10-Reply Cap)
+- **10-Reply Cap**: Single source of truth is `MAX_REPLIES_PER_CONFESSION = 10` in `server/config/features.js`.
+- **Atomic Enforcement**: `add_reply(uuid, jsonb, text, int)` Postgres RPC locks the parent confession (`FOR UPDATE`) to avoid race conditions. 15 concurrent replies yield exactly 10 successes (201) and 5 conflicts (409 with code `REPLIES_FULL`).
+- **Fail-Soft Legacy Threads**: Legacy threads with $>10$ replies retain all existing rows without trimming; they report `canReply: false, reason: "full"`. Existing replies remain readable if replies are subsequently turned off.
+- **Tracklist UI**: [`SongTracklist.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/components/ui/SongTracklist.jsx) provides numbered tracks `01`–`10` with cycling pastel badges (`--sky`, `--mint`, `--lilac`, `--peach`, `--butter`, `--pink`), 10-slot vinyl meter (`aria-label="${count} of ${max} reply slots filled"`), inline composer expanding at the next available track slot, dashed placeholder slots, and author management controls with confirmation modal.
 
 ---
 
@@ -121,5 +135,12 @@ This document provides architectural rules, operational constraints, and critica
    Never capture screenshots against live user confessions. Always route `/api/*` requests through the strict mock interceptor in `capture-design-archive.mjs`.
 9. **Never Load Design Archive Assets on Page Mount**:
    Design archive screenshots must only be downloaded when the user actively opens the footer disclosure panel (`isOpen === true`). Initial bundle and page weight must remain unaffected.
+10. **NEVER declare `CollegeOrUniversity` or `EducationalOrganization` schemas for this site**:
+    The platform is an independent student web app. Referencing Davao del Sur State College is only done via the `about` property on community pages.
+11. **NEVER index individual confession posts (`/confession/:id`) or name search queries**:
+    Confession posts often contain personal student names or initials. Permitting search engine or AI crawler indexing would risk exposing private student messages in public search engine caches. Keep them `noindex` and out of `sitemap.xml`.
+12. **NEVER bypass `add_reply` or hardcode reply limits**:
+    Always enforce the 10-reply cap via the atomic `add_reply` RPC and reference `MAX_REPLIES_PER_CONFESSION` from `server/config/features.js`. Do not perform raw inserts that bypass row locking, and do not discard existing rows on legacy threads that exceed 10 replies.
+
 
 

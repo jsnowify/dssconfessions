@@ -1,34 +1,79 @@
 import { useState, useEffect } from "react";
 import Doodle from "../components/ui/Doodle";
-import { CANONICAL_DEFINITION } from "../seo/routes";
+import {
+  CANONICAL_DEFINITION,
+  DISCLOSURE_SENTENCE,
+  OFFICIAL_COLLEGE_NAME,
+  OFFICIAL_COLLEGE_URL,
+} from "../seo/routes";
 
 const FAQ_ITEMS = [
   {
     id: "what-is-dssconfessions",
-    question: "What is dssconfessions?",
+    question: "What is DSSC Confessions?",
     answer: CANONICAL_DEFINITION,
     extra:
-      "Unlike traditional social media confession pages that rely on Google Forms or Facebook posts, DSSConfessions integrates directly with Spotify to attach music to your words, generates one-time author deletion keys, and maintains strict zero-IP logging.",
+      "Unlike traditional social media confession pages that rely on Google Forms or Facebook posts, DSSC Confessions integrates directly with Spotify to attach music to your words, generates one-time author deletion keys, and maintains strict zero-IP logging.",
+  },
+  {
+    id: "is-dssc-confessions-official",
+    question: "Is DSSC Confessions the official DSSC website or student portal?",
+    answer:
+      "No. DSSC Confessions is an independent, student-made creative website. It is not the official website, student portal, or grading system of Davao del Sur State College. For official enrollment and records, visit the official college site.",
+    extra: `If you are looking for the official college administration, please visit ${OFFICIAL_COLLEGE_URL}.`,
+  },
+  {
+    id: "is-dssc-affiliated",
+    question: "Is DSSC Confessions affiliated with Davao del Sur State College?",
+    answer:
+      "No. DSSC Confessions is not affiliated with, sponsored by, or endorsed by Davao del Sur State College. The college name is used purely descriptively to identify the student and campus community we serve.",
+    extra: DISCLOSURE_SENTENCE,
+  },
+  {
+    id: "where-to-find-official-dssc",
+    question: "Where can I find the official DSSC website or student portal?",
+    answer:
+      "The official website of Davao del Sur State College is at https://www.dssc.edu.ph/. Please use that link for enrollment, student portal login, grade inquiries, and official administrative announcements.",
+  },
+  {
+    id: "who-can-send-confession",
+    question: "Who can send a confession?",
+    answer:
+      "Anyone in the Davao del Sur State College community—students, alumni, faculty, and friends across Digos City and Davao del Sur—can send an anonymous confession. No account, student ID, or login is required.",
   },
   {
     id: "is-it-anonymous",
-    question: "Is it really anonymous and what data is stored?",
+    question: "Is DSSC Confessions safe and anonymous?",
     answer:
-      "Yes, DSSConfessions is genuinely anonymous. We do not require accounts, usernames, emails, or phone numbers. We never store raw IP addresses, location data, or device fingerprints in our database. All rate limiting uses transient, daily-salted cryptographic hashes.",
+      "Yes. We require no accounts, email addresses, or phone numbers. We never log raw IP addresses or device fingerprints. Abuse-prevention safeguards operate without storing or logging your personal identity.",
     extra:
       "When you post, we only store the recipient name, optional sender pseudonym, message text, and verified Spotify track details. No identifiers tying the post to your network or identity exist.",
   },
   {
-    id: "do-i-need-an-account",
-    question: "Do I need an account to post or browse?",
+    id: "how-to-report-confession",
+    question: "How do I report or remove a confession about me?",
     answer:
-      "No account is ever needed. Anyone can visit the site, search for confessions by recipient name, listen to the attached music, or post their own confession without signing up or logging in.",
+      "Click the flag icon on any confession card and choose 'This is about me and I want it removed' or another reason. Confessions receiving verified urgent reports are hidden automatically from public view.",
   },
   {
-    id: "is-it-free",
-    question: "Is dssconfessions free to use?",
+    id: "how-to-delete-confession",
+    question: "How do I delete a confession I posted?",
     answer:
-      "Yes, DSSConfessions is 100% free with no paywalls, premium tiers, or hidden subscriptions. It is a passion project built to give people a creative, music-driven way to share their feelings.",
+      "When you submit a confession, you receive a private one-time Delete Key. Enter this key on your confession card at any time to permanently remove it from our database.",
+    extra:
+      "Please keep your Delete Key safe. Because we do not store emails or accounts, a lost Delete Key cannot be recovered automatically.",
+  },
+  {
+    id: "who-made-dssconfessions",
+    question: "Who runs DSSC Confessions?",
+    answer:
+      "DSSC Confessions was built by Joshua as an independent community project to give the Davao del Sur State College student community a warm, creative, music-driven space for unspoken thoughts.",
+  },
+  {
+    id: "what-are-pokes",
+    question: "What are Pokes on confessions?",
+    answer:
+      "A Poke is a lightweight, friendly tap on a confession. Tapping Poke increments the counter to let the author know someone read their story, with zero user tracking.",
   },
   {
     id: "how-to-send-a-confession",
@@ -48,45 +93,13 @@ const FAQ_ITEMS = [
     id: "how-to-find-confessions",
     question: "How do I find confessions written for my name?",
     answer:
-      "Visit the Browse page and type your name, nickname, or initials into the search bar. DSSConfessions will find all public confessions dedicated to that recipient, with matching songs and timestamps.",
+      "Visit the Browse page and type your name, nickname, or initials into the search bar. DSSC Confessions will find all public confessions dedicated to that recipient, with matching songs and timestamps.",
   },
   {
-    id: "how-to-delete-confession",
-    question: "How do I delete my confession after posting?",
+    id: "how-many-song-replies",
+    question: "How many song replies can a confession receive?",
     answer:
-      "Every author receives a unique Delete Key upon submission. When viewing your confession card, click the trash or options icon, enter your Delete Key, and confirm. The confession is permanently deleted from our database with zero retention.",
-    extra:
-      "Please keep your Delete Key safe. Because we do not store emails or accounts, a lost Delete Key cannot be recovered automatically.",
-  },
-  {
-    id: "how-to-report-confession",
-    question: "How do I report a confession or request removal of something about me?",
-    answer:
-      "Click the flag icon on any confession card and select 'This is about me and I want it removed' or another applicable reason. Confessions that receive verified community reports or urgent flags are immediately hidden from the public feed.",
-  },
-  {
-    id: "what-are-pokes",
-    question: "What are Pokes on confessions?",
-    answer:
-      "A Poke is a lightweight, friendly 'I saw this' interaction. Tapping the Poke button increments the public count and sends an anonymous nudge letting the author know their story was noticed. Pokes never reveal who poked.",
-  },
-  {
-    id: "where-do-songs-come-from",
-    question: "Where do the songs come from?",
-    answer:
-      "Songs are sourced in real time from the Spotify Web API. When you select a song, we verify its track ID and embed the official Spotify player so listeners can hear the full audio directly on Spotify.",
-  },
-  {
-    id: "what-content-is-prohibited",
-    question: "What content is not allowed on DSSConfessions?",
-    answer:
-      "We strictly prohibit harassment, hate speech, bullying, doxxing (posting phone numbers, addresses, or private personal data), threats of violence, non-consensual sexual content, and spam. Violating posts are removed promptly.",
-  },
-  {
-    id: "who-made-dssconfessions",
-    question: "Who made dssconfessions and why?",
-    answer:
-      "DSSConfessions was created by Joshua as an independent community project inspired by music sharing and platform experiments like SendTheSong. It was built to create a safe, warm space for unspoken thoughts paired with art.",
+      "Each confession can receive up to 10 anonymous song replies, like a 10-track mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
   },
 ];
 
@@ -149,103 +162,79 @@ export default function FaqView({ setView }) {
       {/* Header */}
       <div className="text-center mb-12">
         <span className="inline-block bg-[var(--butter)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest shadow-[2px_2px_0_var(--ink)] mb-4">
-          Answers & Safety
+          Answers &amp; Safety
         </span>
         <h1 className="text-5xl md:text-6xl font-script font-bold text-[var(--ink)] mb-4">
           Frequently Asked Questions
         </h1>
         <p className="text-[var(--ink-soft)] text-base max-w-xl mx-auto">
           Everything you need to know about anonymity, songs, deletion keys, and
-          how DSSConfessions keeps you safe.
+          how DSSC Confessions keeps you safe in the Davao del Sur State College community.
         </p>
         <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
           Last updated: October 18, 2026
         </p>
       </div>
 
-      {/* Comparison Table */}
-      <section className="mb-14 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[4px_4px_0_var(--ink)]">
+      {/* Comparison: DSSC Confessions vs Official College Portal */}
+      <section className="mb-14 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[4px_4px_0_var(--ink)] text-left">
         <div className="flex items-center gap-3 mb-4">
           <Doodle kind="note" />
           <h2 className="text-2xl font-bold text-[var(--ink)]">
-            How DSSConfessions Compares
+            DSSC Confessions vs. The Official DSSC Website/Portal
           </h2>
         </div>
         <p className="text-sm text-[var(--ink-soft)] mb-6">
-          An honest breakdown of how DSSConfessions differs from traditional
-          confession pages and social media boards.
+          An honest, neutral distinction between our independent student creative board and the official state college administration.
         </p>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-[var(--ink)] font-mono text-xs uppercase tracking-wider text-[var(--ink)]">
-                <th className="py-3 px-3">Feature</th>
+                <th className="py-3 px-3">Category</th>
                 <th className="py-3 px-3 text-[var(--primary)] font-bold">
-                  DSSConfessions
+                  DSSC Confessions
                 </th>
                 <th className="py-3 px-3 text-[var(--ink-soft)]">
-                  Traditional Pages / Forms
+                  Official DSSC Website / Portal
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y border-b border-[var(--ink)]/20">
               <tr>
-                <td className="py-3 px-3 font-bold">Account Required</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  No (Never)
+                <td className="py-3 px-3 font-bold">Purpose</td>
+                <td className="py-3 px-3 text-emerald-700 font-bold">
+                  Community song dedications &amp; anonymous thoughts
                 </td>
                 <td className="py-3 px-3 text-[var(--ink-soft)]">
-                  Often Google / FB login
+                  Official enrollment, grades, transcripts &amp; admissions
                 </td>
               </tr>
               <tr>
-                <td className="py-3 px-3 font-bold">IP Address Logging</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  Zero (Daily HMAC salt)
+                <td className="py-3 px-3 font-bold">Accounts &amp; Login</td>
+                <td className="py-3 px-3 text-emerald-700 font-bold">
+                  None needed (100% anonymous)
                 </td>
                 <td className="py-3 px-3 text-[var(--ink-soft)]">
-                  Commonly tracked / logged
+                  Official student/faculty portal credentials
                 </td>
               </tr>
               <tr>
-                <td className="py-3 px-3 font-bold">Spotify Music Attached</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  Yes (Full Spotify integration)
+                <td className="py-3 px-3 font-bold">Music Pairing</td>
+                <td className="py-3 px-3 text-emerald-700 font-bold">
+                  Spotify track integration
                 </td>
-                <td className="py-3 px-3 text-[var(--ink-soft)]">Text only</td>
+                <td className="py-3 px-3 text-[var(--ink-soft)]">None (academic records only)</td>
               </tr>
               <tr>
-                <td className="py-3 px-3 font-bold">Author Deletion Key</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  Yes (Instant self-removal)
+                <td className="py-3 px-3 font-bold">Affiliation</td>
+                <td className="py-3 px-3 text-emerald-700 font-bold">
+                  Independent student-built project
                 </td>
                 <td className="py-3 px-3 text-[var(--ink-soft)]">
-                  Must message admin / wait
+                  Official Davao del Sur State College administration
                 </td>
-              </tr>
-              <tr>
-                <td className="py-3 px-3 font-bold">Recipient Search</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  Yes (Search by name)
-                </td>
-                <td className="py-3 px-3 text-[var(--ink-soft)]">
-                  Endless scroll feed
-                </td>
-              </tr>
-              <tr>
-                <td className="py-3 px-3 font-bold">Community Pokes</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  Yes (One-tap nudges)
-                </td>
-                <td className="py-3 px-3 text-[var(--ink-soft)]">None</td>
-              </tr>
-              <tr>
-                <td className="py-3 px-3 font-bold">Cost</td>
-                <td className="py-3 px-3 text-emerald-600 font-bold">
-                  100% Free
-                </td>
-                <td className="py-3 px-3 text-[var(--ink-soft)]">Free</td>
               </tr>
             </tbody>
           </table>
@@ -253,7 +242,7 @@ export default function FaqView({ setView }) {
       </section>
 
       {/* FAQ Dropdown / Accordion Section */}
-      <section className="mb-16">
+      <section className="mb-16 text-left">
         <div className="flex items-center justify-between mb-6">
           <span className="font-mono text-xs uppercase tracking-wider text-[var(--ink-soft)]">
             {FAQ_ITEMS.length} Questions
@@ -353,7 +342,7 @@ export default function FaqView({ setView }) {
         </h3>
         <p className="text-sm text-[var(--ink-soft)] mb-6 max-w-md mx-auto">
           It only takes a minute to attach a soundtrack and send your untold
-          words anonymously.
+          words anonymously to someone at DSSC.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <button
@@ -369,6 +358,13 @@ export default function FaqView({ setView }) {
             className="btn btn-paper px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer"
           >
             Search Your Name
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("dssc-landing")}
+            className="btn btn-paper px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer"
+          >
+            DSSC Community Info
           </button>
         </div>
       </section>

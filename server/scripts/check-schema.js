@@ -70,6 +70,11 @@ const functions = [
     args: { p_parent: "not-a-uuid", p_track: "{}", p_note: "", p_cap: 0 },
     expected: "22P02",
   },
+  {
+    name: "add_reply",
+    args: { p_confession_id: "not-a-uuid", p_track: "{}", p_note: "", p_max: 10 },
+    expected: "22P02",
+  },
   { name: "visible_top_searches", args: { p_limit: 1 } },
   {
     name: "confession_preview",

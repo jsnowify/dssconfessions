@@ -16,6 +16,13 @@ const sql = readFileSync(
   ),
   "utf8",
 );
+const repliesMigration = readFileSync(
+  join(
+    __dirname,
+    "../../supabase/migrations/20261018140000_replies_tracklist_cap.sql",
+  ),
+  "utf8",
+);
 const base = `create role anon; create role authenticated; create role service_role bypassrls;
 create table public.confessions(id uuid primary key default gen_random_uuid(),created_at timestamptz not null default now(),recipient_to text not null,sender_from text default 'Anonymous',content text not null,song_name text,artist_name text,album_art text,spotify_url text);
 insert into public.confessions(id,recipient_to,content) values('11111111-1111-4111-8111-111111111111','Fixture recipient','Fixture content');`;
@@ -138,6 +145,7 @@ test("one-file catch-up repairs legacy, partial and current schemas without losi
     "update public.confessions set is_hidden=true,needs_review=true,allow_replies=false,delete_key_hash='fixture-only-hash'",
   );
   await db.exec(sql);
+  await db.exec(repliesMigration);
   assert.deepEqual(
     (
       await db.query(
@@ -154,7 +162,7 @@ test("one-file catch-up repairs legacy, partial and current schemas without losi
   await db.exec("set role service_role");
   const output = [];
   const check = await checkSchema(sqlClient(db), (line) => output.push(line));
-  assert.deepEqual(check, { passed: 49, failed: 0 }, output.join("\n"));
+  assert.deepEqual(check, { passed: 50, failed: 0 }, output.join("\n"));
   assert.ok(!output.join(" ").includes("fixture-only-hash"));
   assert.equal(
     (
@@ -209,7 +217,7 @@ test("checker fails on missing columns/functions and never prints rows or diagno
     },
   };
   const result = await checkSchema(client, (line) => output.push(line));
-  assert.equal(result.failed, 49);
+  assert.equal(result.failed, 50);
   assert.equal(result.passed, 0);
   assert.ok(
     output.some((line) =>

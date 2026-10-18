@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-PH">
   <head>
     <meta charset="UTF-8" />
 
@@ -13,24 +13,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary SEO -->
-    <title>DSSC Confessions | DSSC Community Confession</title>
-
+    <title>DSSC Confessions | Anonymous Song Confessions & Stories</title>
     <meta
       name="description"
-      content="DSSC Confessions is an anonymous student confession platform for the Davao del Sur State College (DSSC) community. Read, share, and discover authentic student experiences, stories, opinions, and campus life."
+      content="Send an anonymous confession paired with a song to someone in the Davao del Sur State College community. Free, no accounts, and 100% private."
     />
-
     <meta
       name="keywords"
-      content="DSSC, DSSC Confessions, DSSC Confession, Davao del Sur State College, Davao del Sur State College Confessions, DSSC Students, DSSC Community, Student Confessions, Anonymous Confessions, College Confessions, Campus Stories, Digos College, DSSC Student Community"
+      content="DSSC confessions, DSSC confession page, Davao del Sur State College confessions, DSSC anonymous message, send song DSSC, Digos City confessions"
     />
-
-    <meta name="author" content="DSSC Confessions" />
+    <meta name="author" content="Joshua" />
     <meta name="application-name" content="DSSC Confessions" />
     <meta name="theme-color" content="#F6F9FF" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="geo.region" content="PH-DAS" />
 
     <link rel="canonical" href="https://dssconfessions.vercel.app/" />
+    <link rel="alternate" hreflang="en-PH" href="https://dssconfessions.vercel.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://dssconfessions.vercel.app/" />
 
     <meta
       name="google-site-verification"
@@ -43,11 +43,11 @@
     <meta property="og:site_name" content="DSSC Confessions" />
     <meta
       property="og:title"
-      content="DSSC Confessions | Anonymous Student Community"
+      content="DSSC Confessions | Anonymous Song Confessions & Stories"
     />
     <meta
       property="og:description"
-      content="Read and submit anonymous confessions from students of Davao del Sur State College (DSSC). Join the campus community and share your stories."
+      content="Send an anonymous confession paired with a song to someone in the Davao del Sur State College community. Free, no accounts, and 100% private."
     />
     <meta property="og:url" content="https://dssconfessions.vercel.app/" />
     <meta
@@ -58,89 +58,96 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="dssconfessions - Untold words, sent through the song."
+      content="DSSC Confessions - Untold words, sent through the song."
     />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="DSSC Confessions | Anonymous Student Community"
+      content="DSSC Confessions | Anonymous Song Confessions & Stories"
     />
     <meta
       name="twitter:description"
-      content="Anonymous confessions, campus stories, and student discussions from the Davao del Sur State College (DSSC) community."
+      content="Send an anonymous confession paired with a song to someone in the Davao del Sur State College community. Free, no accounts, and 100% private."
     />
     <meta
       name="twitter:image"
       content="https://dssconfessions.vercel.app/og-default.png"
     />
 
-    <!-- WebSite -->
+    <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "DSSC Confessions",
-        "alternateName": [
-          "DSSC Confession",
-          "DSSC Confessions",
-          "Davao del Sur State College Confessions",
-          "Davao del Sur State College",
-          "DSSC Portal",
-          "DSSC"
-        ],
-        "url": "https://dssconfessions.vercel.app/",
-        "description": "Anonymous confession platform for students of Davao del Sur State College (DSSC).",
-        "inLanguage": "en-PH",
-        "publisher": {
-          "@type": "Organization",
-          "name": "DSSC Confessions",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://dssconfessions.vercel.app/logo-mark.svg"
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://dssconfessions.vercel.app/#website",
+            "name": "DSSC Confessions",
+            "alternateName": ["dssconfessions", "DSSC Confession Page"],
+            "url": "https://dssconfessions.vercel.app/",
+            "description": "DSSC Confessions (dssconfessions) is a free, independent website where people in the Davao del Sur State College community can send an anonymous message to someone, paired with a song, without creating an account. It is not affiliated with or endorsed by Davao del Sur State College.",
+            "inLanguage": "en-PH",
+            "publisher": {
+              "@type": "Organization",
+              "name": "DSSC Confessions",
+              "url": "https://dssconfessions.vercel.app/",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://dssconfessions.vercel.app/logo-mark.svg"
+              }
+            },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://dssconfessions.vercel.app/browse?to={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://dssconfessions.vercel.app/#app",
+            "name": "DSSC Confessions",
+            "url": "https://dssconfessions.vercel.app/",
+            "description": "DSSC Confessions (dssconfessions) is a free, independent website where people in the Davao del Sur State College community can send an anonymous message to someone, paired with a song, without creating an account. It is not affiliated with or endorsed by Davao del Sur State College.",
+            "applicationCategory": "SocialNetworkingApplication",
+            "operatingSystem": "Any",
+            "inLanguage": "en-PH",
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Students and community of Davao del Sur State College"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "PHP"
+            }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://dssconfessions.vercel.app/#webpage",
+            "name": "DSSC Confessions | Anonymous Song Confessions & Stories",
+            "url": "https://dssconfessions.vercel.app/",
+            "description": "DSSC Confessions (dssconfessions) is a free, independent website where people in the Davao del Sur State College community can send an anonymous message to someone, paired with a song, without creating an account. It is not affiliated with or endorsed by Davao del Sur State College.",
+            "disambiguatingDescription": "Independent student project. Not affiliated with or endorsed by Davao del Sur State College.",
+            "inLanguage": "en-PH",
+            "isPartOf": {
+              "@type": "WebSite",
+              "@id": "https://dssconfessions.vercel.app/#website"
+            },
+            "about": {
+              "@type": "Thing",
+              "name": "Davao del Sur State College",
+              "url": "https://www.dssc.edu.ph/",
+              "sameAs": "https://en.wikipedia.org/wiki/Davao_del_Sur_State_College"
+            },
+            "spatialCoverage": {
+              "@type": "AdministrativeArea",
+              "name": "Davao del Sur, Philippines",
+              "sameAs": "https://en.wikipedia.org/wiki/Davao_del_Sur"
+            }
           }
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://dssconfessions.vercel.app/?search={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
-      }
-    </script>
-
-    <!-- Organization -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "DSSC Confessions",
-        "url": "https://dssconfessions.vercel.app/",
-        "logo": "https://dssconfessions.vercel.app/logo-mark.svg",
-        "image": "https://dssconfessions.vercel.app/og-default.png",
-        "sameAs": [],
-        "description": "Anonymous confession platform dedicated to the Davao del Sur State College community."
-      }
-    </script>
-
-    <!-- WebPage -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "name": "DSSC Confessions",
-        "url": "https://dssconfessions.vercel.app/",
-        "description": "Anonymous student confessions from Davao del Sur State College (DSSC).",
-        "isPartOf": {
-          "@type": "WebSite",
-          "name": "DSSC Confessions",
-          "url": "https://dssconfessions.vercel.app/"
-        },
-        "about": {
-          "@type": "CollegeOrUniversity",
-          "name": "Davao del Sur State College"
-        },
-        "inLanguage": "en-PH"
+        ]
       }
     </script>
   </head>

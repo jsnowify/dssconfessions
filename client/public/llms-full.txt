@@ -1,0 +1,74 @@
+# DSSC Confessions — Comprehensive Entity & Technical Reference
+
+## 1. Identity & Canonical Definition
+
+DSSC Confessions (dssconfessions) is a free, independent website where people in the Davao del Sur State College community can send an anonymous message to someone, paired with a song, without creating an account. It is not affiliated with or endorsed by Davao del Sur State College.
+
+- Primary Name: DSSC Confessions
+- Alternate Name: dssconfessions
+- Alternate Name: DSSC Confession Page
+- Canonical URL: https://dssconfessions.vercel.app/
+- Primary Language: en-PH (English, Philippines)
+- Target Locality: Digos City, Davao del Sur, Region XI, Philippines
+
+## 2. Institutional Disambiguation & Non-Affiliation
+
+DSSC Confessions is an independent student-built creative experiment and community board.
+- It is NOT the official Davao del Sur State College (DSSC) website.
+- It is NOT the DSSC student portal.
+- It does NOT provide academic transcripts, grade inquiries, enrollment, or admission services.
+- The official Davao del Sur State College web portal is located at https://www.dssc.edu.ph/.
+
+## 3. Platform Mechanics & How It Works
+
+### Sending a Confession
+1. Navigate to https://dssconfessions.vercel.app/confess.
+2. Enter the recipient's name or pseudonym.
+3. Search for any song on Spotify and attach it to the post.
+4. Compose an untold message up to 3,000 characters.
+5. Tap Post Confession.
+6. The system displays a private 16-character Delete Key. This key is the only method to permanently delete the post.
+
+### Finding a Confession
+1. Navigate to https://dssconfessions.vercel.app/browse.
+2. Search by recipient name or initials.
+3. Read the message and play the attached Spotify music.
+
+### Poking Confessions
+1. Any visitor can tap the Poke button on any confession.
+2. Pokes are friendly, anonymous taps indicating "I read this".
+3. Poking increments the public poke counter and is batched client-side (~400ms).
+4. Pokes do not track identity or IP addresses.
+
+### Song Replies (Mixtape Tracklist)
+1. Confessions can receive up to 10 anonymous song replies in a collaborative 10-track mixtape tracklist.
+2. Each reply pairs a verified Spotify track with an optional 140-character note.
+3. The confession author can disable replies at post time, or unlock reply controls with their Delete Key to remove individual tracks and free up spots.
+
+## 4. Privacy, Security & Zero-IP Guarantee
+
+- No User Accounts: No sign-ups, no passwords, no email collection, no phone numbers.
+- No Raw IP Logging: Client IP addresses are never recorded in database tables.
+- Abuse Prevention Without Tracking: Abuse-prevention safeguards operate without storing or logging raw IP addresses or user identities.
+- Author Delete Key: The database stores only a one-way hash of the Delete Key. The plain-text key exists only with the author.
+- Moderation & Removal: Visitors can report inappropriate content. Posts flagged with urgent reports are hidden automatically from the public feed.
+
+## 5. Creator & Background
+
+- Creator: Joshua "Snowi" Cambronero
+- Role: Independent Developer (BSIT student)
+- Motivation: Built to practice software engineering and provide a positive, music-first community outlet for student expression in Davao del Sur.
+
+## 6. Official Indexable Sitemap
+
+- Home: https://dssconfessions.vercel.app/
+- DSSC Overview: https://dssconfessions.vercel.app/dssc-confessions
+- Browse: https://dssconfessions.vercel.app/browse
+- Confess: https://dssconfessions.vercel.app/confess
+- About: https://dssconfessions.vercel.app/about
+- FAQ: https://dssconfessions.vercel.app/faq
+- Privacy: https://dssconfessions.vercel.app/privacy
+- Guide - How to Send: https://dssconfessions.vercel.app/guides/how-to-send-an-anonymous-song-confession
+- Guide - Choose a Song: https://dssconfessions.vercel.app/guides/how-to-choose-a-song-for-your-confession
+- Guide - Is It Safe: https://dssconfessions.vercel.app/guides/is-it-safe-to-send-an-anonymous-confession
+

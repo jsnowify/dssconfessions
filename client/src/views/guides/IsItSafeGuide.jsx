@@ -29,10 +29,9 @@ export default function IsItSafeGuide({ setView }) {
         <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed">
           Yes, sending a confession on DSSConfessions is safe and truly
           anonymous. We require zero user accounts, log zero raw IP addresses,
-          and track zero personal identities. Rate limiting and poke counters
-          rely on ephemeral cryptographic hashes salted with daily rotating
-          secrets. Every author receives a private one-time Delete Key to purge
-          their submission at any time.
+          and track zero personal identities. Our abuse-prevention safeguards
+          operate without storing your IP address. Every author receives a private
+          one-time Delete Key to purge their submission at any time.
         </p>
       </div>
 
@@ -73,15 +72,15 @@ export default function IsItSafeGuide({ setView }) {
               no IP address storage fields.
             </li>
             <li>
-              <strong>Daily rotating HMAC salts:</strong> For abuse prevention,
-              spam prevention, and poke deduplication, your IP is passed through
-              a one-way HMAC-SHA256 hash combined with a secret salt and the
-              current UTC date.
+              <strong>No persistent network records:</strong> Abuse-prevention
+              safeguards operate without storing raw IP addresses or identifiable
+              network history, ensuring interactions cannot be tied back to your
+              physical identity.
             </li>
             <li>
-              <strong>Automatic daily reset:</strong> When the UTC date rotates,
-              past hashes become mathematically irrecoverable. We cannot trace a
-              post back to a physical person or internet connection.
+              <strong>Zero activity profiling:</strong> We do not track or
+              correlate your reading, posting, or interaction patterns across
+              sessions or days.
             </li>
           </ul>
         </section>

@@ -1,3 +1,5 @@
+const MAX_REPLIES_PER_CONFESSION = 10;
+
 module.exports = Object.freeze({
   autoHideReports: 3,
   reviewReasons: ["names_me", "private_info", "hate_or_threat"],
@@ -10,7 +12,8 @@ module.exports = Object.freeze({
     "other",
   ],
   reportHashRetentionDays: 14,
-  maxReplies: 20,
+  MAX_REPLIES_PER_CONFESSION,
+  maxReplies: MAX_REPLIES_PER_CONFESSION,
   deletePerTarget: { windowMs: 900000, limit: 5 },
   deletePerClient: { windowMs: 900000, limit: 15 },
   reportsPerClient: { windowMs: 3600000, limit: 10 },

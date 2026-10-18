@@ -12,8 +12,8 @@ export default function PrivacyView() {
           Privacy Policy & Trust
         </h1>
         <p className="text-[var(--ink-soft)] text-base max-w-xl mx-auto">
-          Our commitment to complete anonymity, zero-IP logging, cryptographic
-          rate limits, and user-controlled content deletion.
+          Our commitment to complete anonymity, zero-IP logging, abuse
+          prevention, and user-controlled content deletion.
         </p>
         <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
           Effective date: October 18, 2026
@@ -54,33 +54,10 @@ export default function PrivacyView() {
           </ul>
         </section>
 
-        {/* Section 2: Rate Limiting & Cryptographic Hashes */}
+        {/* Section 2: Author Delete Keys */}
         <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
-            2. How Abuse Prevention & Rate Limiting Work
-          </h2>
-          <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed mb-4">
-            To prevent spam bots and denial-of-service flooding while preserving
-            anonymity, our API utilizes transient cryptographic HMAC-SHA256 hashes.
-          </p>
-          <p className="text-sm text-[var(--ink-soft)] leading-relaxed mb-3">
-            When you interact with the service (submitting a confession, poking,
-            or reporting), your IP address is combined with a daily rotating salt
-            and hashed server-side using a secret key. Only the resulting
-            one-way hash is used to increment short-lived rate-limiting counters.
-          </p>
-          <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
-            Because the salt rotates automatically at UTC midnight, hashes cannot
-            be correlated across multiple days, making user tracking mathematically
-            impossible. Expired rate-limit rows are purged automatically from
-            Postgres.
-          </p>
-        </section>
-
-        {/* Section 3: Author Delete Keys */}
-        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
-          <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
-            3. Author Deletion Rights (Delete Keys)
+            2. Author Deletion Rights (Delete Keys)
           </h2>
           <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed mb-4">
             You retain complete control over your confession after publishing.
@@ -88,9 +65,9 @@ export default function PrivacyView() {
             Key.
           </p>
           <p className="text-sm text-[var(--ink-soft)] leading-relaxed mb-3">
-            A secure cryptographic hash of this key (salted with an independent
-            pepper) is stored with the confession. The plain-text key is never
-            saved on our servers—only you hold it.
+            A secure one-way cryptographic hash of this key is stored with the
+            confession. The plain-text key is never saved on our servers—only you
+            hold it.
           </p>
           <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
             Entering your key on your confession card instantly deletes the
@@ -98,10 +75,10 @@ export default function PrivacyView() {
           </p>
         </section>
 
-        {/* Section 4: Content Removal & Moderation */}
+        {/* Section 3: Content Removal & Moderation */}
         <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
-            4. Takedown Requests & Moderation
+            3. Takedown Requests & Moderation
           </h2>
           <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed mb-4">
             If a confession mentions you and you want it taken down, or if you
@@ -123,13 +100,13 @@ export default function PrivacyView() {
           </p>
         </section>
 
-        {/* Section 5: External Services */}
+        {/* Section 4: External Services */}
         <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
-            5. Third-Party Services
+            4. Third-Party Services
           </h2>
           <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed mb-3">
-            DSSConfessions interacts with the following external service:
+            DSSC Confessions interacts with the following external service:
           </p>
           <ul className="list-disc list-inside space-y-2 text-sm text-[var(--ink-soft)]">
             <li>
@@ -138,6 +115,26 @@ export default function PrivacyView() {
               previews. Your Spotify credentials are never requested or stored.
             </li>
           </ul>
+        </section>
+
+        {/* Section 5: School Community Context & Non-Affiliation */}
+        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
+          <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
+            5. School Community Context &amp; Non-Affiliation
+          </h2>
+          <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed mb-3">
+            DSSC Confessions is an independent student project built for the student and campus community of Davao del Sur State College (DSSC) in Digos City, Davao del Sur.
+          </p>
+          <p className="text-sm text-[var(--ink-soft)] leading-relaxed mb-3">
+            It is not affiliated with, operated by, or endorsed by the Davao del Sur State College administration. We do not access or handle student records, grades, enrollment, or official communications.
+          </p>
+          <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
+            If you are a student, faculty member, or individual seeking removal of content regarding your name or likeness, please use the in-app Report flag or contact:{" "}
+            <code className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs">
+              {/* TODO(owner): verify preferred takedown contact method */}
+              dssconfessions-support@example.com
+            </code>
+          </p>
         </section>
       </div>
     </div>

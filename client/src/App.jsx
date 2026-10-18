@@ -18,6 +18,7 @@ import Toast from "./components/ui/Toast";
 import MixtapeScrubber from "./components/ui/MixtapeScrubber";
 import Logo from "./components/ui/Logo";
 import DesignArchive from "./components/ui/DesignArchive";
+import DsscLandingView from "./views/DsscLandingView";
 import { useSeo } from "./seo/useSeo";
 
 /**
@@ -56,6 +57,11 @@ function parseCurrentLocation() {
   // 4. About: /about
   if (pathname === "/about") {
     return { view: "about", query: "", confessionId: null };
+  }
+
+  // 4b. DSSC Community Landing Page: /dssc-confessions
+  if (pathname === "/dssc-confessions") {
+    return { view: "dssc-landing", query: "", confessionId: null };
   }
 
   // 5. FAQ: /faq
@@ -258,6 +264,8 @@ export default function App() {
         targetUrl = "/confess";
       } else if (targetView === "about") {
         targetUrl = "/about";
+      } else if (targetView === "dssc-landing") {
+        targetUrl = "/dssc-confessions";
       } else if (targetView === "faq") {
         targetUrl = "/faq";
       } else if (targetView === "privacy") {
@@ -359,6 +367,9 @@ export default function App() {
             />
           )}
           {view === "about" && <AboutView />}
+          {view === "dssc-landing" && (
+            <DsscLandingView setView={handleNavigate} />
+          )}
           {view === "faq" && <FaqView setView={handleNavigate} />}
           {view === "privacy" && <PrivacyView setView={handleNavigate} />}
           {view === "guide-how-to-send" && (
@@ -463,6 +474,18 @@ export default function App() {
                   About the Project
                 </a>
               </li>
+              <li>
+                <a
+                  href="/dssc-confessions"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigate("dssc-landing");
+                  }}
+                  className="hover:underline hover:text-[var(--ink)] font-bold text-[var(--ink)]"
+                >
+                  DSSC Confessions
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -558,8 +581,11 @@ export default function App() {
             <Doodle kind="heart" />
           </div>
           <div className="tracking-widest uppercase text-[11px]">
-            DSSCONFESSIONS © 2026 • BUILT WITH PRIVACY FIRST
+            DSSC CONFESSIONS © 2026 • BUILT WITH PRIVACY FIRST
           </div>
+        </div>
+        <div className="max-w-5xl mx-auto w-full text-center text-[11px] font-sans text-[var(--ink-soft)] mt-4">
+          Independent student project, not affiliated with or endorsed by Davao del Sur State College.
         </div>
       </footer>
       {deleteReceipt && (
