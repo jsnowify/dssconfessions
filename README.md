@@ -63,6 +63,8 @@ Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/a
 
 ## API
 
+Bot administration is available at `/admin/bots` after migration and server configuration. See [automated fiction setup, architecture and verification](AUTOMATION.md). Bots start disabled and reuse the existing submission service, with atomic jobs, safety checks and visible fiction labels. No new runtime dependencies are required.
+
 | Endpoint | Purpose |
 | --- | --- |
 | `GET /api/health` | Database connectivity, Spotify configuration and posting configuration |

@@ -1,5 +1,5 @@
 import Doodle from "./components/ui/Doodle";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import Navbar from "./components/layout/Navbar";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import HomeView from "./views/HomeView";
@@ -20,6 +20,7 @@ import Logo from "./components/ui/Logo";
 import DesignArchive from "./components/ui/DesignArchive";
 import DsscLandingView from "./views/DsscLandingView";
 import { useSeo } from "./seo/useSeo";
+const BotAdminView = lazy(() => import("./views/BotAdminView"));
 
 /**
  * Parses current window pathname and search query into a structured route.
@@ -28,6 +29,7 @@ function parseCurrentLocation() {
   const pathname =
     window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
   const searchParams = new URLSearchParams(window.location.search);
+  if (pathname === "/admin/bots") return { view: "bot-admin", query: "", confessionId: null };
 
   // 1. Confession deep link: /confession/:id or ?confession=:id or ?id=:id
   const confessionMatch = pathname.match(/^\/confession(?:s)?\/([a-f0-9-]+)$/i);
@@ -341,6 +343,7 @@ export default function App() {
       {/* Main content area */}
       <main className={`flex-1 ${view === "details" ? "" : "pt-28 pb-20"}`}>
         <ErrorBoundary key={view}>
+          {view === "bot-admin" && <Suspense fallback={<p role="status">Loading bot controls…</p>}><BotAdminView /></Suspense>}
           {view === "home" && (
             <HomeView
               feed={feed}
@@ -416,7 +419,7 @@ export default function App() {
               <Logo variant="footer" />
             </a>
             <p className="text-[11px] leading-relaxed text-[var(--ink-soft)] normal-case">
-              Leave a confession. Attach a soundtrack. 100% anonymous, zero accounts, zero IP logging.
+              Some things are easier to say with a song.
             </p>
           </div>
 

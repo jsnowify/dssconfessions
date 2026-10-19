@@ -146,6 +146,7 @@ test("one-file catch-up repairs legacy, partial and current schemas without losi
   );
   await db.exec(sql);
   await db.exec(repliesMigration);
+  await db.exec(readFileSync(join(__dirname, "../../supabase/migrations/20261019024537_confession_bots.sql"), "utf8"));
   assert.deepEqual(
     (
       await db.query(
@@ -162,7 +163,7 @@ test("one-file catch-up repairs legacy, partial and current schemas without losi
   await db.exec("set role service_role");
   const output = [];
   const check = await checkSchema(sqlClient(db), (line) => output.push(line));
-  assert.deepEqual(check, { passed: 50, failed: 0 }, output.join("\n"));
+  assert.deepEqual(check, { passed: 53, failed: 0 }, output.join("\n"));
   assert.ok(!output.join(" ").includes("fixture-only-hash"));
   assert.equal(
     (
@@ -217,7 +218,7 @@ test("checker fails on missing columns/functions and never prints rows or diagno
     },
   };
   const result = await checkSchema(client, (line) => output.push(line));
-  assert.equal(result.failed, 50);
+  assert.equal(result.failed, 53);
   assert.equal(result.passed, 0);
   assert.ok(
     output.some((line) =>

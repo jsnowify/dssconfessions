@@ -7,7 +7,8 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "node --test",
-    "check:schema": "node scripts/check-schema.js"
+    "check:schema": "node scripts/check-schema.js",
+    "admin:password": "node scripts/set-admin-password.js"
   },
   "keywords": [],
   "author": "",

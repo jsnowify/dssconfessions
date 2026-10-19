@@ -17,6 +17,7 @@ const columns = {
     "is_hidden",
     "needs_review",
     "poke_count",
+    "is_automated",
   ],
   search_terms: ["term", "hits", "last_searched"],
   replies: [
@@ -46,6 +47,8 @@ const columns = {
 };
 const privateColumns = ["key", "hits", "expires_at"];
 const functions = [
+  { name: "bot_dashboard", args: {} },
+  { name: "bot_control", args: { p_action: "schema_probe", p_input: "{}" }, expected: "Invalid bot action" },
   {
     name: "consume_api_rate_limit",
     args: { p_key: "", p_window_seconds: 0, p_limit: 0 },

@@ -4,15 +4,11 @@ const helmet = require("helmet");
 const cors = require("cors");
 const axios = require("axios");
 const { getSpotifyToken } = require("./utils/spotify");
-const { validateConfessionInput } = require("./utils/validation");
 const { createLimiter } = require("./utils/rate-limit");
 const { createSearchTracker } = require("./utils/search-trends");
-const {
-  generateDeleteKey,
-  hashDeleteKey,
-  isDeleteKeyConfigured,
-} = require("./utils/delete-key");
-const { verifiedTrack } = require("./utils/verified-track");
+const { isDeleteKeyConfigured } = require("./utils/delete-key");
+const { createConfessionSubmission, POST_QUOTA, SubmissionError } = require("./services/confession-submission");
+const { mountBots } = require("./bots/routes");
 const { mountFeatures } = require("./features");
 const { mountOg } = require("./og");
 const {
@@ -22,7 +18,7 @@ const {
 const { readVisibleConfessions } = require("./utils/visible-confessions");
 
 const PUBLIC_COLUMNS =
-  "id,recipient_to,sender_from,content,song_name,artist_name,album_art,spotify_url,created_at,poke_count";
+  "id,recipient_to,sender_from,content,song_name,artist_name,album_art,spotify_url,created_at,poke_count,is_automated";
 const LEGACY_PUBLIC_COLUMNS =
   "id,recipient_to,sender_from,content,song_name,artist_name,album_art,spotify_url,created_at";
 
@@ -33,6 +29,7 @@ function createApp({
   getToken = getSpotifyToken,
   background,
   webhook,
+  botAi,
 } = {}) {
   const app = express();
   app.disable("x-powered-by");
@@ -91,7 +88,7 @@ function createApp({
         callback(error);
       },
       methods: ["GET", "POST", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Bot-Admin"],
     }),
   );
   app.use(express.json({ limit: "10kb" }));
@@ -99,9 +96,7 @@ function createApp({
   const postLimiter = createLimiter({
     env,
     getDatabase,
-    scope: "confess",
-    windowMs: 900000,
-    limit: 15,
+    ...POST_QUOTA,
     message: "Too many confessions. Please wait 15 minutes.",
   });
   const readLimiter = createLimiter({
@@ -145,57 +140,22 @@ function createApp({
     });
   });
 
+  const submitConfession = createConfessionSubmission({ env, getDatabase, spotify, getToken });
   app.post("/api/confess", postLimiter, async (req, res) => {
-    const { valid, errors, data } = validateConfessionInput(req.body);
-    if (!valid)
-      return res
-        .status(400)
-        .json({ error: "Invalid submission", details: errors });
-    if (
-      req.body.allowReplies !== undefined &&
-      typeof req.body.allowReplies !== "boolean"
-    )
-      return res
-        .status(400)
-        .json({ error: "Allow replies must be a boolean." });
-    if (!isDeleteKeyConfigured(env)) {
-      console.error("DELETE_KEY_PEPPER is not configured independently");
-      return res
-        .status(503)
-        .json({ error: "Posting is unavailable. Please try again shortly." });
-    }
-    let track;
     try {
-      track = await verifiedTrack(data.songId, spotify, getToken);
+      return res.json(await submitConfession(req.body));
     } catch (error) {
-      return res.status(error.status === 400 ? 400 : 503).json({
-        error: "Song verification is unavailable. Please try again shortly.",
+      if (!(error instanceof SubmissionError)) {
+        return res.status(503).json({ error: "Saving is unavailable. Please try again shortly." });
+      }
+      return res.status(error.status || 503).json({
+        error: error.message,
+        ...(error.details ? { details: error.details } : {}),
       });
     }
-    try {
-      const deleteKey = generateDeleteKey();
-      const { spotify_track_id, ...songColumns } = track;
-      void spotify_track_id;
-      const { error } = await getDatabase()
-        .from("confessions")
-        .insert([
-          {
-            recipient_to: data.recipient_to,
-            sender_from: data.sender_from,
-            content: data.content,
-            ...songColumns,
-            allow_replies: req.body.allowReplies ?? true,
-            delete_key_hash: hashDeleteKey(deleteKey, env.DELETE_KEY_PEPPER),
-          },
-        ]);
-      if (error) throw error;
-      return res.json({ status: "success", deleteKey });
-    } catch {
-      return res
-        .status(503)
-        .json({ error: "Saving is unavailable. Please try again shortly." });
-    }
   });
+
+  mountBots(app, { env, getDatabase, spotify, getToken, submitConfession, ai: botAi, allowedOrigins });
 
   app.get("/api/search-song", readLimiter, async (req, res) => {
     const { q } = req.query;
@@ -262,7 +222,8 @@ function createApp({
         const withPoke =
           options?.withPoke !== false &&
           (typeof visible !== "object" || visible?.withPoke !== false);
-        const cols = withPoke ? PUBLIC_COLUMNS : LEGACY_PUBLIC_COLUMNS;
+        const baseColumns = withPoke ? PUBLIC_COLUMNS : `${LEGACY_PUBLIC_COLUMNS},is_automated`;
+        const cols = options.withAutomation === false ? baseColumns.replace(",is_automated", "") : baseColumns;
         let query = getDatabase().from("confessions").select(cols);
         if (isVis) query = query.eq("is_hidden", false);
         if (id?.trim()) {

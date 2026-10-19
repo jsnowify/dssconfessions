@@ -93,10 +93,12 @@ export default function PrivacyView() {
           </p>
           <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
             For urgent takedown inquiries, contact:{" "}
-            <code className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs">
-              {/* TODO(owner): Add preferred contact email or form */}
-              dssconfessions-support@example.com
-            </code>
+            <a
+              href="mailto:joshuacambronero.personal@gmail.com"
+              className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs text-[var(--ink)] underline hover:text-[var(--primary)]"
+            >
+              joshuacambronero.personal@gmail.com
+            </a>
           </p>
         </section>
 
@@ -130,10 +132,12 @@ export default function PrivacyView() {
           </p>
           <p className="text-sm text-[var(--ink-soft)] leading-relaxed">
             If you are a student, faculty member, or individual seeking removal of content regarding your name or likeness, please use the in-app Report flag or contact:{" "}
-            <code className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs">
-              {/* TODO(owner): verify preferred takedown contact method */}
-              dssconfessions-support@example.com
-            </code>
+            <a
+              href="mailto:joshuacambronero.personal@gmail.com"
+              className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs text-[var(--ink)] underline hover:text-[var(--primary)]"
+            >
+              joshuacambronero.personal@gmail.com
+            </a>
           </p>
         </section>
       </div>

@@ -184,6 +184,7 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
   for (const file of [
     `supabase/migrations/${migration}`,
     `supabase/migrations/${repliesMigration}`,
+    "supabase/migrations/20261019024537_confession_bots.sql",
   ])
     await db.exec(readFileSync(join(__dirname, "../..", file), "utf8"));
   // Reapplying the new migration preserves existing rows and definitions.

@@ -49,6 +49,7 @@ export const ConfessionCard = React.memo(
         style={{ "--tile": cardPastel(data.id) }}
         className={`record-card ${isPreview ? "record-card--preview" : ""} ${full ? "record-card--full" : ""}`}
       >
+        {(data.is_automated || data.content?.startsWith("[Automated fiction]")) && <p className="automation-label">Automated fiction · Not a real student story</p>}
         <div className="record-card__clip">
           <div
             className="card record-card__face text-left"

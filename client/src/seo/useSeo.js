@@ -81,6 +81,12 @@ export function useSeo({ view, query = "", confessionId = null }) {
     setMetaTag('meta[property="og:locale"]', "content", DEFAULT_LOCALE);
 
     // 1. Confession deep link: strictly private, noindex
+    if (view === "bot-admin") {
+      document.title = `Bot administration | ${SITE_NAME}`;
+      setMetaTag('meta[name="robots"]', "content", "noindex, nofollow");
+      document.head.querySelector('script[id="dynamic-jsonld"]')?.remove();
+      return;
+    }
     if (view === "details" || confessionId) {
       document.title = `Confession | ${SITE_NAME}`;
       setMetaTag('meta[name="description"]', "content", "A community story and song on DSSC Confessions.");

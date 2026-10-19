@@ -18,6 +18,7 @@ Disallow: /confessions/
 
 # Disallow API endpoints
 Disallow: /api/
+Disallow: /admin/
 
 # Disallow query parameters that filter by name or track
 Disallow: /*?to=
