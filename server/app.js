@@ -244,9 +244,12 @@ function createApp({
           options?.withPoke !== false &&
           (typeof visible !== "object" || visible?.withPoke !== false);
         const baseColumns = withPoke ? PUBLIC_COLUMNS : `${LEGACY_PUBLIC_COLUMNS},is_automated`;
-        const cols = latest === "1" ? "id,created_at" : options.withAutomation === false ? baseColumns.replace(",is_automated", "") : baseColumns;
+        let cols = latest === "1" ? "id,created_at" : options.withAutomation === false ? baseColumns.replace(",is_automated", "") : baseColumns;
+        const withReplies = latest !== "1" && options.withReplies !== false;
+        if (withReplies) cols += ",reply_activity:replies(count)";
         let query = getDatabase().from("confessions").select(cols);
         if (isVis) query = query.eq("is_hidden", false);
+        if (withReplies) query = query.eq("reply_activity.is_hidden", false);
         if (id?.trim()) {
           const cleanId = id.trim();
           query = query.eq("id", cleanId).limit(1);
@@ -297,7 +300,12 @@ function createApp({
       }
       // Moderated reads stay uncached so hidden stories cannot survive in the CDN.
       if (data?.length && to?.trim()) trackSearch(req.ip, to);
-      return res.json(data || []);
+      return res.json((data || []).map(({ reply_activity, ...confession }) => ({
+        ...confession,
+        ...(latest === "1" ? {} : {
+          reply_count: Number(reply_activity?.[0]?.count) || 0,
+        }),
+      })));
     } catch {
       return res
         .status(503)

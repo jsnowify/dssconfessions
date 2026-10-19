@@ -159,10 +159,18 @@ function adapter(db, calls) {
                 sql =
                   state.operation === "delete"
                     ? `delete from public.${identifier(table)}`
-                    : `select ${state.columns.split(",").map(identifier).join(", ")} from public.${identifier(table)}`;
+                    : `select ${state.columns.split(",").map((column) => {
+                      if (column === "reply_activity:replies(count)" && table === "confessions")
+                        return `(select jsonb_build_array(jsonb_build_object('count',count(*))) from public.replies r where r.confession_id=confessions.id and r.is_hidden=false) as reply_activity`;
+                      return identifier(column);
+                    }).join(", ")} from public.${identifier(table)}`;
                 const conditions = [];
                 if (state.filters.length) {
                   for (const [column, op, value] of state.filters) {
+                    if (column === "reply_activity.is_hidden") {
+                      assert.equal(value, false);
+                      continue;
+                    }
                     params.push(value);
                     conditions.push(
                       `${identifier(column)} ${op} $${params.length}`,

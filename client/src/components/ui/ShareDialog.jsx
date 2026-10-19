@@ -16,14 +16,14 @@ const SIZE_OPTIONS = [
   },
 ];
 
-export default function ShareDialog({ data, onClose, notify }) {
-  const [height, setHeight] = useState(1350);
+export default function ShareDialog({ data, onClose, notify, initialHeight = 1350 }) {
+  const [height, setHeight] = useState(initialHeight);
   const [image, setImage] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const say = (message) => {
     setStatus(message);
-    notify(message);
+    notify?.(message);
   };
   useEffect(() => {
     let active = true;
@@ -33,7 +33,7 @@ export default function ShareDialog({ data, onClose, notify }) {
         const blob = await createShareCard(data, height);
         url = URL.createObjectURL(blob);
         if (active) {
-          setImage({ blob, url, height });
+          setImage({ blob, url, height, data });
           setError("");
         } else URL.revokeObjectURL(url);
       } catch {
@@ -47,7 +47,7 @@ export default function ShareDialog({ data, onClose, notify }) {
       if (url) URL.revokeObjectURL(url);
     };
   }, [data, height]);
-  const ready = image?.height === height;
+  const ready = !error && image?.height === height && image?.data === data;
   const share = async () => {
     if (!ready) return;
     try {
@@ -87,7 +87,11 @@ export default function ShareDialog({ data, onClose, notify }) {
           label="Image size"
           options={SIZE_OPTIONS}
           value={String(height)}
-          onChange={(val) => setHeight(Number(val))}
+          onChange={(val) => {
+            setError("");
+            setStatus("");
+            setHeight(Number(val));
+          }}
         />
       </div>
       {error ? (
@@ -129,6 +133,10 @@ export default function ShareDialog({ data, onClose, notify }) {
         {status}
       </p>
       <p className="mt-4 text-meta">
+        On iPhone or iPad, tap Share, then Save Image. You can also touch and hold
+        the preview to save it.
+      </p>
+      <p className="mt-3 text-meta">
         Created on your device. We never upload this image.
       </p>
     </Modal>

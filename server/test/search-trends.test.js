@@ -181,7 +181,7 @@ test("routes count only matching searches without waiting and return bounded cac
   // A later limiter outage must not turn a successful search into an error.
   const outageSearch = await get("/api/confessions?to=snowi");
   assert.equal(outageSearch.status, 200);
-  assert.deepEqual(await outageSearch.json(), [{ id: "one" }]);
+  assert.deepEqual(await outageSearch.json(), [{ id: "one", reply_count: 0 }]);
   resolveQuota({ error: { message: "store offline" } });
   await Promise.all(tasks);
   await get("/api/confessions");

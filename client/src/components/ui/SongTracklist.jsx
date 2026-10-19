@@ -122,12 +122,13 @@ export default function SongTracklist({
 
   return (
     <section
+      id="song-tracklist"
       className="song-tracklist w-full bg-(--bg-wash) border-2 border-(--ink) rounded-2xl p-5 md:p-6 shadow-[4px_4px_0_var(--ink)] mt-8"
       aria-labelledby="tracklist-heading"
     >
       {/* Tracklist Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b-2 border-(--ink)">
-        <div>
+      <div className="tracklist-header pb-4 border-b-2 border-(--ink)">
+        <div className="tracklist-header__copy">
           <h2
             id="tracklist-heading"
             className="font-script text-3xl md:text-4xl font-bold text-(--ink)"
@@ -152,16 +153,17 @@ export default function SongTracklist({
 
         {/* Compact capacity meter, independent of the number of reply slots. */}
         <div
-          className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl border-2 border-(--ink) bg-(--surface) shadow-[2px_2px_0_var(--ink)] self-start sm:self-auto"
+          className="capacity-meter"
           role="img"
           aria-label={`${count} of ${max} reply slots filled`}
         >
+          <div className="capacity-meter__dots" aria-hidden="true">
           {Array.from({ length: meterSegments }).map((_, idx) => {
             const isFilled = idx < Math.ceil((count / max) * meterSegments);
             return (
               <span
                 key={idx}
-                className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${
+                className={`capacity-meter__dot ${
                   isFilled
                     ? "bg-(--ink) border border-(--ink)"
                     : "border-2 border-dashed border-(--ink-soft) bg-transparent opacity-50"
@@ -174,8 +176,9 @@ export default function SongTracklist({
               </span>
             );
           })}
+          </div>
           <span
-            className="text-xs font-bold whitespace-nowrap"
+            className="capacity-meter__count"
             aria-hidden="true"
           >
             {count}/{max}

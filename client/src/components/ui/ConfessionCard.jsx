@@ -45,6 +45,7 @@ export const ConfessionCard = React.memo(
       ? ""
       : dateFormatter.format(date);
     const specialRole = getSpecialRecipientRole(data?.recipient_to);
+    const replyCount = Math.max(0, Number(data?.reply_count) || 0);
     const handleCardClick = () => {
       if (!isPreview && onClick) onClick();
     };
@@ -169,6 +170,28 @@ export const ConfessionCard = React.memo(
                   {isPreview && <span>mixtape</span>}
                 </div>
               </footer>
+              {!isPreview && replyCount > 0 && (
+                <button
+                  type="button"
+                  className="reply-badge"
+                  aria-label={`${replyCount} ${replyCount === 1 ? "song reply" : "song replies"}. Open tracklist`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (full) document.getElementById("song-tracklist")?.scrollIntoView({
+                      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+                      block: "start",
+                    });
+                    else onClick?.();
+                  }}
+                >
+                  <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" />
+                    <path d="M12 8v6m0-6 3-1v6" />
+                    <path d="M12 14c0 1-3 1.5-3 0s3-1.5 3 0Zm3-1c0 1 3 .5 3-1s-3 0-3 1Z" />
+                  </svg>
+                  <span>{replyCount} {replyCount === 1 ? "song reply" : "song replies"}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

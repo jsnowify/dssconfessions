@@ -14,11 +14,16 @@ function missingTable(error, table) {
 }
 
 async function executeQueryWithPokeFallback(buildQuery, visible) {
-  const options = { withPoke: true, withAutomation: true };
+  const options = { withPoke: true, withAutomation: true, withReplies: true };
   let result = await buildQuery(visible, options);
-  for (let attempt = 0; attempt < 2 && result.error; attempt++) {
+  for (let attempt = 0; attempt < 3 && result.error; attempt++) {
     if (options.withPoke && missingColumn(result.error, "poke_count")) options.withPoke = false;
     else if (options.withAutomation && missingColumn(result.error, "is_automated")) options.withAutomation = false;
+    else if (options.withReplies && (
+      missingTable(result.error, "replies") ||
+      (result.error.code === "PGRST200" && /replies|reply_activity/.test(result.error.message || "")) ||
+      (missingColumn(result.error, "is_hidden") && /replies|reply_activity/.test(result.error.message || ""))
+    )) options.withReplies = false;
     else break;
     console.warn("[db core-read] Optional confession columns missing; run npm run check:schema --prefix server and apply migrations.");
     result = await buildQuery(visible, options);

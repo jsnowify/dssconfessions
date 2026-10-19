@@ -1,6 +1,7 @@
 import { ConfessionCard } from "../components/ui/ConfessionCard";
 import { recipientLabel, getSpecialRecipientRole } from "../utils/confession-labels";
-import { useExport } from "../hooks/useExport";
+import { useState } from "react";
+import ShareDialog from "../components/ui/ShareDialog";
 import ConfessionFeatures from "../components/ui/ConfessionFeatures";
 import ReaderFontToggle from "../components/ui/ReaderFontToggle";
 
@@ -12,7 +13,7 @@ const DetailsView = ({
   error = null,
   onDeleted,
 }) => {
-  const { isExporting, handleDownloadImage } = useExport();
+  const [isSaveOpen, setIsSaveOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -55,7 +56,7 @@ const DetailsView = ({
     <div className="details-view min-h-screen flex flex-col items-center px-4 relative pb-20 pt-10">
       {/* Top Navigation & Action Toolbar */}
       <div className="w-full max-w-4xl flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] items-center gap-4 mb-8 z-10">
-        <div className="flex items-center justify-between w-full md:w-auto md:justify-self-start">
+        <div className="flex flex-wrap items-center justify-between gap-3 w-full md:w-auto md:justify-self-start">
           <button
             type="button"
             onClick={onBack}
@@ -65,11 +66,10 @@ const DetailsView = ({
           </button>
           <button
             type="button"
-            onClick={() => handleDownloadImage(selectedConfession)}
-            disabled={isExporting}
+            onClick={() => setIsSaveOpen(true)}
             className="md:hidden btn btn-paper px-5 py-2.5 text-button font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-11"
           >
-            {isExporting ? "Generating..." : "Save for IG"}
+            Save for IG
           </button>
         </div>
 
@@ -80,11 +80,10 @@ const DetailsView = ({
         <div className="hidden md:flex md:justify-self-end">
           <button
             type="button"
-            onClick={() => handleDownloadImage(selectedConfession)}
-            disabled={isExporting}
+            onClick={() => setIsSaveOpen(true)}
             className="btn btn-paper px-5 py-2.5 text-button font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-11"
           >
-            {isExporting ? "Generating..." : "Save for IG"}
+            Save for IG
           </button>
         </div>
       </div>
@@ -151,6 +150,13 @@ const DetailsView = ({
         data={selectedConfession}
         onDeleted={onDeleted}
       />
+      {isSaveOpen && (
+        <ShareDialog
+          data={selectedConfession}
+          initialHeight={1920}
+          onClose={() => setIsSaveOpen(false)}
+        />
+      )}
     </div>
   );
 };

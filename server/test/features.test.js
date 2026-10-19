@@ -132,6 +132,33 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
     return { ...row, key: result.body.deleteKey };
   };
 
+  await t.test("feed, search and detail counts include only visible replies, even when replies are disabled", async () => {
+    await reset();
+    const first = await post();
+    const second = await post();
+    const empty = await post();
+    // Legacy fixtures also prove aggregate counts are not truncated by the
+    // REST API's row limit. Production reply writes still use add_reply.
+    await db.query(`insert into public.replies(confession_id,song_name,artist_name,spotify_track_id,is_hidden)
+      select $1,'Sample Song','Sample Artist',$2,n > 1001 from generate_series(1,1002) n`, [first.id, TRACK]);
+    await db.query(`insert into public.replies(confession_id,song_name,artist_name,spotify_track_id)
+      values ($1,'Sample Song','Sample Artist',$2)`, [second.id, TRACK]);
+    await db.query("update public.confessions set allow_replies=false where id=$1", [first.id]);
+    for (const path of ["/api/confessions", "/api/confessions?to=Private", `/api/confessions?id=${first.id}`]) {
+      const result = await request(path);
+      assert.equal(result.status, 200);
+      assert.equal(result.body.find(item => item.id === first.id).reply_count, 1001);
+      assert.ok(result.body.every(item => !("reply_activity" in item)));
+    }
+    const feed = await request("/api/confessions");
+    assert.equal(feed.body.find(item => item.id === second.id).reply_count, 1);
+    assert.equal(feed.body.find(item => item.id === empty.id).reply_count, 0);
+    await db.query("update public.replies set is_hidden=true where confession_id=$1", [second.id]);
+    assert.equal((await request(`/api/confessions?id=${second.id}`)).body[0].reply_count, 0);
+    const latest = await request("/api/confessions?latest=1");
+    assert.deepEqual(Object.keys(latest.body[0]).sort(), ["created_at", "id"]);
+  });
+
   await t.test(
     "one-time keys, validation, generic rejection, legacy keys, and cascade deletion",
     async () => {

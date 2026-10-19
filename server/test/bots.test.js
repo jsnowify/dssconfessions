@@ -103,11 +103,18 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
         limit = 20;
       const q = {
         select(value) {
-          assert.match(value, /^[a-z_,]+$/);
-          cols = value;
+          const base = value.replace(",reply_activity:replies(count)", "");
+          assert.match(base, /^[a-z_,]+$/);
+          cols = value.includes("reply_activity:replies(count)")
+            ? `${base},(select jsonb_build_array(jsonb_build_object('count',count(*))) from public.replies r where r.confession_id=confessions.id and r.is_hidden=false) as reply_activity`
+            : base;
           return q;
         },
         eq(column, value) {
+          if (column === "reply_activity.is_hidden") {
+            assert.equal(value, false);
+            return q;
+          }
           assert.match(column, /^[a-z_]+$/);
           filters.push([column, value]);
           return q;
