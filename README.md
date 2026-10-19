@@ -1,93 +1,42 @@
-﻿# dssconfessions
+# DSSConfessions
 
-Untold words, sent through the song. An anonymous confession platform for the DSSC student community, built with React, Vite, Express, Spotify and Supabase PostgreSQL.
+*Untold words, sent through the song.*
 
-Live frontend: https://dssconfessions.vercel.app/
+Some feelings are easier to share through music. DSSConfessions is a place for the Davao del Sur State College (DSSC) community to leave anonymous messages paired with songs?whether it's a quiet admiration, a thank-you, an apology, or something you've never found the courage to say.
 
-The frontend and API are live together on Vercel, with Supabase storing the existing confessions. Shared rate limits and feed/search indexes have been applied. The production app no longer depends on Render. The owner's deployment and verification report is kept locally in `docs/operations.md`.
+[Visit DSSConfessions](https://dssconfessions.vercel.app/)
 
-## Architecture
+## Why this exists
 
-The browser calls same-origin `/api` endpoints. `api/index.js` exports the Express app as a Vercel Function, while Vercel serves `client/dist` as static assets. The API reads/writes Supabase and proxies Spotify; server credentials stay out of the browser. A separate Render service is unnecessary after the Vercel cutover.
+A song can say what ordinary words can't. This project gives students a way to express themselves, discover messages that feel familiar, and connect through the music behind them. You don't need an account to participate.
 
-## Local development
+It also began as a personal project: a way to practice building something useful for the community and keep improving it through new ideas and design.
 
-Use Node.js 24.x, then install both applications:
+## How it works
 
-```powershell
-npm ci --prefix server
-npm ci --prefix client
-```
+1. Write a message and choose who it's for. You can leave your own name out.
+2. Pick a song that captures the feeling.
+3. Publish your confession and save your private Delete Key if you want to remove it later.
 
-Configure `server/.env` using the names in [server/.env.example](server/.env.example). Preserve existing credentials if this file is already configured. Leave `VITE_API_BASE_URL` unset in the frontend environment; Vite proxies `/api` to `http://localhost:5000`.
+Messages are public, so please share only what you're comfortable letting others read. You can browse confessions or search for a recipient's name to see whether someone has left them a song.
 
-Run the backend and frontend in separate terminals:
+## More ways to connect
 
-```powershell
-npm start
-```
+- **Reply with a song** to continue the conversation.
+- **Send a Poke** to show a little appreciation.
+- **Share a confession** through a link or a downloadable image.
+- **Switch to Easy-Read** if you prefer simpler lettering for messages.
 
-```powershell
-npm run dev
-```
+## Anonymity and respect
 
-The development UI runs on port 5173. The backend defaults to port 5000; `PORT` can override it, but the Vite proxy target must then be adjusted to match.
+No account or social media login is required. The app does not store raw IP addresses or use browser fingerprints to identify visitors. Hosting and music providers may process their own operational data.
 
-## Files kept local
+Anonymity is a way to express yourself, and every message should still respect the person reading it. Avoid harassment, threats, and sharing someone else's private information. If a post makes you uncomfortable or mentions you in a way you don't want, use its Report button to request a review.
 
-Git and deployment ignore rules keep these files on the owner's machine:
+Read the [privacy policy](https://dssconfessions.vercel.app/privacy) for more details.
 
-- Credentials: `.env` and `.env.*` files, private keys, credential JSON files and local registry authentication. Only sanitized `.env.example` templates belong in Git.
-- Owner notes: `AGENTS.md`, `AUTOMATION.md`, `PERFORMANCE.md`, `docs/` and `performance-results/`.
-- Local state: `.vscode/`, `.idea/`, `.vercel/`, `.supabase/`, `supabase/.temp/`, `.local/`, logs and generated test reports.
-- Installed dependencies and generated builds: `node_modules/` and `dist/`; install/build commands recreate them.
+## Made for the community
 
-Keep application source, public assets, `scripts/`, tests, database migrations, package manifests, lockfiles and `vercel.json` versioned so a fresh checkout can build and run. Store any additional private working files under `.local/`, outside public assets and application source.
+DSSConfessions is an independent student project for the DSSC community in Digos City, Davao del Sur, Philippines. It is not affiliated with or endorsed by Davao del Sur State College.
 
-Production credentials come from server-only Vercel environment variables, independently of local environment files. Never put secrets in `VITE_*` variables: Vite exposes them to the browser. Removing a tracked file from Git preserves its local copy but removes it from future checkouts only after the cleanup is committed and pushed; older commits still contain earlier copies. If a credential was ever published, ignoring it does not revoke it.
-
-## Checks
-
-```powershell
-npm run lint
-npm run build
-npm test
-npm run check:live -- https://dssconfessions.vercel.app
-```
-
-The live check performs only reads and fails if the deployment serves HTML instead of API JSON or posting is not configured. `/api/health` checks database connectivity, Spotify credential presence and the Delete Key secret required for posting. It returns HTTP 503 when posting configuration is invalid; it does not verify Spotify credentials or perform a database insert.
-
-## Deploying to Vercel
-
-Use the repository root as the Vercel project Root Directory, with Node.js 24.x. Root `vercel.json` defines the build, static output, function region and API routes.
-
-Configure these server environment variables:
-
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE`
-- `SPOTIFY_CLIENT_ID`
-- `SPOTIFY_CLIENT_SECRET`
-- `DELETE_KEY_PEPPER` — a separate random secret of at least 32 characters, required for posting and author deletion
-- `REPORT_HASH_SECRET` — another independent random secret of at least 32 characters, required for anonymous reports
-
-Store secrets as server-only Vercel environment variables for each intended environment, then redeploy: existing deployments keep their original environment. Never rotate `DELETE_KEY_PEPPER` during a routine release, because existing author Delete Keys depend on it. Keep both secrets distinct from each other and from `SUPABASE_SERVICE_ROLE`. Check `/api/health` and run `npm run check:live -- <deployment-url>` before promoting a production build.
-
-Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/api`. The [shared rate-limit migration](supabase/migrations/20261018080243_serverless_rate_limits.sql) and [feed/search indexes](supabase/migrations/20261018080247_confession_indexes.sql) have been applied to the restored dssconfessions project. For another database, restore the existing confession schema/data first, then apply these migrations before deploying the API. Vercel always uses shared database limits; unavailable limits return HTTP 503. The local `docs/operations.md` runbook contains verification and cutover details.
-
-## API
-
-Bot administration is available at `/admin/bots` after applying the bot migrations and configuring the server-only variables in [server/.env.example](server/.env.example). The owner's detailed runbook is kept locally in `AUTOMATION.md`. Bots start disabled and reuse the existing submission service, with atomic jobs, safety checks and visible fiction labels. No new runtime dependencies are required.
-
-| Endpoint | Purpose |
-| --- | --- |
-| `GET /api/health` | Database connectivity, Spotify configuration and posting configuration |
-| `GET /api/confessions` | Latest 20 public stories |
-| `GET /api/confessions?to=name` | Up to 50 recipient matches |
-| `GET /api/search-song?q=title` | Up to five Spotify tracks |
-| `POST /api/confess` | Validate and save a story with a server-verified Spotify track |
-
-Submissions accept a recipient of up to 50 characters, optional sender, content of up to 3,000 characters, and `song: { id: "SPOTIFY_TRACK_ID" }`. The server obtains the song title, artist and artwork from Spotify.
-
-## Author
-
-Snowi Wu. Built for educational purposes and inspired by SendTheSong.
+Created by **Joshua ?Snowi? Cambronero**, inspired by **SendTheSong**.
