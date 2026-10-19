@@ -1,10 +1,48 @@
-server/.env
+# Installed dependencies and generated builds (all applications)
 node_modules/
+dist/
+dist-ssr/
+
+# Credentials and local environment overrides; only sanitized templates are public
 .env
 .env.*
 !.env.example
-dist/
+.envrc
+.npmrc
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+id_rsa
+id_ed25519
+credentials.json
+service-account*.json
+
+# Local deployment/database state and private working files
 .vercel/
 .supabase/
 supabase/.temp/
-docs/
+/.local/
+/docs/
+
+# Owner instructions, operations notes and measurements stay on this machine
+/AGENTS.md
+/AUTOMATION.md
+/PERFORMANCE.md
+/performance-results/
+
+# Editor settings, logs and generated verification artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.log
+logs/
+coverage/
+playwright-report/
+test-results/

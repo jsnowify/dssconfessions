@@ -4,7 +4,7 @@ Untold words, sent through the song. An anonymous confession platform for the DS
 
 Live frontend: https://dssconfessions.vercel.app/
 
-The frontend and API are live together on Vercel, with Supabase storing the 56 existing confessions. Shared rate limits and feed/search indexes have been applied. The production app no longer depends on Render. See the [deployment and verification report](docs/operations.md).
+The frontend and API are live together on Vercel, with Supabase storing the existing confessions. Shared rate limits and feed/search indexes have been applied. The production app no longer depends on Render. The owner's deployment and verification report is kept locally in `docs/operations.md`.
 
 ## Architecture
 
@@ -33,6 +33,19 @@ npm run dev
 
 The development UI runs on port 5173. The backend defaults to port 5000; `PORT` can override it, but the Vite proxy target must then be adjusted to match.
 
+## Files kept local
+
+Git and deployment ignore rules keep these files on the owner's machine:
+
+- Credentials: `.env` and `.env.*` files, private keys, credential JSON files and local registry authentication. Only sanitized `.env.example` templates belong in Git.
+- Owner notes: `AGENTS.md`, `AUTOMATION.md`, `PERFORMANCE.md`, `docs/` and `performance-results/`.
+- Local state: `.vscode/`, `.idea/`, `.vercel/`, `.supabase/`, `supabase/.temp/`, `.local/`, logs and generated test reports.
+- Installed dependencies and generated builds: `node_modules/` and `dist/`; install/build commands recreate them.
+
+Keep application source, public assets, `scripts/`, tests, database migrations, package manifests, lockfiles and `vercel.json` versioned so a fresh checkout can build and run. Store any additional private working files under `.local/`, outside public assets and application source.
+
+Production credentials come from server-only Vercel environment variables, independently of local environment files. Never put secrets in `VITE_*` variables: Vite exposes them to the browser. Removing a tracked file from Git preserves its local copy but removes it from future checkouts only after the cleanup is committed and pushed; older commits still contain earlier copies. If a credential was ever published, ignoring it does not revoke it.
+
 ## Checks
 
 ```powershell
@@ -59,11 +72,11 @@ Configure these server environment variables:
 
 Store secrets as server-only Vercel environment variables for each intended environment, then redeploy: existing deployments keep their original environment. Never rotate `DELETE_KEY_PEPPER` during a routine release, because existing author Delete Keys depend on it. Keep both secrets distinct from each other and from `SUPABASE_SERVICE_ROLE`. Check `/api/health` and run `npm run check:live -- <deployment-url>` before promoting a production build.
 
-Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/api`. The [shared rate-limit migration](supabase/migrations/20261018080243_serverless_rate_limits.sql) and [feed/search indexes](supabase/migrations/20261018080247_confession_indexes.sql) have been applied to the restored dssconfessions project. For another database, restore the existing confession schema/data first, then apply these migrations before deploying the API. Vercel always uses shared database limits; unavailable limits return HTTP 503. See [operations](docs/operations.md) for verification and cutover details.
+Remove `VITE_API_BASE_URL` from Vercel so requests use the same deployment's `/api`. The [shared rate-limit migration](supabase/migrations/20261018080243_serverless_rate_limits.sql) and [feed/search indexes](supabase/migrations/20261018080247_confession_indexes.sql) have been applied to the restored dssconfessions project. For another database, restore the existing confession schema/data first, then apply these migrations before deploying the API. Vercel always uses shared database limits; unavailable limits return HTTP 503. The local `docs/operations.md` runbook contains verification and cutover details.
 
 ## API
 
-Bot administration is available at `/admin/bots` after migration and server configuration. See [automated fiction setup, architecture and verification](AUTOMATION.md). Bots start disabled and reuse the existing submission service, with atomic jobs, safety checks and visible fiction labels. No new runtime dependencies are required.
+Bot administration is available at `/admin/bots` after applying the bot migrations and configuring the server-only variables in [server/.env.example](server/.env.example). The owner's detailed runbook is kept locally in `AUTOMATION.md`. Bots start disabled and reuse the existing submission service, with atomic jobs, safety checks and visible fiction labels. No new runtime dependencies are required.
 
 | Endpoint | Purpose |
 | --- | --- |
