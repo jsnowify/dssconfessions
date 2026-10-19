@@ -26,6 +26,9 @@ export const useConfessions = ({ enabled = true } = {}) => {
   const [feed, setFeed] = useState([]);
   const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [feedError, setFeedError] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(null);
   const [refreshSequence, setRefreshSequence] = useState(0);
   const loadedSequence = useRef(null);
   const [pendingPost, setPendingPost] = useState(null);
@@ -34,6 +37,7 @@ export const useConfessions = ({ enabled = true } = {}) => {
   const fetchFeed = useCallback(() => {
     setIsFeedLoading(true);
     setFeedError(null);
+    setLoadMoreError(null);
     setRefreshSequence((sequence) => sequence + 1);
   }, []);
 
@@ -43,11 +47,15 @@ export const useConfessions = ({ enabled = true } = {}) => {
     if (!enabled || loadedSequence.current === refreshSequence) return;
     const controller = new AbortController();
     api
-      .get("/api/confessions", { signal: controller.signal })
+      .get("/api/confessions", {
+        params: { limit: 20 },
+        signal: controller.signal,
+      })
       .then((res) => {
         if (controller.signal.aborted) return;
         if (!Array.isArray(res.data)) throw new Error("Invalid feed response");
         setFeed(res.data);
+        setHasMore(res.data.length >= 20);
         setPendingPost(null);
         dismissedPost.current = null;
         loadedSequence.current = refreshSequence;
@@ -136,10 +144,61 @@ export const useConfessions = ({ enabled = true } = {}) => {
     return res.data;
   }, []);
 
-  const searchConfessions = useCallback(async (query, signal) => {
+  const loadMoreFeed = useCallback(async () => {
+    if (isLoadingMore || !hasMore || feed.length === 0) return;
+    const lastItem = feed[feed.length - 1];
+    if (!lastItem?.created_at) return;
+
+    setIsLoadingMore(true);
+    setLoadMoreError(null);
+    try {
+      const res = await api.get("/api/confessions", {
+        params: {
+          before: lastItem.created_at,
+          limit: 20,
+        },
+      });
+      if (!Array.isArray(res.data)) throw new Error("Invalid feed response");
+      if (res.data.length < 20) {
+        setHasMore(false);
+      }
+      setFeed((prev) => {
+        const existingIds = new Set(prev.map((c) => c.id));
+        const uniqueItems = res.data.filter((c) => !existingIds.has(c.id));
+        return [...prev, ...uniqueItems];
+      });
+    } catch (err) {
+      console.error("Load More Feed Error", err);
+      setLoadMoreError("Could not unpack older confessions. Tap to retry.");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, feed]);
+
+  const searchConfessions = useCallback(async (query, optionsOrSignal) => {
     if (!query || !query.trim()) return [];
+    let signal = undefined;
+    let before = undefined;
+    let limit = 20;
+
+    if (optionsOrSignal) {
+      if (
+        typeof optionsOrSignal.aborted === "boolean" ||
+        optionsOrSignal instanceof AbortSignal
+      ) {
+        signal = optionsOrSignal;
+      } else if (typeof optionsOrSignal === "object") {
+        signal = optionsOrSignal.signal;
+        before = optionsOrSignal.before;
+        if (optionsOrSignal.limit) limit = optionsOrSignal.limit;
+      }
+    }
+
+    const params = { to: query.trim(), limit };
+    if (before) params.before = before;
+
     const res = await api.get("/api/confessions", {
-      params: { to: query.trim() },
+      params,
       signal,
     });
     if (!Array.isArray(res.data)) throw new Error("Invalid search response");
@@ -150,12 +209,28 @@ export const useConfessions = ({ enabled = true } = {}) => {
     feed,
     isFeedLoading,
     feedError,
+    hasMore,
+    isLoadingMore,
+    loadMoreError,
     fetchFeed,
+    loadMoreFeed,
     submitConfession,
     searchConfessions,
     hasNewPosts: Boolean(pendingPost),
     dismissNewPosts,
   };
+};
+
+export const fetchArchiveConfessions = async ({
+  before,
+  limit = 20,
+  signal,
+} = {}) => {
+  const params = { limit };
+  if (before) params.before = before;
+  const res = await api.get("/api/confessions", { params, signal });
+  if (!Array.isArray(res.data)) throw new Error("Invalid archive response");
+  return res.data;
 };
 
 export const fetchConfessionById = async (id, signal) => {
@@ -269,3 +344,5 @@ export const useSongSearch = () => {
     retrySearch,
   };
 };
+
+export { useReaderFont } from "./useReaderFont";

@@ -3,7 +3,7 @@ import Vinyl from "./Vinyl";
 import Doodle from "./Doodle";
 import PokeButton from "./PokeButton";
 import { cardPastel } from "../../utils/pastel";
-import { recipientLabel } from "../../utils/confession-labels";
+import { recipientLabel, getSpecialRecipientRole } from "../../utils/confession-labels";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -44,6 +44,7 @@ export const ConfessionCard = React.memo(
     const dateLabel = Number.isNaN(date.getTime())
       ? ""
       : dateFormatter.format(date);
+    const specialRole = getSpecialRecipientRole(data?.recipient_to);
     const handleCardClick = () => {
       if (!isPreview && onClick) onClick();
     };
@@ -58,24 +59,35 @@ export const ConfessionCard = React.memo(
             className="card record-card__face text-left"
             onClick={handleCardClick}
           >
-            <header className="record-card__header">
-              <span
-                className="tag-to font-bold uppercase tracking-wider"
-                title={recipientLabel(data) || "......"}
-              >
-                <Doodle kind="note" />
-                <span className="truncate">
-                  To: {recipientLabel(data) || "......"}
+            <header className="record-card__header flex-wrap">
+              <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
+                <span
+                  className="tag-to font-bold uppercase tracking-wider"
+                  title={recipientLabel(data) || "......"}
+                >
+                  <Doodle kind="note" />
+                  <span className="truncate">
+                    To: {recipientLabel(data) || "......"}
+                  </span>
                 </span>
-              </span>
-              <span className="record-date">
+                {specialRole && (
+                  <span
+                    className={`special-role-tag ${specialRole.className}`}
+                    title={specialRole.title}
+                  >
+                    <span aria-hidden="true">{specialRole.icon}</span>
+                    <span>{specialRole.label}</span>
+                  </span>
+                )}
+              </div>
+              <span className="record-date shrink-0">
                 {isPreview ? "PREVIEW" : dateLabel}
               </span>
             </header>
             <div className="record-message">
               <p
                 ref={messageRef}
-                className={`font-handwritten text-2xl md:text-3xl whitespace-pre-line ${!isExpanded && !full ? "line-clamp-5" : ""}`}
+                className={`read-text whitespace-pre-line ${!isExpanded && !full ? "line-clamp-5" : ""}`}
               >
                 &quot;{content || "Your untold words..."}&quot;
               </p>
@@ -144,7 +156,7 @@ export const ConfessionCard = React.memo(
                 </div>
               </div>
               <footer className="record-card__footer uppercase tracking-wider flex items-center justify-between gap-2">
-                <span className="truncate max-w-[180px]">
+                <span className="truncate max-w-45">
                   from: {data?.sender_from || "Anonymous"}
                 </span>
                 <div className="flex items-center gap-1.5 shrink-0">

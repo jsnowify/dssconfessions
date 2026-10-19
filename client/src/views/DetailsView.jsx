@@ -1,8 +1,8 @@
 import { ConfessionCard } from "../components/ui/ConfessionCard";
-import { recipientLabel } from "../utils/confession-labels";
+import { recipientLabel, getSpecialRecipientRole } from "../utils/confession-labels";
 import { useExport } from "../hooks/useExport";
-import { useState } from "react";
 import ConfessionFeatures from "../components/ui/ConfessionFeatures";
+import ReaderFontToggle from "../components/ui/ReaderFontToggle";
 
 const DetailsView = ({
   selectedConfession,
@@ -13,14 +13,13 @@ const DetailsView = ({
   onDeleted,
 }) => {
   const { isExporting, handleDownloadImage } = useExport();
-  const [replyTrack, setReplyTrack] = useState(null);
 
   if (isLoading) {
     return (
       <div className="details-view min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <h1 className="sr-only">Confession</h1>
-        <div className="w-8 h-8 border-2 border-[var(--ink)] border-t-[var(--mustard)] rounded-full animate-spin mb-4" />
-        <p className="text-sm font-bold uppercase tracking-wider text-[var(--text-soft)]">
+        <div className="w-8 h-8 border-2 border-(--ink) border-t-(--mustard) rounded-full animate-spin mb-4" />
+        <p className="text-sm font-bold uppercase tracking-wider text-(--text-soft)">
           Loading confession...
         </p>
       </div>
@@ -30,17 +29,17 @@ const DetailsView = ({
   if (error || !selectedConfession) {
     return (
       <div className="details-view min-h-screen flex flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-script font-bold mb-3 text-[var(--ink)]">
+        <h1 className="text-4xl md:text-5xl font-script font-bold mb-3 text-(--ink)">
           Confession not found
         </h1>
-        <p className="text-[var(--ink-soft)] text-base mb-6 max-w-md">
+        <p className="text-(--ink-soft) text-base mb-6 max-w-md">
           {error ||
             "This confession might have been removed, or the link may be incorrect."}
         </p>
         <button
           type="button"
           onClick={onBack}
-          className="btn btn-paper px-6 py-2.5 text-[13px] font-bold uppercase tracking-widest cursor-pointer"
+          className="btn btn-paper px-6 py-2.5 text-button font-bold uppercase tracking-widest cursor-pointer"
         >
           ← {fromView === "browse" ? "Back to Browse" : "Back to Home"}
         </button>
@@ -49,34 +48,64 @@ const DetailsView = ({
   }
 
   const trackId =
-    replyTrack ||
     selectedConfession.spotify_url?.split("/track/")[1]?.split("?")[0];
+  const specialRole = getSpecialRecipientRole(selectedConfession?.recipient_to);
 
   return (
     <div className="details-view min-h-screen flex flex-col items-center px-4 relative pb-20 pt-10">
-      {/* Top Navigation */}
-      <div className="w-full max-w-4xl flex justify-between items-center mb-8 z-10">
-        <button
-          type="button"
-          onClick={onBack}
-          className="btn btn-paper px-5 py-2.5 text-[13px] font-bold uppercase tracking-widest cursor-pointer"
-        >
-          ← {fromView === "browse" ? "Back to Browse" : "Back to Home"}
-        </button>
-        <button
-          type="button"
-          onClick={() => handleDownloadImage(selectedConfession)}
-          disabled={isExporting}
-          className="btn btn-paper px-5 py-2.5 text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isExporting ? "Generating..." : "Save for IG"}
-        </button>
+      {/* Top Navigation & Action Toolbar */}
+      <div className="w-full max-w-4xl flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] items-center gap-4 mb-8 z-10">
+        <div className="flex items-center justify-between w-full md:w-auto md:justify-self-start">
+          <button
+            type="button"
+            onClick={onBack}
+            className="btn btn-paper px-5 py-2.5 text-button font-bold uppercase tracking-widest cursor-pointer min-h-11"
+          >
+            ← {fromView === "browse" ? "Back to Browse" : "Back to Home"}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDownloadImage(selectedConfession)}
+            disabled={isExporting}
+            className="md:hidden btn btn-paper px-5 py-2.5 text-button font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-11"
+          >
+            {isExporting ? "Generating..." : "Save for IG"}
+          </button>
+        </div>
+
+        <div className="w-full md:w-auto flex justify-center md:justify-self-center">
+          <ReaderFontToggle variant="toolbar" />
+        </div>
+
+        <div className="hidden md:flex md:justify-self-end">
+          <button
+            type="button"
+            onClick={() => handleDownloadImage(selectedConfession)}
+            disabled={isExporting}
+            className="btn btn-paper px-5 py-2.5 text-button font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-11"
+          >
+            {isExporting ? "Generating..." : "Save for IG"}
+          </button>
+        </div>
       </div>
 
       {/* Recipient Title (keeping handwriting font) */}
-      <h1 className="text-5xl md:text-7xl font-handwritten mb-8 z-10 text-center px-4 text-[var(--ink)] break-words max-w-full">
-        Hello, {recipientLabel(selectedConfession)}
-      </h1>
+      <div className="text-center mb-8 z-10 px-4 max-w-full">
+        <h1 className="text-5xl md:text-7xl font-handwritten text-(--ink) wrap-break-word">
+          Hello, {recipientLabel(selectedConfession)}
+        </h1>
+        {specialRole && (
+          <div className="mt-3 flex justify-center">
+            <span
+              className={`special-role-tag special-role-tag--lg ${specialRole.className}`}
+              title={specialRole.title}
+            >
+              <span aria-hidden="true">{specialRole.icon}</span>
+              <span>{specialRole.label}</span>
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="detail-card-wrap">
         <ConfessionCard
@@ -90,7 +119,7 @@ const DetailsView = ({
 
       {/* Spotify Embed Player */}
       {trackId ? (
-        <div className="w-full max-w-[450px] shadow-[6px_6px_0_var(--ink)] rounded-xl border-2 border-[var(--ink)] overflow-hidden bg-[var(--surface)] z-10 mb-8">
+        <div className="w-full max-w-112.5 shadow-[6px_6px_0_var(--ink)] rounded-xl border-2 border-(--ink) overflow-hidden bg-(--surface) z-10 mb-8">
           <iframe
             src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`}
             width="100%"
@@ -102,18 +131,18 @@ const DetailsView = ({
           />
         </div>
       ) : (
-        <div className="w-full max-w-[450px] p-6 bg-[var(--sleeve)] border-2 border-[var(--ink)] rounded-xl text-center mb-8 z-10 shadow-[4px_4px_0_var(--ink)]">
-          <p className="font-bold text-sm text-[var(--ink)]">
+        <div className="w-full max-w-112.5 p-6 bg-(--sleeve) border-2 border-(--ink) rounded-xl text-center mb-8 z-10 shadow-[4px_4px_0_var(--ink)]">
+          <p className="font-bold text-sm text-(--ink)">
             {selectedConfession.song_name}
           </p>
-          <p className="text-[13px] text-[var(--ink-soft)]">
+          <p className="text-meta text-(--ink-soft)">
             {selectedConfession.artist_name}
           </p>
         </div>
       )}
 
       {/* Metadata */}
-      <p className="mt-6 text-[13px] font-bold text-[var(--ink-soft)] uppercase tracking-wider z-10 text-center">
+      <p className="mt-6 text-meta font-bold text-(--ink-soft) uppercase tracking-wider z-10 text-center">
         SENT VIA DSSCONFESSIONS • FROM:{" "}
         {selectedConfession.sender_from || "ANONYMOUS"}
       </p>
@@ -121,9 +150,6 @@ const DetailsView = ({
         key={selectedConfession.id}
         data={selectedConfession}
         onDeleted={onDeleted}
-        onPlayReply={(id) => {
-          if (/^[A-Za-z0-9]{22}$/.test(id)) setReplyTrack(id);
-        }}
       />
     </div>
   );

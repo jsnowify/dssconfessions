@@ -24,12 +24,12 @@ class ErrorBoundary extends React.Component {
           <h2 className="text-2xl font-bold uppercase mb-4 tracking-tighter">
             Something went wrong.
           </h2>
-          <p className="text-[var(--ink-soft)] mb-6 text-sm">
+          <p className="text-(--ink-soft) mb-6 text-sm">
             We couldn't load this section. Try refreshing or going back.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="btn btn-paper px-6 py-3 font-bold text-[13px] uppercase tracking-widest"
+            className="btn btn-paper px-6 py-3 font-bold text-button uppercase tracking-widest"
           >
             Reload App
           </button>

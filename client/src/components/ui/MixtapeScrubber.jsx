@@ -2,14 +2,16 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   SCRUBBER_CONFIG,
   formatPretendTime,
+  calculateReadingTimeSeconds,
   createParticlePool,
 } from "./scrubber-config";
 
 export { SCRUBBER_CONFIG };
 
-export default function MixtapeScrubber({ isMenuOpen = false }) {
+export default function MixtapeScrubber({ isMenuOpen = false, activeView = "" }) {
   const [progress, setProgress] = useState(0);
   const [isScrollable, setIsScrollable] = useState(false);
+  const [totalReadingSeconds, setTotalReadingSeconds] = useState(210);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -269,6 +271,52 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
     }
   }, [prefersReducedMotion]);
 
+  // Dynamic page-specific reading time calculation based strictly on active page content
+  const updateReadingTime = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const mainEl =
+      document.querySelector("main") ||
+      document.getElementById("main-content") ||
+      document.body;
+    if (!mainEl) return;
+    const seconds = calculateReadingTimeSeconds(mainEl);
+    setTotalReadingSeconds(seconds);
+  }, []);
+
+  // Update reading time and reset scroll tracking when route / activeView changes
+  useEffect(() => {
+    hasCelebratedBottomRef.current = false;
+
+    const rafId = requestAnimationFrame(() => {
+      updateReadingTime();
+      updateBounds();
+    });
+
+    // Observe DOM changes in main to dynamically update when async page content finishes rendering
+    const mainEl = document.querySelector("main") || document.getElementById("main-content");
+    let mutationObserver = null;
+    if (mainEl && typeof MutationObserver !== "undefined") {
+      let debounceTimer = null;
+      mutationObserver = new MutationObserver(() => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          updateReadingTime();
+          updateBounds();
+        }, 150);
+      });
+      mutationObserver.observe(mainEl, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (mutationObserver) mutationObserver.disconnect();
+    };
+  }, [activeView, updateReadingTime, updateBounds]);
+
   // Track scroll position throttled with rAF
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -513,7 +561,7 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
         }`}
       >
         <div
-          className={`flex items-center gap-2.5 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-full shadow-[3px_3px_0_var(--ink)] transition-all duration-200 ${
+          className={`flex items-center gap-2.5 bg-(--surface) border-2 border-(--ink) rounded-full shadow-[3px_3px_0_var(--ink)] transition-all duration-200 ${
             isExpanded
               ? "px-3.5 py-1.5 shadow-[4px_4px_0_var(--ink)] -translate-y-0.5"
               : "px-2.5 py-1"
@@ -525,7 +573,7 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
             onClick={handleRewind}
             aria-label="Back to top"
             title="Back to top"
-            className="w-11 h-11 flex items-center justify-center shrink-0 rounded-full hover:bg-[var(--butter)] active:scale-95 text-[var(--ink)] transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            className="w-11 h-11 flex items-center justify-center shrink-0 rounded-full hover:bg-(--butter) active:scale-95 text-(--ink) transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)"
           >
             <svg
               aria-hidden="true"
@@ -622,7 +670,7 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(progress)}
-              aria-valuetext={`${Math.round(progress)} percent of the page`}
+              aria-valuetext={`${Math.round(progress)}% of page (${formatPretendTime(progress, totalReadingSeconds)} of ${formatPretendTime(100, totalReadingSeconds)} reading time)}`}
               style={{
                 left: `${progress}%`,
                 transform: `translate(-50%, -50%) ${
@@ -633,7 +681,7 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
                       : "scale(1)"
                 }`,
               }}
-              className="absolute top-1/2 w-6 h-6 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing rounded-full shadow-[2px_2px_0_var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-transform duration-100 bg-[var(--ink)]"
+              className="absolute top-1/2 w-6 h-6 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing rounded-full shadow-[2px_2px_0_var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary) transition-transform duration-100 bg-(--ink)"
             >
               {/* Nested Wrapper 1: Soft heartbeat pulse during idle */}
               <div
@@ -701,7 +749,7 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
           {/* Decorative mini heart sticker pulsing in sync with playhead */}
           <span
             aria-hidden="true"
-            className={`inline-flex items-center justify-center text-[var(--coral)] select-none transition-transform duration-300 ${
+            className={`inline-flex items-center justify-center text-(--coral) select-none transition-transform duration-300 ${
               effectiveIsIdle
                 ? "scrubber-heartbeat scale-110"
                 : "opacity-60 scale-90"
@@ -715,9 +763,10 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
           {/* Decorative mm:ss Readout (aria-hidden) */}
           <span
             aria-hidden="true"
-            className="text-[11px] font-bold text-[var(--ink-soft)] shrink-0 w-10 text-center select-none"
+            title={`Estimated reading time: ${formatPretendTime(100, totalReadingSeconds)}`}
+            className="text-meta font-bold text-(--ink-soft) shrink-0 min-w-10 text-center select-none"
           >
-            {formatPretendTime(progress)}
+            {formatPretendTime(progress, totalReadingSeconds)}
           </span>
         </div>
       </aside>

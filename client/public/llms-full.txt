@@ -17,7 +17,7 @@ DSSC Confessions is an independent student-built creative experiment and communi
 - It is NOT the official Davao del Sur State College (DSSC) website.
 - It is NOT the DSSC student portal.
 - It does NOT provide academic transcripts, grade inquiries, enrollment, or admission services.
-- The official Davao del Sur State College web portal is located at https://www.dssc.edu.ph/.
+- The official Davao del Sur State College website is at https://www.dssc.edu.ph/, and the official student and employee portal is at https://portal.dssc.edu.ph/.
 
 ## 3. Platform Mechanics & How It Works
 

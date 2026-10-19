@@ -37,22 +37,22 @@ export default function DesignArchive() {
   return (
     <section
       aria-label="Design Archive section"
-      className="w-full border-t border-[var(--ink)]/20 pt-8 mt-4"
+      className="w-full border-t border-(--ink)/20 pt-8 mt-4"
     >
       {/* Collapsed State Control / Teaser Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
         <div className="flex items-center gap-3 text-left">
           <span
-            className="w-8 h-8 rounded-full bg-[var(--butter)] border border-[var(--ink)] flex items-center justify-center shrink-0 text-sm shadow-[1px_1px_0_var(--ink)]"
+            className="w-8 h-8 rounded-full bg-(--butter) border border-(--ink) flex items-center justify-center shrink-0 text-sm shadow-[1px_1px_0_var(--ink)]"
             aria-hidden="true"
           >
             📼
           </span>
           <div>
-            <h4 className="font-script font-bold text-xl text-[var(--ink)] leading-tight">
+            <h4 className="font-script font-bold text-xl text-(--ink) leading-tight">
               Design archive
             </h4>
-            <p className="text-[11px] text-[var(--ink-soft)] normal-case">
+            <p className="text-meta text-(--ink-soft) normal-case">
               See how this site has evolved over time • Practice in creativity
             </p>
           </div>
@@ -63,7 +63,7 @@ export default function DesignArchive() {
           onClick={() => setIsOpen((prev) => !prev)}
           aria-expanded={isOpen}
           aria-controls="design-archive-panel"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--surface)] border-2 border-[var(--ink)] shadow-[2px_2px_0_var(--ink)] text-xs font-bold text-[var(--ink)] hover:bg-[var(--butter)] active:scale-95 transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-(--surface) border-2 border-(--ink) shadow-[2px_2px_0_var(--ink)] text-xs font-bold text-(--ink) hover:bg-(--butter) active:scale-95 transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)"
         >
           <svg
             width="14"
@@ -82,7 +82,7 @@ export default function DesignArchive() {
             <polyline points="2 12 12 17 22 12" />
           </svg>
           {isOpen ? "Hide older designs" : "Older designs"}
-          <span className="text-[10px] ml-0.5" aria-hidden="true">
+          <span className="text-meta ml-0.5" aria-hidden="true">
             {isOpen ? "▲" : "▼"}
           </span>
         </button>
@@ -93,17 +93,17 @@ export default function DesignArchive() {
         <div
           id="design-archive-panel"
           ref={panelRef}
-          className="mt-6 pt-6 border-t-2 border-dashed border-[var(--ink)]/30 text-left transition-all duration-300"
+          className="mt-6 pt-6 border-t-2 border-dashed border-(--ink)/30 text-left transition-all duration-300"
         >
           {/* Section Heading & Intro */}
           <div className="max-w-2xl mb-8">
-            <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-wider bg-[var(--lilac)] border border-[var(--ink)] rounded-full shadow-[2px_2px_0_var(--ink)] mb-3 text-[var(--ink)]">
+            <span className="inline-block px-3 py-1 text-meta font-bold uppercase tracking-wider bg-(--lilac) border border-(--ink) rounded-full shadow-[2px_2px_0_var(--ink)] mb-3 text-(--ink)">
               CREATIVE JOURNEY
             </span>
-            <h3 className="font-script font-bold text-3xl sm:text-4xl text-[var(--ink)] mb-3">
+            <h3 className="font-script font-bold text-3xl sm:text-4xl text-(--ink) mb-3">
               Why I keep older designs here
             </h3>
-            <p className="text-xs sm:text-sm font-sans leading-relaxed text-[var(--ink)]">
+            <p className="text-xs sm:text-sm font-sans leading-relaxed text-(--ink)">
               {intro}
             </p>
           </div>
@@ -121,38 +121,38 @@ export default function DesignArchive() {
               return (
                 <div
                   key={ver.id}
-                  className={`relative flex flex-col justify-between p-5 rounded-2xl border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--ink)] transition-transform hover:-translate-y-1 ${
+                  className={`relative flex flex-col justify-between p-5 rounded-2xl border-2 border-(--ink) shadow-[4px_4px_0_var(--ink)] transition-transform hover:-translate-y-1 ${
                     ver.current
-                      ? "bg-[var(--sky)]/50 ring-2 ring-[var(--primary)]"
-                      : "bg-[var(--surface)]"
+                      ? "bg-(--sky)/50 ring-2 ring-(--primary)"
+                      : "bg-(--surface)"
                   }`}
                 >
                   <div>
                     {/* Header: Version badge + Period */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold border border-[var(--ink)] shadow-[1px_1px_0_var(--ink)] ${
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold border border-(--ink) shadow-[1px_1px_0_var(--ink)] ${
                           ver.current
-                            ? "bg-[var(--primary)] text-white"
-                            : "bg-[var(--butter)] text-[var(--ink)]"
+                            ? "bg-(--primary) text-white"
+                            : "bg-(--butter) text-(--ink)"
                         }`}
                       >
                         {ver.id.toUpperCase()}
                       </span>
                       {ver.current && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[var(--coral)] text-white">
+                        <span className="px-2 py-0.5 rounded-full text-overline bg-(--coral) text-white">
                           NOW
                         </span>
                       )}
-                      <span className="text-[11px] text-[var(--ink-soft)] ml-auto font-medium">
+                      <span className="text-meta text-(--ink-soft) ml-auto font-medium">
                         {ver.period}
                       </span>
                     </div>
 
-                    <h4 className="font-script font-bold text-2xl text-[var(--ink)] mb-1">
+                    <h4 className="font-script font-bold text-2xl text-(--ink) mb-1">
                       {ver.name}
                     </h4>
-                    <p className="font-sans text-xs text-[var(--ink-soft)] leading-relaxed mb-4">
+                    <p className="font-sans text-xs text-(--ink-soft) leading-relaxed mb-4">
                       {ver.summary}
                     </p>
 
@@ -160,7 +160,7 @@ export default function DesignArchive() {
                     {homeDesktop && (
                       <div
                         onClick={() => openLightbox(ver.id, "home", "desktop")}
-                        className="relative w-full rounded-xl border-2 border-[var(--ink)] overflow-hidden bg-black/5 cursor-pointer group mb-4 shadow-[2px_2px_0_var(--ink)]"
+                        className="relative w-full rounded-xl border-2 border-(--ink) overflow-hidden bg-black/5 cursor-pointer group mb-4 shadow-[2px_2px_0_var(--ink)]"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -189,7 +189,7 @@ export default function DesignArchive() {
                               e.stopPropagation();
                               openLightbox(ver.id, "home", "mobile");
                             }}
-                            className="absolute bottom-2 right-2 w-14 sm:w-16 border-2 border-[var(--ink)] rounded-md overflow-hidden shadow-[2px_2px_0_var(--ink)] bg-black transition-transform group-hover:scale-105"
+                            className="absolute bottom-2 right-2 w-14 sm:w-16 border-2 border-(--ink) rounded-md overflow-hidden shadow-[2px_2px_0_var(--ink)] bg-black transition-transform group-hover:scale-105"
                             title="View mobile version"
                           >
                             <img
@@ -204,8 +204,8 @@ export default function DesignArchive() {
                           </div>
                         )}
 
-                        <div className="absolute inset-0 bg-[var(--ink)]/0 group-hover:bg-[var(--ink)]/10 transition-colors flex items-center justify-center">
-                          <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--surface)] text-[var(--ink)] text-[11px] font-bold px-3 py-1 rounded-full border border-[var(--ink)] shadow-[2px_2px_0_var(--ink)]">
+                        <div className="absolute inset-0 bg-(--ink)/0 group-hover:bg-(--ink)/10 transition-colors flex items-center justify-center">
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-(--surface) text-(--ink) text-meta font-bold px-3 py-1 rounded-full border border-(--ink) shadow-[2px_2px_0_var(--ink)]">
                             🔍 Inspect
                           </span>
                         </div>
@@ -214,14 +214,14 @@ export default function DesignArchive() {
 
                     {/* Collapsible What I Learned List */}
                     {ver.learned?.length > 0 && (
-                      <details className="mt-2 text-xs font-sans text-[var(--ink-soft)] group/details">
-                        <summary className="text-[11px] font-bold text-[var(--ink)] cursor-pointer select-none hover:text-[var(--primary)] list-none flex items-center justify-between">
+                      <details className="mt-2 text-xs font-sans text-(--ink-soft) group/details">
+                        <summary className="text-meta font-bold text-(--ink) cursor-pointer select-none hover:text-(--primary) list-none flex items-center justify-between">
                           <span>💡 What I learned</span>
-                          <span className="text-[10px] transition-transform group-open/details:rotate-180">
+                          <span className="text-meta transition-transform group-open/details:rotate-180">
                             ▼
                           </span>
                         </summary>
-                        <ul className="mt-2 space-y-1.5 pl-3 border-l-2 border-[var(--primary)]/40 text-[11px] leading-relaxed">
+                        <ul className="mt-2 space-y-1.5 pl-3 border-l-2 border-(--primary)/40 text-meta leading-relaxed">
                           {ver.learned.map((item, lIdx) => (
                             <li key={lIdx}>{item}</li>
                           ))}
@@ -231,18 +231,18 @@ export default function DesignArchive() {
                   </div>
 
                   {/* Card Action */}
-                  <div className="mt-4 pt-3 border-t border-[var(--ink)]/15 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-(--ink)/15 flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => openLightbox(ver.id, "home", "desktop")}
-                      className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-bold text-(--primary) hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       Browse screenshots →
                     </button>
                     {ver.current && (
                       <a
                         href="/"
-                        className="text-[11px] text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                        className="text-meta text-(--ink-soft) hover:text-(--ink)"
                       >
                         (Current Site)
                       </a>
@@ -254,7 +254,7 @@ export default function DesignArchive() {
           </div>
 
           {/* Privacy & Neutral Placeholder Disclosure */}
-          <div className="p-3 bg-[var(--surface)] border border-[var(--ink)]/40 rounded-xl text-[11px] text-[var(--ink-soft)] flex items-center gap-2">
+          <div className="p-3 bg-(--surface) border border-(--ink)/40 rounded-xl text-meta text-(--ink-soft) flex items-center gap-2">
             <span aria-hidden="true">🛡️</span>
             <span>{disclaimer}</span>
           </div>

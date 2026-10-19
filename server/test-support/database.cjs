@@ -2,8 +2,9 @@ const assert = require("node:assert/strict");
 
 function adapter(db, calls) {
   const identifier = (name) => {
-    assert.match(name, /^[a-z_]+$/);
-    return `"${name}"`;
+    const trimmed = String(name || "").trim();
+    assert.match(trimmed, /^[a-z_]+$/);
+    return `"${trimmed}"`;
   };
   return {
     async rpc(name, params = {}) {
@@ -59,13 +60,18 @@ function adapter(db, calls) {
         operation: "select",
         columns: "id",
         filters: [],
+        inFilters: [],
+        orCondition: null,
         orders: [],
         limit: null,
+        single: false,
       };
       const query = {
         select(columns) {
-          assert.ok(!columns.includes("*"));
-          state.columns = columns;
+          if (typeof columns === "string" && columns.trim()) {
+            assert.ok(!columns.includes("*"));
+            state.columns = columns;
+          }
           return query;
         },
         eq(column, value) {
@@ -78,6 +84,14 @@ function adapter(db, calls) {
         },
         gte(column, value) {
           state.filters.push([column, ">=", value]);
+          return query;
+        },
+        in(column, values) {
+          state.inFilters.push([column, values]);
+          return query;
+        },
+        or(condition) {
+          state.orCondition = condition;
           return query;
         },
         order(column, options) {
@@ -95,8 +109,17 @@ function adapter(db, calls) {
           state.rows = rows;
           return query;
         },
+        update(values) {
+          state.operation = "update";
+          state.updates = values;
+          return query;
+        },
         delete() {
           state.operation = "delete";
+          return query;
+        },
+        single() {
+          state.single = true;
           return query;
         },
         then(resolve, reject) {
@@ -114,12 +137,14 @@ function adapter(db, calls) {
                 const row = state.rows[0];
                 params = Object.values(row);
                 sql = `insert into public.${identifier(table)} (${Object.keys(row).map(identifier)}) values (${params.map((_, i) => `$${i + 1}`)}) returning id`;
-              } else {
-                sql =
-                  state.operation === "delete"
-                    ? `delete from public.${identifier(table)}`
-                    : `select ${state.columns.split(",").map(identifier)} from public.${identifier(table)}`;
-                if (state.filters.length)
+              } else if (state.operation === "update") {
+                const entries = Object.entries(state.updates);
+                const setClauses = entries.map(([col, val]) => {
+                  params.push(val);
+                  return `${identifier(col)} = $${params.length}`;
+                });
+                sql = `update public.${identifier(table)} set ${setClauses.join(", ")}`;
+                if (state.filters.length) {
                   sql +=
                     " where " +
                     state.filters
@@ -128,6 +153,50 @@ function adapter(db, calls) {
                         return `${identifier(column)} ${op} $${params.length}`;
                       })
                       .join(" and ");
+                }
+                sql += " returning *";
+              } else {
+                sql =
+                  state.operation === "delete"
+                    ? `delete from public.${identifier(table)}`
+                    : `select ${state.columns.split(",").map(identifier).join(", ")} from public.${identifier(table)}`;
+                const conditions = [];
+                if (state.filters.length) {
+                  for (const [column, op, value] of state.filters) {
+                    params.push(value);
+                    conditions.push(
+                      `${identifier(column)} ${op} $${params.length}`,
+                    );
+                  }
+                }
+                if (state.inFilters.length) {
+                  for (const [column, values] of state.inFilters) {
+                    if (values.length === 0) {
+                      conditions.push("1=0");
+                    } else {
+                      const placeholders = values.map((val) => {
+                        params.push(val);
+                        return `$${params.length}`;
+                      });
+                      conditions.push(
+                        `${identifier(column)} in (${placeholders.join(",")})`,
+                      );
+                    }
+                  }
+                }
+                if (state.orCondition) {
+                  const parts = state.orCondition.split(",").map((p) => {
+                    const [c, op, val] = p.trim().split(".");
+                    if (op === "eq") {
+                      return `${identifier(c)} = ${val === "true" ? "true" : val === "false" ? "false" : `'${val}'`}`;
+                    }
+                    return "true";
+                  });
+                  conditions.push(`(${parts.join(" or ")})`);
+                }
+                if (conditions.length) {
+                  sql += " where " + conditions.join(" and ");
+                }
                 if (state.orders.length)
                   sql += " order by " + state.orders.join(",");
                 if (state.limit !== null) {
@@ -135,7 +204,8 @@ function adapter(db, calls) {
                   sql += ` limit $${params.length}`;
                 }
               }
-              return { data: (await db.query(sql, params)).rows };
+              const rows = (await db.query(sql, params)).rows;
+              return { data: state.single ? (rows[0] || null) : rows };
             } catch (error) {
               return { error: { code: error.code } };
             }

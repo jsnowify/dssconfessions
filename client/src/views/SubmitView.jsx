@@ -3,6 +3,7 @@ import { ConfessionCard } from "../components/ui/ConfessionCard";
 import Vinyl from "../components/ui/Vinyl";
 import Toast from "../components/ui/Toast";
 import { useSongSearch } from "../hooks";
+import ReaderFontToggle from "../components/ui/ReaderFontToggle";
 
 const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
   const [formData, setFormData] = useState({
@@ -79,10 +80,10 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
         {/* CONFESSION FORM */}
         <div className="form-crate space-y-6">
           <div className="form-intro">
-            <h1 className="text-5xl md:text-6xl font-script font-bold text-[var(--ink)] mb-2">
+            <h1 className="text-5xl md:text-6xl font-script font-bold text-(--ink) mb-2">
               Confess
             </h1>
-            <p className="text-[var(--ink-soft)] text-[15px]">
+            <p className="text-(--ink-soft) text-body-sm">
               Leave your untold thoughts here. We'll attach your chosen
               soundtrack.
             </p>
@@ -98,16 +99,16 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
               <div>
                 <label
                   htmlFor="confession-to"
-                  className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+                  className="block text-label text-(--ink) mb-1.5"
                 >
-                  To <span className="text-[var(--accent-ink)]">*</span>{" "}
-                  <span className="font-normal text-[var(--ink-soft)] text-[13px]">
+                  To <span className="text-(--accent-ink)">*</span>{" "}
+                  <span className="font-normal text-(--ink-soft) text-meta">
                     Required
                   </span>
                 </label>
                 <input
                   id="confession-to"
-                  className="w-full bg-[var(--sleeve)] border-2 border-[var(--ink)] p-3.5 rounded-xl font-bold text-[var(--ink)] placeholder:text-[var(--ink-soft)]/60 placeholder:font-normal shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none"
+                  className="w-full bg-(--sleeve) border-2 border-(--ink) p-3.5 rounded-xl font-bold text-input text-(--ink) placeholder:text-(--ink-soft)/60 placeholder:font-normal shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none"
                   placeholder="Recipient name"
                   maxLength={50}
                   value={formData.to}
@@ -121,16 +122,16 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
               <div>
                 <label
                   htmlFor="confession-from"
-                  className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+                  className="block text-label text-(--ink) mb-1.5"
                 >
                   From{" "}
-                  <span className="font-normal text-[var(--ink-soft)] text-[13px]">
+                  <span className="font-normal text-(--ink-soft) text-meta">
                     Optional
                   </span>
                 </label>
                 <input
                   id="confession-from"
-                  className="w-full bg-[var(--sleeve)] border-2 border-[var(--ink)] p-3.5 rounded-xl font-bold text-[var(--ink)] placeholder:text-[var(--ink-soft)]/60 placeholder:font-normal shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none"
+                  className="w-full bg-(--sleeve) border-2 border-(--ink) p-3.5 rounded-xl font-bold text-input text-(--ink) placeholder:text-(--ink-soft)/60 placeholder:font-normal shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none"
                   placeholder="Leave blank for Anonymous"
                   maxLength={50}
                   value={formData.from}
@@ -149,22 +150,22 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
             <div className="flex flex-wrap gap-2 justify-between items-center mb-1.5">
               <label
                 htmlFor="confession-content"
-                className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)]"
+                className="block text-label text-(--ink)"
               >
-                Your Words <span className="text-[var(--accent)]">*</span>{" "}
-                <span className="font-normal text-[var(--ink-soft)] text-[13px]">
+                Your Words <span className="text-(--accent)">*</span>{" "}
+                <span className="font-normal text-(--ink-soft) text-meta">
                   Required
                 </span>
               </label>
               <span
-                className={`form-counter text-[13px] font-bold ${formData.content.length >= 2700 ? "form-counter--near" : ""}`}
+                className={`form-counter text-meta font-bold ${formData.content.length >= 2700 ? "form-counter--near" : ""}`}
               >
                 {formData.content.length} / 3000
               </span>
             </div>
             <textarea
               id="confession-content"
-              className="w-full bg-[var(--sleeve)] border-2 border-[var(--ink)] p-4 rounded-xl min-h-[176px] max-h-[360px] font-sans text-[16px] text-[var(--ink)] placeholder:text-[var(--ink-soft)]/60 placeholder:font-normal outline-none resize-none shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none no-scrollbar"
+              className="w-full bg-(--sleeve) border-2 border-(--ink) p-4 rounded-xl min-h-44 max-h-90 font-sans text-input text-(--ink) placeholder:text-(--ink-soft)/60 placeholder:font-normal outline-none resize-none shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none no-scrollbar"
               placeholder="Pour out what you never said..."
               maxLength={3000}
               value={formData.content}
@@ -185,34 +186,34 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
               htmlFor={
                 selectedSong ? "clear-song-selection" : "song-search-input"
               }
-              className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+              className="block text-label text-(--ink) mb-1.5"
             >
-              Song Track <span className="text-[var(--accent)]">*</span>{" "}
-              <span className="font-normal text-[var(--ink-soft)] text-[13px]">
+              Song Track <span className="text-(--accent)">*</span>{" "}
+              <span className="font-normal text-(--ink-soft) text-meta">
                 Required
               </span>
             </label>
 
             {selectedSong ? (
               /* Selected Song Strip */
-              <div className="selected-song flex items-center justify-between p-3 bg-[var(--sleeve)] border-2 border-[var(--ink)] rounded-xl shadow-[4px_4px_0_var(--ink)]">
+              <div className="selected-song flex items-center justify-between p-3 bg-(--sleeve) border-2 border-(--ink) rounded-xl shadow-[4px_4px_0_var(--ink)]">
                 <div className="flex items-center gap-3 min-w-0">
                   {selectedSong?.album?.images?.[0]?.url ? (
                     <img
                       src={selectedSong.album.images[0].url}
-                      className="w-12 h-12 rounded-lg border border-[var(--ink)] object-cover shrink-0"
+                      className="w-12 h-12 rounded-lg border border-(--ink) object-cover shrink-0"
                       alt=""
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-lg border border-[var(--ink)] bg-[var(--mustard)] flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 rounded-lg border border-(--ink) bg-(--mustard) flex items-center justify-center shrink-0">
                       <Vinyl size="30px" />
                     </div>
                   )}
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-[var(--ink)] truncate">
+                    <span className="text-sm font-bold text-(--ink) truncate">
                       {selectedSong.name}
                     </span>
-                    <span className="text-[13px] text-[var(--ink-soft)] truncate">
+                    <span className="text-meta text-(--ink-soft) truncate">
                       {selectedSong.artists?.[0]?.name ?? "Unknown Artist"}
                     </span>
                   </div>
@@ -222,7 +223,7 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                   aria-label="Change selected song"
                   type="button"
                   onClick={resetSong}
-                  className="btn btn-paper px-3 py-1.5 text-[13px] font-bold shrink-0 ml-3"
+                  className="btn btn-paper px-3 py-1.5 text-button font-bold shrink-0 ml-3"
                 >
                   Change
                 </button>
@@ -232,46 +233,46 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                 <div className="relative">
                   <input
                     id="song-search-input"
-                    className="w-full bg-[var(--sleeve)] border-2 border-[var(--ink)] p-3.5 rounded-xl font-bold text-[var(--ink)] pr-12 placeholder:text-[var(--ink-soft)]/60 placeholder:font-normal shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none"
+                    className="w-full bg-(--sleeve) border-2 border-(--ink) p-3.5 rounded-xl font-bold text-input text-(--ink) pr-12 placeholder:text-(--ink-soft)/60 placeholder:font-normal shadow-[4px_4px_0_var(--ink)] focus-visible:outline-none"
                     placeholder="Search Spotify by song title or artist..."
                     value={songSearch}
                     onChange={(e) => setSongSearch(e.target.value)}
                   />
                   {isSearching && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-[var(--ink-soft)] border-t-[var(--ink)] rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-(--ink-soft) border-t-(--ink) rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
 
                 {showDropdown && (
-                  <div className="song-dropdown no-scrollbar scroll-fade-hints absolute top-full left-0 w-full bg-[var(--sleeve)] border-2 border-[var(--ink)] rounded-xl mt-2 max-h-60 overflow-y-auto z-30 shadow-[4px_4px_0_var(--ink)]">
+                  <div className="song-dropdown no-scrollbar scroll-fade-hints absolute top-full left-0 w-full bg-(--sleeve) border-2 border-(--ink) rounded-xl mt-2 max-h-60 overflow-y-auto z-30 shadow-[4px_4px_0_var(--ink)]">
                     {songSearch.trim().length < minChars ? (
-                      <div className="p-4 text-[13px] font-bold text-[var(--ink-soft)] text-center">
+                      <div className="p-4 text-meta font-bold text-(--ink-soft) text-center">
                         Keep typing... ({minChars - songSearch.trim().length}{" "}
                         more character
                         {minChars - songSearch.trim().length === 1 ? "" : "s"})
                       </div>
                     ) : isSearching ? (
-                      <div className="p-4 flex items-center justify-center gap-3 text-[13px] font-bold text-[var(--ink-soft)]">
-                        <div className="w-4 h-4 border-2 border-[var(--ink-soft)] border-t-[var(--ink)] rounded-full animate-spin" />
+                      <div className="p-4 flex items-center justify-center gap-3 text-meta font-bold text-(--ink-soft)">
+                        <div className="w-4 h-4 border-2 border-(--ink-soft) border-t-(--ink) rounded-full animate-spin" />
                         Searching for "{songSearch}"...
                       </div>
                     ) : searchError ? (
                       <div className="p-4 flex flex-col items-center gap-2 text-center">
-                        <span className="text-[13px] font-bold text-[var(--accent-ink)]">
+                        <span className="text-meta font-bold text-(--accent-ink)">
                           {searchError}
                         </span>
                         <button
                           type="button"
                           onClick={retrySearch}
-                          className="text-[13px] font-bold underline hover:text-[var(--ink)] text-[var(--ink-soft)]"
+                          className="text-meta font-bold underline hover:text-(--ink) text-(--ink-soft)"
                         >
                           Try again
                         </button>
                       </div>
                     ) : songs.length === 0 ? (
-                      <div className="p-4 text-[13px] font-bold text-[var(--ink-soft)] text-center">
+                      <div className="p-4 text-meta font-bold text-(--ink-soft) text-center">
                         No songs found for "{songSearch}". Try another title.
                       </div>
                     ) : (
@@ -280,22 +281,22 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                           type="button"
                           key={s.id}
                           onClick={() => selectSong(s)}
-                          className="song-option p-3 cursor-pointer flex gap-3 items-center border-b border-[var(--ink)]/15 text-[13px] font-bold "
+                          className="song-option p-3 cursor-pointer flex gap-3 items-center border-b border-(--ink)/15 text-meta font-bold "
                         >
                           {s.album?.images?.[0]?.url ? (
                             <img
                               src={s.album.images[0].url}
-                              className="w-10 h-10 rounded border border-[var(--ink)] object-cover"
+                              className="w-10 h-10 rounded border border-(--ink) object-cover"
                               alt=""
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded bg-[var(--ink)]/10 flex-shrink-0" />
+                            <div className="w-10 h-10 rounded bg-(--ink)/10 flex-shrink-0" />
                           )}
                           <div className="flex flex-col min-w-0">
-                            <span className="text-[var(--ink)] truncate">
+                            <span className="text-(--ink) truncate">
                               {s.name}
                             </span>
-                            <span className="text-[var(--ink-soft)] font-normal truncate">
+                            <span className="text-(--ink-soft) font-normal truncate">
                               {s.artists?.[0]?.name ?? "Unknown Artist"}
                             </span>
                           </div>
@@ -311,18 +312,18 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
           {/* ALLOW SONG REPLIES CUSTOM TOGGLE */}
           <label
             htmlFor="allow-replies-toggle"
-            className={`flex items-center justify-between gap-4 p-4 rounded-xl border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)] hover:shadow-[4px_4px_0_var(--ink)] hover:-translate-y-0.5 transition-all cursor-pointer select-none focus-within:ring-2 focus-within:ring-[var(--primary)] ${
+            className={`flex items-center justify-between gap-4 p-4 rounded-xl border-2 border-(--ink) shadow-[3px_3px_0_var(--ink)] hover:shadow-[4px_4px_0_var(--ink)] hover:-translate-y-0.5 transition-all cursor-pointer select-none focus-within:ring-2 focus-within:ring-(--primary) ${
               formData.allowReplies
-                ? "bg-[var(--surface)]"
-                : "bg-[var(--bg-wash)]/70"
+                ? "bg-(--surface)"
+                : "bg-(--bg-wash)/70"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`w-10 h-10 rounded-xl border-2 border-[var(--ink)] flex items-center justify-center shrink-0 transition-colors shadow-[2px_2px_0_var(--ink)] ${
+                className={`w-10 h-10 rounded-xl border-2 border-(--ink) flex items-center justify-center shrink-0 transition-colors shadow-[2px_2px_0_var(--ink)] ${
                   formData.allowReplies
-                    ? "bg-[var(--butter)] text-[var(--ink)]"
-                    : "bg-[var(--surface)] text-[var(--ink-soft)]"
+                    ? "bg-(--butter) text-(--ink)"
+                    : "bg-(--surface) text-(--ink-soft)"
                 }`}
                 aria-hidden="true"
               >
@@ -343,20 +344,20 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm md:text-base text-[var(--ink)]">
+                  <span className="font-bold text-sm md:text-base text-(--ink)">
                     Allow song replies
                   </span>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[var(--ink)] ${
+                    className={`text-meta font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-(--ink) ${
                       formData.allowReplies
-                        ? "bg-[var(--mint)] text-[var(--ink)]"
-                        : "bg-[var(--bg-wash)] text-[var(--ink-soft)]"
+                        ? "bg-(--mint) text-(--ink)"
+                        : "bg-(--bg-wash) text-(--ink-soft)"
                     }`}
                   >
                     {formData.allowReplies ? "ON" : "OFF"}
                   </span>
                 </div>
-                <span className="text-xs text-[var(--ink-soft)]">
+                <span className="text-xs text-(--ink-soft)">
                   Let listeners dedicate songs in reply to your confession
                 </span>
               </div>
@@ -376,17 +377,17 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                 className="sr-only peer"
               />
               <div
-                className={`w-12 h-7 rounded-full border-2 border-[var(--ink)] shadow-[2px_2px_0_var(--ink)] transition-colors duration-200 relative ${
+                className={`w-12 h-7 rounded-full border-2 border-(--ink) shadow-[2px_2px_0_var(--ink)] transition-colors duration-200 relative ${
                   formData.allowReplies
-                    ? "bg-[var(--butter)]"
-                    : "bg-[var(--bg-wash)]"
+                    ? "bg-(--butter)"
+                    : "bg-(--bg-wash)"
                 }`}
               >
                 <div
-                  className={`w-5 h-5 rounded-full border-2 border-[var(--ink)] absolute top-[2px] left-[2px] transition-transform duration-200 flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full border-2 border-(--ink) absolute top-[2px] left-[2px] transition-transform duration-200 flex items-center justify-center ${
                     formData.allowReplies
-                      ? "translate-x-5 bg-[var(--primary)] text-white"
-                      : "translate-x-0 bg-[var(--surface)] text-transparent"
+                      ? "translate-x-5 bg-(--primary) text-white"
+                      : "translate-x-0 bg-(--surface) text-transparent"
                   }`}
                   aria-hidden="true"
                 >
@@ -422,9 +423,12 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
 
         {/* LIVE PREVIEW (Fix: reuses real ConfessionCard component) */}
         <div className="preview-panel flex flex-col items-center lg:sticky top-28">
-          <span className="preview-label font-bold uppercase tracking-widest mb-6">
-            Live Preview
-          </span>
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+            <span className="preview-label font-bold uppercase tracking-widest">
+              Live Preview
+            </span>
+            <ReaderFontToggle variant="preview" />
+          </div>
 
           <div className="w-full flex justify-center">
             <ConfessionCard

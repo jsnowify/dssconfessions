@@ -9,7 +9,7 @@
 ## What This Site Is NOT
 - Not the official Davao del Sur State College (DSSC) website or student portal.
 - Does not handle student enrollment, grades, academic records, tuition, or official administrative admissions.
-- For official college services, visit the official institution portal at https://www.dssc.edu.ph/.
+- For official college services, visit the official website at https://www.dssc.edu.ph/ or the student portal at https://portal.dssc.edu.ph/.
 
 ## Core Features & Guarantees
 - **Song Pairing**: Every confession is paired with an authentic track verified via the Spotify Web API.

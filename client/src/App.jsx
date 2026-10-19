@@ -53,7 +53,11 @@ export default function App({ initialViews = {} }) {
     feed,
     isFeedLoading,
     feedError,
+    hasMore,
+    isLoadingMore,
+    loadMoreError,
     fetchFeed,
+    loadMoreFeed,
     submitConfession,
     searchConfessions,
     hasNewPosts,
@@ -227,6 +231,8 @@ export default function App({ initialViews = {} }) {
         targetUrl = "/guides/how-to-choose-a-song-for-your-confession";
       } else if (targetView === "guide-is-it-safe") {
         targetUrl = "/guides/is-it-safe-to-send-an-anonymous-confession";
+      } else if (targetView === "bot-admin") {
+        targetUrl = options.tab === "bots" ? "/admin/bots" : "/admin";
       }
 
       const state = { view: targetView, query: options.query || "" };
@@ -279,7 +285,7 @@ export default function App({ initialViews = {} }) {
   );
 
   return (
-    <div className="site-shell min-h-screen flex flex-col font-sans selection:bg-[var(--ink)] selection:text-[var(--sleeve)] overflow-x-hidden">
+    <div className="site-shell min-h-screen flex flex-col font-sans selection:bg-(--ink) selection:text-(--sleeve) overflow-x-hidden">
       {view !== "details" && (
         <Navbar
           view={view}
@@ -299,7 +305,12 @@ export default function App({ initialViews = {} }) {
               </p>
             }
           >
-            {view === "bot-admin" && <BotAdminView />}
+            {view === "bot-admin" && (
+              <BotAdminView
+                initialTab={initialRouteRef.current.adminTab || "moderation"}
+                setView={handleNavigate}
+              />
+            )}
             {view === "home" && (
               <HomeView
                 feed={feed}
@@ -308,6 +319,10 @@ export default function App({ initialViews = {} }) {
                 onRetry={fetchFeed}
                 onSelectConfession={handleSelectConfession}
                 setView={handleNavigate}
+                hasMore={hasMore}
+                isLoadingMore={isLoadingMore}
+                loadMoreError={loadMoreError}
+                onLoadMore={loadMoreFeed}
               />
             )}
             {view === "browse" && (
@@ -360,7 +375,7 @@ export default function App({ initialViews = {} }) {
       </main>
 
       {/* Footer */}
-      <footer className="site-footer pt-12 pb-28 px-6 border-t-2 border-[var(--ink)] bg-[var(--bg-wash)] text-[var(--ink-soft)] text-xs font-sans">
+      <footer className="site-footer pt-12 pb-28 px-6 border-t-2 border-(--ink) bg-(--bg-wash) text-(--ink-soft) text-xs font-sans">
         <div className="max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-left">
           {/* Brand Col */}
           <div className="md:col-span-1">
@@ -375,14 +390,14 @@ export default function App({ initialViews = {} }) {
             >
               <Logo variant="footer" />
             </a>
-            <p className="text-[11px] leading-relaxed text-[var(--ink-soft)] normal-case">
+            <p className="text-meta leading-relaxed text-(--ink-soft) normal-case">
               Some things are easier to say with a song.
             </p>
           </div>
 
           {/* Navigation Links */}
           <div>
-            <h4 className="font-bold text-[var(--ink)] uppercase tracking-wider text-[11px] mb-3">
+            <h4 className="font-bold text-(--ink) uppercase tracking-wider text-overline mb-3">
               Explore
             </h4>
             <ul className="space-y-2">
@@ -393,7 +408,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("home");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   Home
                 </a>
@@ -405,7 +420,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("browse");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   Browse Confessions
                 </a>
@@ -417,7 +432,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("submit");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   Post a Confession
                 </a>
@@ -429,7 +444,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("about");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   About the Project
                 </a>
@@ -441,7 +456,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("dssc-landing");
                   }}
-                  className="hover:underline hover:text-[var(--ink)] font-bold text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink) font-bold text-(--ink)"
                 >
                   DSSC Confessions
                 </a>
@@ -451,7 +466,7 @@ export default function App({ initialViews = {} }) {
 
           {/* Help & Privacy */}
           <div>
-            <h4 className="font-bold text-[var(--ink)] uppercase tracking-wider text-[11px] mb-3">
+            <h4 className="font-bold text-(--ink) uppercase tracking-wider text-overline mb-3">
               Help &amp; Privacy
             </h4>
             <ul className="space-y-2">
@@ -462,7 +477,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("faq");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   FAQ &amp; How It Works
                 </a>
@@ -474,7 +489,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("privacy");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   Privacy Policy &amp; Zero-IP
                 </a>
@@ -484,7 +499,7 @@ export default function App({ initialViews = {} }) {
 
           {/* Guides */}
           <div>
-            <h4 className="font-bold text-[var(--ink)] uppercase tracking-wider text-[11px] mb-3">
+            <h4 className="font-bold text-(--ink) uppercase tracking-wider text-overline mb-3">
               Guides
             </h4>
             <ul className="space-y-2">
@@ -495,7 +510,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("guide-how-to-send");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   How to Send a Confession
                 </a>
@@ -507,7 +522,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("guide-choose-song");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   How to Choose a Song
                 </a>
@@ -519,7 +534,7 @@ export default function App({ initialViews = {} }) {
                     e.preventDefault();
                     handleNavigate("guide-is-it-safe");
                   }}
-                  className="hover:underline hover:text-[var(--ink)]"
+                  className="hover:underline hover:text-(--ink)"
                 >
                   Is It Safe?
                 </a>
@@ -533,20 +548,38 @@ export default function App({ initialViews = {} }) {
           <DesignArchive />
         </div>
 
-        {/* Doodles & Copyright */}
-        <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-[var(--ink)]/15 max-w-5xl mx-auto w-full gap-4">
-          <div className="footer-doodles flex items-center gap-4">
-            <Doodle />
-            <Doodle kind="note" />
-            <Doodle kind="heart" />
+        {/* Footer Bottom Bar with Clear Visual Hierarchy */}
+        <div className="max-w-5xl mx-auto w-full pt-8 mt-6 border-t-2 border-(--ink)">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-(--surface) border-2 border-(--ink) shadow-[3px_3px_0_var(--ink)]">
+            {/* Left: Playful doodles charm capsule */}
+            <div className="footer-doodles flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-(--bg-wash) border border-(--ink)/20 shadow-[1px_1px_0_var(--ink)]">
+              <Doodle />
+              <Doodle kind="note" />
+              <Doodle kind="heart" />
+            </div>
+
+            {/* Right: Copyright Badge Capsule */}
+            <div className="px-3.5 py-1.5 rounded-full bg-(--bg-wash) border-2 border-(--ink) shadow-[2px_2px_0_var(--ink)] font-mono text-meta font-bold text-(--ink) uppercase tracking-wider select-none">
+              DSSC CONFESSIONS © 2026
+            </div>
           </div>
-          <div className="tracking-widest uppercase text-[11px]">
-            DSSC CONFESSIONS © 2026 • BUILT WITH PRIVACY FIRST
+
+          {/* Institutional Independence Notice */}
+          <div className="mt-4 text-center">
+            <p className="text-meta text-(--ink-soft) font-sans max-w-2xl mx-auto leading-relaxed">
+              Independent student project, not affiliated with or endorsed by{" "}
+              <span className="text-(--ink) font-medium">Davao del Sur State College</span>.
+              {" "}Looking for official student or employee records?{" "}
+              <a
+                href="https://portal.dssc.edu.ph/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-(--ink) font-bold underline hover:text-(--primary) transition-colors"
+              >
+                Visit DSSC Portal (portal.dssc.edu.ph)
+              </a>
+            </p>
           </div>
-        </div>
-        <div className="max-w-5xl mx-auto w-full text-center text-[11px] font-sans text-[var(--ink-soft)] mt-4">
-          Independent student project, not affiliated with or endorsed by Davao
-          del Sur State College.
         </div>
       </footer>
       {deleteReceipt && (
@@ -558,7 +591,7 @@ export default function App({ initialViews = {} }) {
           }}
         />
       )}
-      <MixtapeScrubber isMenuOpen={isMenuOpen} />
+      <MixtapeScrubber isMenuOpen={isMenuOpen} activeView={view} />
       {view === "home" && hasNewPosts && !isMenuOpen && !deleteReceipt && (
         <NewConfessionsNotice onRefresh={fetchFeed} onLater={dismissNewPosts} />
       )}

@@ -17,8 +17,8 @@ const Toast = ({ message, show, onClose }) => {
           : "opacity-0 translate-y-4 pointer-events-none"
       }`}
     >
-      <div className="toast-body px-6 py-3.5 rounded-xl font-bold border-2 border-[var(--ink)] shadow-[4px_4px_0_var(--mustard)] flex items-center gap-3">
-        <span className="w-2.5 h-2.5 rounded-full bg-[var(--mustard)] shrink-0" />
+      <div className="toast-body px-6 py-3.5 rounded-xl font-bold border-2 border-(--ink) shadow-[4px_4px_0_var(--mustard)] flex items-center gap-3">
+        <span className="w-2.5 h-2.5 rounded-full bg-(--mustard) shrink-0" />
         <span className="text-sm">{message}</span>
       </div>
     </div>

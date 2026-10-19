@@ -163,7 +163,7 @@ export default function DesignArchiveLightbox({
       role="dialog"
       aria-modal="true"
       aria-label={`${currentVersion.name} screenshot viewer`}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[var(--ink)]/80 backdrop-blur-xs transition-opacity duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-(--ink)/80 backdrop-blur-xs transition-opacity duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -175,20 +175,20 @@ export default function DesignArchiveLightbox({
 
       <div
         ref={dialogRef}
-        className="relative w-full max-w-5xl bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl shadow-[6px_6px_0_var(--ink)] flex flex-col max-h-[92vh] overflow-hidden no-scrollbar"
+        className="relative w-full max-w-5xl bg-(--surface) border-2 border-(--ink) rounded-2xl shadow-[6px_6px_0_var(--ink)] flex flex-col max-h-[92vh] overflow-hidden no-scrollbar"
       >
         {/* Lightbox Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b-2 border-[var(--ink)] bg-[var(--bg-wash)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b-2 border-(--ink) bg-(--bg-wash)">
           {/* Title & Version Badge */}
           <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-0.5 text-xs font-bold bg-[var(--primary)] text-white rounded-full">
+            <span className="px-2.5 py-0.5 text-xs font-bold bg-(--primary) text-white rounded-full">
               {currentVersion.id.toUpperCase()}
             </span>
             <div>
-              <h3 className="font-script font-bold text-2xl text-[var(--ink)] leading-none">
+              <h3 className="font-script font-bold text-2xl text-(--ink) leading-none">
                 {currentVersion.name}
               </h3>
-              <span className="text-[11px] text-[var(--ink-soft)] font-medium">
+              <span className="text-meta text-(--ink-soft) font-medium">
                 {currentVersion.period}
               </span>
             </div>
@@ -197,7 +197,7 @@ export default function DesignArchiveLightbox({
           {/* Controls: Pages, Devices & Close */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Page Switcher Tabs */}
-            <div className="flex items-center bg-[var(--surface)] border border-[var(--ink)] rounded-full p-0.5">
+            <div className="flex items-center bg-(--surface) border border-(--ink) rounded-full p-0.5">
               {PAGES.map((p) => (
                 <button
                   key={p.id}
@@ -208,8 +208,8 @@ export default function DesignArchiveLightbox({
                   }}
                   className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
                     currentPage === p.id
-                      ? "bg-[var(--primary)] text-white"
-                      : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                      ? "bg-(--primary) text-white"
+                      : "text-(--ink-soft) hover:text-(--ink)"
                   }`}
                 >
                   {p.label}
@@ -218,7 +218,7 @@ export default function DesignArchiveLightbox({
             </div>
 
             {/* Device Toggle (Desktop / Mobile) */}
-            <div className="flex items-center bg-[var(--surface)] border border-[var(--ink)] rounded-full p-0.5">
+            <div className="flex items-center bg-(--surface) border border-(--ink) rounded-full p-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -229,8 +229,8 @@ export default function DesignArchiveLightbox({
                 aria-label="Desktop viewport"
                 className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
                   device === "desktop"
-                    ? "bg-[var(--butter)] text-[var(--ink)]"
-                    : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                    ? "bg-(--butter) text-(--ink)"
+                    : "text-(--ink-soft) hover:text-(--ink)"
                 }`}
               >
                 Desktop
@@ -245,8 +245,8 @@ export default function DesignArchiveLightbox({
                 aria-label="Mobile viewport"
                 className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
                   device === "mobile"
-                    ? "bg-[var(--butter)] text-[var(--ink)]"
-                    : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                    ? "bg-(--butter) text-(--ink)"
+                    : "text-(--ink-soft) hover:text-(--ink)"
                 }`}
               >
                 Mobile
@@ -258,7 +258,7 @@ export default function DesignArchiveLightbox({
               type="button"
               onClick={onClose}
               aria-label="Close lightbox"
-              className="lightbox-close-btn w-9 h-9 flex items-center justify-center rounded-full bg-[var(--surface)] border-2 border-[var(--ink)] hover:bg-[var(--coral)] hover:text-white transition-colors cursor-pointer font-bold text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+              className="lightbox-close-btn w-9 h-9 flex items-center justify-center rounded-full bg-(--surface) border-2 border-(--ink) hover:bg-(--coral) hover:text-white transition-colors cursor-pointer font-bold text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)"
             >
               ✕
             </button>
@@ -266,14 +266,14 @@ export default function DesignArchiveLightbox({
         </div>
 
         {/* Lightbox Main Stage */}
-        <div className="relative flex-1 flex items-center justify-center p-3 sm:p-6 bg-[var(--bg)] min-h-[360px] max-h-[68vh] overflow-auto no-scrollbar">
+        <div className="relative flex-1 flex items-center justify-center p-3 sm:p-6 bg-(--bg) min-h-90 max-h-[68vh] overflow-auto no-scrollbar">
           {/* Previous Version Button */}
           {hasPrev && (
             <button
               type="button"
               onClick={handlePrevVersion}
               aria-label={`Previous version: ${versions[currentVersionIndex - 1]?.name}`}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[var(--surface)] border-2 border-[var(--ink)] shadow-[2px_2px_0_var(--ink)] flex items-center justify-center text-[var(--ink)] hover:bg-[var(--butter)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-(--surface) border-2 border-(--ink) shadow-[2px_2px_0_var(--ink)] flex items-center justify-center text-(--ink) hover:bg-(--butter) cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)"
             >
               ←
             </button>
@@ -285,7 +285,7 @@ export default function DesignArchiveLightbox({
               type="button"
               onClick={handleNextVersion}
               aria-label={`Next version: ${versions[currentVersionIndex + 1]?.name}`}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[var(--surface)] border-2 border-[var(--ink)] shadow-[2px_2px_0_var(--ink)] flex items-center justify-center text-[var(--ink)] hover:bg-[var(--butter)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-(--surface) border-2 border-(--ink) shadow-[2px_2px_0_var(--ink)] flex items-center justify-center text-(--ink) hover:bg-(--butter) cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary)"
             >
               →
             </button>
@@ -298,8 +298,8 @@ export default function DesignArchiveLightbox({
                 isLoaded ? "opacity-100" : "opacity-40"
               } ${
                 device === "mobile"
-                  ? "max-w-[320px] sm:max-w-[360px] border-4 border-[var(--ink)] rounded-3xl shadow-[5px_5px_0_var(--ink)] overflow-hidden bg-black"
-                  : "w-full max-w-4xl border-2 border-[var(--ink)] rounded-xl shadow-[4px_4px_0_var(--ink)] overflow-hidden bg-[var(--surface)]"
+                  ? "max-w-80 sm:max-w-90 border-4 border-(--ink) rounded-3xl shadow-[5px_5px_0_var(--ink)] overflow-hidden bg-black"
+                  : "w-full max-w-4xl border-2 border-(--ink) rounded-xl shadow-[4px_4px_0_var(--ink)] overflow-hidden bg-(--surface)"
               }`}
             >
               <img
@@ -312,19 +312,19 @@ export default function DesignArchiveLightbox({
               />
             </div>
           ) : (
-            <div className="p-8 text-center text-sm text-[var(--ink-soft)]">
+            <div className="p-8 text-center text-sm text-(--ink-soft)">
               No screenshot available for this view.
             </div>
           )}
         </div>
 
         {/* Lightbox Footer Caption */}
-        <div className="p-3 sm:p-4 border-t-2 border-[var(--ink)] bg-[var(--surface)] flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--ink-soft)]">
+        <div className="p-3 sm:p-4 border-t-2 border-(--ink) bg-(--surface) flex flex-wrap items-center justify-between gap-2 text-xs text-(--ink-soft)">
           <p className="max-w-xl text-left">
-            <strong className="text-[var(--ink)]">{currentVersion.name}:</strong>{" "}
+            <strong className="text-(--ink)">{currentVersion.name}:</strong>{" "}
             {currentVersion.summary}
           </p>
-          <div className="text-[11px] text-[var(--ink-soft)] text-right">
+          <div className="text-meta text-(--ink-soft) text-right">
             <span>Use Left/Right arrows to flip • Esc to close</span>
           </div>
         </div>

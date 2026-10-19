@@ -208,10 +208,10 @@ export default function Select({
         {label && (
           <label
             htmlFor={id}
-            className="block text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+            className="block text-xs font-bold uppercase tracking-wider text-(--ink) mb-1.5"
           >
             {label}{" "}
-            {required && <span className="text-[var(--coral)]">*</span>}
+            {required && <span className="text-(--coral)">*</span>}
           </label>
         )}
         <div className="relative">
@@ -223,8 +223,8 @@ export default function Select({
             onChange={(e) => {
               if (typeof onChange === "function") onChange(e.target.value);
             }}
-            className={`w-full appearance-none bg-[var(--surface)] border-2 border-[var(--ink)] p-3.5 pr-10 rounded-xl font-bold text-sm text-[var(--ink)] shadow-[3px_3px_0_var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed ${
-              error ? "border-[var(--coral)]" : ""
+            className={`w-full appearance-none bg-(--surface) border-2 border-(--ink) p-3.5 pr-10 rounded-xl font-bold text-sm text-(--ink) shadow-[3px_3px_0_var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary) disabled:opacity-50 disabled:cursor-not-allowed ${
+              error ? "border-(--coral)" : ""
             }`}
           >
             {placeholder && (
@@ -238,7 +238,7 @@ export default function Select({
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-[var(--ink)]">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-(--ink)">
             <svg
               className="w-4 h-4"
               viewBox="0 0 24 24"
@@ -253,7 +253,7 @@ export default function Select({
           </div>
         </div>
         {error && (
-          <p className="mt-1 text-xs font-bold text-[var(--coral)]">{error}</p>
+          <p className="mt-1 text-xs font-bold text-(--coral)">{error}</p>
         )}
       </div>
     );
@@ -271,9 +271,9 @@ export default function Select({
         <label
           id={`${id}-label`}
           htmlFor={id}
-          className="block text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+          className="block text-xs font-bold uppercase tracking-wider text-(--ink) mb-1.5"
         >
-          {label} {required && <span className="text-[var(--coral)]">*</span>}
+          {label} {required && <span className="text-(--coral)">*</span>}
         </label>
       )}
 
@@ -292,11 +292,11 @@ export default function Select({
         disabled={disabled}
         onClick={toggleDropdown}
         onKeyDown={handleKeyDown}
-        className={`w-full flex items-center justify-between bg-[var(--surface)] border-2 border-[var(--ink)] p-3.5 rounded-xl font-bold text-sm text-[var(--ink)] text-left shadow-[3px_3px_0_var(--ink)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--ink)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed ${
-          error ? "border-[var(--coral)]" : ""
+        className={`w-full flex items-center justify-between bg-(--surface) border-2 border-(--ink) p-3.5 rounded-xl font-bold text-sm text-(--ink) text-left shadow-[3px_3px_0_var(--ink)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--ink)] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--primary) disabled:opacity-50 disabled:cursor-not-allowed ${
+          error ? "border-(--coral)" : ""
         }`}
       >
-        <span className={selectedOption ? "" : "text-[var(--ink-soft)]/70 font-normal"}>
+        <span className={selectedOption ? "" : "text-(--ink-soft)/70 font-normal"}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <svg
@@ -309,7 +309,7 @@ export default function Select({
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`shrink-0 ml-2 transition-transform duration-200 text-[var(--ink)] ${
+          className={`shrink-0 ml-2 transition-transform duration-200 text-(--ink) ${
             isOpen ? "rotate-180" : ""
           }`}
         >
@@ -318,7 +318,7 @@ export default function Select({
       </button>
 
       {error && (
-        <p className="mt-1 text-xs font-bold text-[var(--coral)]">{error}</p>
+        <p className="mt-1 text-xs font-bold text-(--coral)">{error}</p>
       )}
 
       {/* Dropdown Listbox */}
@@ -330,7 +330,7 @@ export default function Select({
           aria-labelledby={label ? `${id}-label` : undefined}
           tabIndex={-1}
           style={{ maxHeight: "280px" }}
-          className={`custom-select-list no-scrollbar scroll-fade-hints absolute left-0 w-full z-50 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-xl shadow-[4px_4px_0_var(--ink)] overflow-y-auto py-1.5 focus:outline-none animate-fade-in ${
+          className={`custom-select-list no-scrollbar scroll-fade-hints absolute left-0 w-full z-50 bg-(--surface) border-2 border-(--ink) rounded-xl shadow-[4px_4px_0_var(--ink)] overflow-y-auto py-1.5 focus:outline-none animate-fade-in ${
             isFlipped ? "bottom-full mb-1.5" : "top-full mt-1.5"
           }`}
         >
@@ -350,16 +350,16 @@ export default function Select({
                     opt.disabled
                       ? "opacity-40 cursor-not-allowed"
                       : isSelected
-                        ? "bg-[var(--butter)] text-[var(--ink)]"
+                        ? "bg-(--butter) text-(--ink)"
                         : isActive
-                          ? "bg-[var(--bg-wash)] text-[var(--ink)]"
-                          : "text-[var(--ink)] hover:bg-[var(--bg-wash)]"
+                          ? "bg-(--bg-wash) text-(--ink)"
+                          : "text-(--ink) hover:bg-(--bg-wash)"
                   }`}
                 >
                   <div className="flex flex-col min-w-0 pr-2">
                     <span className="truncate">{opt.label}</span>
                     {opt.description && (
-                      <span className="text-xs font-normal text-[var(--ink-soft)] truncate">
+                      <span className="text-xs font-normal text-(--ink-soft) truncate">
                         {opt.description}
                       </span>
                     )}
@@ -375,7 +375,7 @@ export default function Select({
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="shrink-0 text-[var(--primary)]"
+                      className="shrink-0 text-(--primary)"
                     >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>

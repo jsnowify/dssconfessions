@@ -128,7 +128,7 @@ export default function ShareDialog({ data, onClose, notify }) {
       <p role="status" className="mt-3">
         {status}
       </p>
-      <p className="mt-4 text-[13px]">
+      <p className="mt-4 text-meta">
         Created on your device. We never upload this image.
       </p>
     </Modal>

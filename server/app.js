@@ -9,6 +9,7 @@ const { createSearchTracker } = require("./utils/search-trends");
 const { isDeleteKeyConfigured } = require("./utils/delete-key");
 const { createConfessionSubmission, POST_QUOTA, SubmissionError } = require("./services/confession-submission");
 const { mountBots } = require("./bots/routes");
+const { mountModeration } = require("./admin/moderation");
 const { mountFeatures } = require("./features");
 const { mountOg } = require("./og");
 const {
@@ -156,6 +157,7 @@ function createApp({
   });
 
   mountBots(app, { env, getDatabase, spotify, getToken, submitConfession, ai: botAi, allowedOrigins });
+  mountModeration(app, { env, getDatabase });
 
   app.get("/api/search-song", readLimiter, async (req, res) => {
     const { q } = req.query;
@@ -205,7 +207,7 @@ function createApp({
 
   app.get("/api/confessions", readLimiter, async (req, res) => {
     try {
-      const { to, id, latest } = req.query;
+      const { to, id, latest, before, limit: reqLimit } = req.query;
       if (latest !== undefined && latest !== "1")
         return res.status(400).json({ error: "Invalid latest-post check." });
       if (to !== undefined && typeof to !== "string") {
@@ -218,6 +220,23 @@ function createApp({
           .status(400)
           .json({ error: "Confession ID must be a single string." });
       }
+      if (before !== undefined) {
+        if (
+          typeof before !== "string" ||
+          !before.trim() ||
+          isNaN(Date.parse(before))
+        ) {
+          return res
+            .status(400)
+            .json({ error: "Invalid before cursor timestamp." });
+        }
+      }
+      const defaultLimit = to?.trim() ? 50 : 20;
+      const parsedLimit =
+        typeof reqLimit === "string" && /^\d+$/.test(reqLimit)
+          ? Math.min(50, Math.max(1, Number(reqLimit)))
+          : (latest === "1" ? 1 : defaultLimit);
+
       const buildQuery = (visible, options = {}) => {
         const isVis =
           typeof visible === "boolean" ? visible : visible?.visible !== false;
@@ -238,10 +257,23 @@ function createApp({
             .replace(/[\\%_]/g, "\\$&");
           query = query
             .ilike("recipient_to", `%${search}%`)
-            .order("created_at", { ascending: false })
-            .limit(50);
+            .order("created_at", { ascending: false });
+          if (before?.trim()) {
+            query = query.lt(
+              "created_at",
+              new Date(before.trim()).toISOString(),
+            );
+          }
+          query = query.limit(parsedLimit);
         } else {
-          query = query.order("created_at", { ascending: false }).limit(latest === "1" ? 1 : 20);
+          query = query.order("created_at", { ascending: false });
+          if (before?.trim()) {
+            query = query.lt(
+              "created_at",
+              new Date(before.trim()).toISOString(),
+            );
+          }
+          query = query.limit(parsedLimit);
         }
         return query;
       };

@@ -10,16 +10,16 @@ const AboutView = () => (
     {/* Section 1: The Creator */}
     <section className="sleeve-panel about-tile about-tile--creator p-7 md:p-8">
       <span className="liner-tag font-bold">CREDITS</span>
-      <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 tracking-tight text-[var(--ink)]">
+      <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 tracking-tight text-(--ink)">
         The Creator
       </h2>
-      <p className="text-[var(--ink-soft)] text-[16px] md:text-[17px] font-normal leading-relaxed">
+      <p className="text-(--ink-soft) text-base md:text-body-lg font-normal leading-relaxed">
         Hi, I'm{" "}
         <a
           href="https://snowi-swjc.vercel.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--ink)] font-bold underline hover:text-[var(--accent)] hover:decoration-[var(--accent)] "
+          className="text-(--ink) font-bold underline hover:text-(--accent) hover:decoration-(--accent) "
         >
           Joshua "Snowi" Cambronero
         </a>
@@ -29,45 +29,45 @@ const AboutView = () => (
     </section>
 
     {/* Section 2: Key Facts & Entity Disclosures (Semantic <dl>) */}
-    <section className="sleeve-panel about-tile p-7 md:p-8 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl shadow-[4px_4px_0_var(--ink)]">
+    <section className="sleeve-panel about-tile p-7 md:p-8 bg-(--surface) border-2 border-(--ink) rounded-2xl shadow-[4px_4px_0_var(--ink)]">
       <span className="liner-tag font-bold">COMMUNITY CONTEXT</span>
-      <h2 className="text-xl md:text-2xl font-bold uppercase mb-4 tracking-tight text-[var(--ink)]">
+      <h2 className="text-xl md:text-2xl font-bold uppercase mb-4 tracking-tight text-(--ink)">
         Key Facts
       </h2>
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-sans">
-        <div className="p-3 bg-[var(--sky)]/30 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+        <div className="p-3 bg-(--sky)/30 rounded-xl border border-(--ink)/20">
+          <dt className="font-bold text-xs uppercase tracking-wider text-(--ink) mb-1">
             Audience &amp; Region
           </dt>
-          <dd className="text-[var(--ink-soft)] leading-relaxed">
+          <dd className="text-(--ink-soft) leading-relaxed">
             The student, alumni, and campus community of Davao del Sur State College (DSSC), located in Digos City, Davao del Sur, Philippines.
           </dd>
         </div>
-        <div className="p-3 bg-[var(--butter)]/40 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+        <div className="p-3 bg-(--butter)/40 rounded-xl border border-(--ink)/20">
+          <dt className="font-bold text-xs uppercase tracking-wider text-(--ink) mb-1">
             Affiliation Status
           </dt>
-          <dd className="text-[var(--ink-soft)] leading-relaxed">
+          <dd className="text-(--ink-soft) leading-relaxed">
             Independent student project. Not affiliated with, sponsored by, or endorsed by Davao del Sur State College.
           </dd>
         </div>
-        <div className="p-3 bg-[var(--mint)]/30 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+        <div className="p-3 bg-(--mint)/30 rounded-xl border border-(--ink)/20">
+          <dt className="font-bold text-xs uppercase tracking-wider text-(--ink) mb-1">
             Service Model
           </dt>
-          <dd className="text-[var(--ink-soft)] leading-relaxed">
+          <dd className="text-(--ink-soft) leading-relaxed">
             100% free anonymous message board paired with verified Spotify tracks. Zero accounts, zero ads, and zero IP address logging.
           </dd>
         </div>
-        <div className="p-3 bg-[var(--lilac)]/30 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+        <div className="p-3 bg-(--lilac)/30 rounded-xl border border-(--ink)/20">
+          <dt className="font-bold text-xs uppercase tracking-wider text-(--ink) mb-1">
             DSSC Community Hub
           </dt>
-          <dd className="text-[var(--ink-soft)] leading-relaxed">
+          <dd className="text-(--ink-soft) leading-relaxed">
             Read our dedicated{" "}
             <a
               href="/dssc-confessions"
-              className="font-bold underline text-[var(--primary)] hover:text-[var(--ink)]"
+              className="font-bold underline text-(--primary) hover:text-(--ink)"
             >
               DSSC Confessions overview
             </a>{" "}
@@ -80,10 +80,10 @@ const AboutView = () => (
     {/* Section 3: Inspiration */}
     <section className="sleeve-panel about-tile about-tile--inspiration p-7 md:p-8">
       <span className="liner-tag font-bold">LINER NOTES</span>
-      <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 tracking-tight text-[var(--ink)]">
+      <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 tracking-tight text-(--ink)">
         Inspiration
       </h2>
-      <p className="text-[var(--ink-soft)] text-[16px] md:text-[17px] font-normal leading-relaxed">
+      <p className="text-(--ink-soft) text-base md:text-body-lg font-normal leading-relaxed">
         People often leave things unsaid. This project gives those words a safe
         place to live, paired with the exact songs that carry them. It's
         inspired by{" "}
@@ -91,7 +91,7 @@ const AboutView = () => (
           href="https://sendthesong.xyz"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--ink)] font-bold underline hover:text-[var(--accent)] hover:decoration-[var(--accent)] "
+          className="text-(--ink) font-bold underline hover:text-(--accent) hover:decoration-(--accent) "
         >
           SendTheSong
         </a>
@@ -104,14 +104,14 @@ const AboutView = () => (
       <Doodle kind="shield" className="privacy-doodle" />
       <span className="liner-tag font-bold">THE FINE PRINT</span>
       <div className="mb-2">
-        <span className="inline-block bg-[var(--mustard)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-3 py-0.5 text-[13px] font-bold uppercase tracking-wider">
+        <span className="inline-block bg-(--mustard) text-(--ink) border-2 border-(--ink) rounded-full px-3 py-0.5 text-meta font-bold uppercase tracking-wider">
           Anonymous by design · Limited safety data
         </span>
       </div>
       <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 privacy-heading tracking-tight">
         Privacy Guarantee
       </h2>
-      <p className="text-[var(--ink-soft)] text-[16px] md:text-[17px] font-normal leading-relaxed">
+      <p className="text-(--ink-soft) text-base md:text-body-lg font-normal leading-relaxed">
         No accounts are required. Our application does not store raw IP
         addresses or use browser fingerprints. We store only one-way hashes
         of delete keys so authors can delete their posts. Report reasons and

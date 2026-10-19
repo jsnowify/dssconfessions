@@ -18,6 +18,7 @@ export const DISAMBIGUATION_NOTE =
 
 export const OFFICIAL_COLLEGE_NAME = "Davao del Sur State College";
 export const OFFICIAL_COLLEGE_URL = "https://www.dssc.edu.ph/";
+export const OFFICIAL_PORTAL_URL = "https://portal.dssc.edu.ph/";
 export const OFFICIAL_WIKIPEDIA_URL =
   "https://en.wikipedia.org/wiki/Davao_del_Sur_State_College";
 
@@ -341,7 +342,7 @@ export const ROUTES_CONFIG = {
             name: "Where can I find the official DSSC website or student portal?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "The official website of Davao del Sur State College is at https://www.dssc.edu.ph/. Please use that link for enrollment, student portal login, grade inquiries, and official administrative announcements.",
+              text: "The official website of Davao del Sur State College is at https://www.dssc.edu.ph/. For student and employee portal services (enrollment, grades, records), access the official DSSC Portal directly at https://portal.dssc.edu.ph/.",
             },
           },
           {

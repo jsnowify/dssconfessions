@@ -5,28 +5,28 @@ export default function HowToSendGuide({ setView }) {
     <article className="max-w-4xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="text-center mb-10">
-        <span className="inline-block bg-[var(--butter)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest shadow-[2px_2px_0_var(--ink)] mb-4">
+        <span className="inline-block bg-(--butter) text-(--ink) border-2 border-(--ink) rounded-full px-4 py-1 text-xs font-bold uppercase tracking-widest shadow-[2px_2px_0_var(--ink)] mb-4">
           Guide • 5 Min Read
         </span>
-        <h1 className="text-4xl md:text-5xl font-script font-bold text-[var(--ink)] mb-4">
+        <h1 className="text-4xl md:text-5xl font-script font-bold text-(--ink) mb-4">
           How to Send an Anonymous Song Confession
         </h1>
-        <p className="text-[var(--ink-soft)] text-base max-w-xl mx-auto">
+        <p className="text-(--ink-soft) text-base max-w-xl mx-auto">
           A comprehensive guide to putting your feelings into words, attaching
           the perfect Spotify soundtrack, and keeping your submission safe.
         </p>
-        <p className="text-xs text-[var(--ink-soft)] mt-3">
+        <p className="text-xs text-(--ink-soft) mt-3">
           Published: October 18, 2026 • Verified for DSSConfessions
         </p>
       </div>
 
       {/* Answer-first Summary Box */}
-      <div className="bg-[var(--bg-wash)] border-2 border-[var(--ink)] rounded-2xl p-6 mb-10 shadow-[3px_3px_0_var(--ink)]">
-        <h2 className="text-lg font-bold text-[var(--ink)] mb-2 flex items-center gap-2">
+      <div className="bg-(--bg-wash) border-2 border-(--ink) rounded-2xl p-6 mb-10 shadow-[3px_3px_0_var(--ink)]">
+        <h2 className="text-lg font-bold text-(--ink) mb-2 flex items-center gap-2">
           <Doodle kind="note" />
           Quick Answer
         </h2>
-        <p className="text-sm md:text-base text-[var(--ink)] leading-relaxed">
+        <p className="text-sm md:text-base text-(--ink) leading-relaxed">
           To send an anonymous confession on DSSConfessions, navigate to the{" "}
           <strong>Confess</strong> page, enter the recipient&apos;s name, write
           your message, search Spotify for your soundtrack, and click{" "}
@@ -36,9 +36,9 @@ export default function HowToSendGuide({ setView }) {
         </p>
       </div>
 
-      <div className="space-y-10 text-[var(--ink)] leading-relaxed text-sm md:text-base">
+      <div className="space-y-10 text-(--ink) leading-relaxed text-sm md:text-base">
         {/* Step 1 */}
-        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
+        <section className="bg-(--surface) border-2 border-(--ink) rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold mb-4">
             Step 1: Choose Your Recipient and Sender Identity
           </h2>
@@ -56,14 +56,14 @@ export default function HowToSendGuide({ setView }) {
             would recognize (like &quot;Your Library Seatmate&quot; or &quot;The
             boy with the green umbrella&quot;), you can type that as your pseudonym.
           </p>
-          <div className="bg-[var(--bg-wash)] border border-[var(--ink)]/30 rounded-xl p-4 text-xs">
+          <div className="bg-(--bg-wash) border border-(--ink)/30 rounded-xl p-4 text-xs">
             <strong>Tip:</strong> Avoid using full legal names or phone numbers
             in the recipient field to respect community privacy standards.
           </div>
         </section>
 
         {/* Step 2 */}
-        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
+        <section className="bg-(--surface) border-2 border-(--ink) rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold mb-4">
             Step 2: Write Your Unspoken Words
           </h2>
@@ -78,7 +78,7 @@ export default function HowToSendGuide({ setView }) {
             with soft line wraps. If your message is long, readers will see the
             first five lines and can expand the card to read the complete text.
           </p>
-          <ul className="list-disc list-inside space-y-2 text-sm text-[var(--ink-soft)]">
+          <ul className="list-disc list-inside space-y-2 text-sm text-(--ink-soft)">
             <li>Keep it sincere and expressive.</li>
             <li>Do not include sensitive personal contact information.</li>
             <li>Focus on shared experiences, feelings, and emotions.</li>
@@ -86,7 +86,7 @@ export default function HowToSendGuide({ setView }) {
         </section>
 
         {/* Step 3 */}
-        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
+        <section className="bg-(--surface) border-2 border-(--ink) rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold mb-4">
             Step 3: Pair the Message with a Spotify Soundtrack
           </h2>
@@ -104,7 +104,7 @@ export default function HowToSendGuide({ setView }) {
         </section>
 
         {/* Step 4 */}
-        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
+        <section className="bg-(--surface) border-2 border-(--ink) rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold mb-4">
             Step 4: Check the Live Preview & Post
           </h2>
@@ -121,7 +121,7 @@ export default function HowToSendGuide({ setView }) {
         </section>
 
         {/* Step 5 */}
-        <section className="bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
+        <section className="bg-(--surface) border-2 border-(--ink) rounded-2xl p-6 md:p-8 shadow-[3px_3px_0_var(--ink)]">
           <h2 className="text-2xl font-bold mb-4">
             Step 5: Save Your Private Delete Key
           </h2>
@@ -140,11 +140,11 @@ export default function HowToSendGuide({ setView }) {
       </div>
 
       {/* CTA Section */}
-      <div className="mt-12 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl p-8 text-center shadow-[4px_4px_0_var(--ink)]">
-        <h3 className="text-2xl font-bold text-[var(--ink)] mb-2">
+      <div className="mt-12 bg-(--surface) border-2 border-(--ink) rounded-2xl p-8 text-center shadow-[4px_4px_0_var(--ink)]">
+        <h3 className="text-2xl font-bold text-(--ink) mb-2">
           Ready to put your thoughts into music?
         </h3>
-        <p className="text-sm text-[var(--ink-soft)] mb-6 max-w-md mx-auto">
+        <p className="text-sm text-(--ink-soft) mb-6 max-w-md mx-auto">
           Write your story, attach a track, and let it speak for you anonymously.
         </p>
         <button

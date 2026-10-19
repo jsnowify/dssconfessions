@@ -6,6 +6,7 @@ test("Mixtape Scrubber unit & integration suite", async (t) => {
   const {
     SCRUBBER_CONFIG,
     formatPretendTime,
+    calculateReadingTimeSeconds,
     createParticlePool,
     shouldEmitHeart,
   } = await import("../../client/src/components/ui/scrubber-config.js");
@@ -34,6 +35,25 @@ test("Mixtape Scrubber unit & integration suite", async (t) => {
     // Boundary conditions
     assert.equal(formatPretendTime(-10), "00:00");
     assert.equal(formatPretendTime(150), "03:30");
+
+    // Dynamic total duration support
+    assert.equal(formatPretendTime(0, 120), "00:00");
+    assert.equal(formatPretendTime(50, 120), "01:00");
+    assert.equal(formatPretendTime(100, 120), "02:00");
+  });
+
+  await t.test("calculateReadingTimeSeconds computes page-specific duration from text and elements", () => {
+    // 200 words at 200 WPM = 60 seconds
+    const sample200 = "word ".repeat(200);
+    assert.equal(calculateReadingTimeSeconds(sample200), 60);
+
+    // 400 words at 200 WPM = 120 seconds
+    const sample400 = "word ".repeat(400);
+    assert.equal(calculateReadingTimeSeconds(sample400), 120);
+
+    // Empty fallback
+    assert.equal(calculateReadingTimeSeconds(""), 60);
+    assert.equal(calculateReadingTimeSeconds(null), 60);
   });
 
   await t.test("createParticlePool pre-allocates exact slot count without runtime leaks", () => {

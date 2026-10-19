@@ -5,7 +5,19 @@ export function parseCurrentLocation() {
   const pathname =
     window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
   const searchParams = new URLSearchParams(window.location.search);
-  if (pathname === "/admin/bots") return { view: "bot-admin", query: "", confessionId: null };
+  if (
+    pathname === "/admin" ||
+    pathname === "/admin/bots" ||
+    pathname === "/admin/reports" ||
+    pathname === "/admin/moderation"
+  ) {
+    return {
+      view: "bot-admin",
+      query: "",
+      confessionId: null,
+      adminTab: pathname === "/admin/bots" ? "bots" : "moderation",
+    };
+  }
 
   // 1. Confession deep link: /confession/:id or ?confession=:id or ?id=:id
   const confessionMatch = pathname.match(/^\/confession(?:s)?\/([a-f0-9-]+)$/i);

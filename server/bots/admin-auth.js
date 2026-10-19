@@ -115,16 +115,20 @@ function sessionCookie(req) {
 }
 
 function mountAdminAuth(app, { env, getDatabase, allowedOrigins }) {
-  const cookieOptions = (req) => ({
-    httpOnly: true,
-    sameSite: "strict",
-    path: "/api/admin/bots",
-    secure: env.VERCEL === "1" || env.NODE_ENV === "production" || req.secure,
-  });
+  const cookieOptions = (req) => {
+    const isBot =
+      req?.originalUrl?.includes("/bots") || req?.url?.includes("/bots");
+    return {
+      httpOnly: true,
+      sameSite: "strict",
+      path: isBot ? "/api/admin/bots" : "/api/admin",
+      secure: env.VERCEL === "1" || env.NODE_ENV === "production" || req?.secure,
+    };
+  };
   const csrf = (req, res, next) => {
     if (
       req.method !== "GET" &&
-      (req.get("x-bot-admin") !== "1" ||
+      ((req.get("x-bot-admin") !== "1" && req.get("x-admin") !== "1") ||
         req.get("sec-fetch-site") === "cross-site" ||
         (req.get("origin") && !allowedOrigins.has(req.get("origin"))))
     )
@@ -157,71 +161,82 @@ function mountAdminAuth(app, { env, getDatabase, allowedOrigins }) {
     }
   };
   app.use(
-    "/api/admin/bots",
+    "/api/admin",
     (req, res, next) => {
       res.set("X-Robots-Tag", "noindex, nofollow");
       next();
     },
     csrf,
   );
+
+  const loginHandler = async (req, res) => {
+    if (!authConfigured(env))
+      return res
+        .status(503)
+        .json({ error: "Admin sign-in is not set up yet." });
+    try {
+      if (
+        !(await verifyPassword(req.body?.password, env.BOT_ADMIN_PASSWORD_HASH))
+      )
+        return res.status(401).json({ error: "Incorrect password." });
+      res.cookie(COOKIE, createAdminSession(env), {
+        ...cookieOptions(req),
+        maxAge: SESSION_SECONDS * 1000,
+      });
+      return res.json({ authenticated: true });
+    } catch {
+      console.error("[admin] sign-in unavailable");
+      return res
+        .status(503)
+        .json({ error: "Sign-in is temporarily unavailable." });
+    }
+  };
+
+  const logoutHandler = (req, res) => {
+    res.clearCookie(COOKIE, { ...cookieOptions(req), path: "/api/admin" });
+    res.clearCookie(COOKIE, { ...cookieOptions(req), path: "/api/admin/bots" });
+    return res.json({ authenticated: false });
+  };
+
+  app.post("/api/admin/login", limit("admin-login", 900000, 10), loginHandler);
   app.post(
     "/api/admin/bots/login",
     limit("bot-login", 900000, 10),
-    async (req, res) => {
-      if (!authConfigured(env))
-        return res
-          .status(503)
-          .json({ error: "Admin sign-in is not set up yet." });
-      try {
-        if (
-          !(await verifyPassword(
-            req.body?.password,
-            env.BOT_ADMIN_PASSWORD_HASH,
-          ))
-        )
-          return res.status(401).json({ error: "Incorrect password." });
-        res.cookie(COOKIE, createAdminSession(env), {
-          ...cookieOptions(req),
-          maxAge: SESSION_SECONDS * 1000,
-        });
-        return res.json({ authenticated: true });
-      } catch {
-        console.error("[bot-admin] sign-in unavailable");
-        return res
-          .status(503)
-          .json({ error: "Sign-in is temporarily unavailable." });
-      }
-    },
+    loginHandler,
   );
-  app.post("/api/admin/bots/logout", (req, res) => {
-    res.clearCookie(COOKIE, cookieOptions(req));
-    return res.json({ authenticated: false });
+
+  app.post("/api/admin/logout", logoutHandler);
+  app.post("/api/admin/bots/logout", logoutHandler);
+
+  app.use("/api/admin", limit("admin", 60000, 60), (req, res, next) => {
+    if (
+      req.path === "/login" ||
+      req.path === "/bots/login" ||
+      req.path === "/logout" ||
+      req.path === "/bots/logout"
+    ) {
+      return next();
+    }
+    if (!authConfigured(env))
+      return res
+        .status(503)
+        .json({ error: "Admin sign-in is not set up yet." });
+    const session = sessionCookie(req);
+    if (!validSession(session, env))
+      return res.status(401).json({
+        error: "Your admin session expired. Sign in again to continue.",
+        code: "ADMIN_SESSION_REQUIRED",
+      });
+    // Renew authenticated activity before the next operation crosses expiry.
+    // Idle sessions still expire; invalid sessions can never renew themselves.
+    const issued = Number(session.split(".")[1]);
+    if (Math.floor(Date.now() / 1000) - issued >= SESSION_SECONDS / 2)
+      res.cookie(COOKIE, createAdminSession(env), {
+        ...cookieOptions(req),
+        maxAge: SESSION_SECONDS * 1000,
+      });
+    next();
   });
-  app.use(
-    "/api/admin/bots",
-    limit("bot-admin", 60000, 30),
-    (req, res, next) => {
-      if (!authConfigured(env))
-        return res
-          .status(503)
-          .json({ error: "Admin sign-in is not set up yet." });
-      const session = sessionCookie(req);
-      if (!validSession(session, env))
-        return res.status(401).json({
-          error: "Your admin session expired. Sign in again to continue.",
-          code: "ADMIN_SESSION_REQUIRED",
-        });
-      // Renew authenticated activity before the next operation crosses expiry.
-      // Idle sessions still expire; invalid sessions can never renew themselves.
-      const issued = Number(session.split(".")[1]);
-      if (Math.floor(Date.now() / 1000) - issued >= SESSION_SECONDS / 2)
-        res.cookie(COOKIE, createAdminSession(env), {
-          ...cookieOptions(req),
-          maxAge: SESSION_SECONDS * 1000,
-        });
-      next();
-    },
-  );
 }
 
 module.exports = {

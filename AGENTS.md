@@ -17,10 +17,11 @@ This document provides architectural rules, operational constraints, and critica
 
 ## 2. Immutable Rules for AI Agents
 
-1. **DO NOT change any fonts or font-families**:
-   - `Caveat` and `Reenie Beanie` are accent handwriting/script fonts.
-   - `Inter` is the primary sans-serif UI font.
+1. **DO NOT change, add, or remove font-families or font files**:
+   - `Caveat` and `Reenie Beanie` are accent handwriting/script fonts. Default for headings and confessions.
+   - `Inter` is the primary sans-serif UI font, and the optional target for the user-facing Easy-Read reader toggle (`[data-reader-font="inter"] .read-text`).
    - `JetBrains Mono` / monospace is for receipts, numbers, timestamps, and keys.
+   - All font sizes, line heights, letter-spacings, and weights must strictly adhere to the central type scale tokens from `client/src/index.css` (guarded by `npm run lint:type`).
 2. **Never change existing routes or breaking API response shapes**:
    - Web routes: `/`, `/browse`, `/confess`, `/about`, `/confession/:id`.
    - Core API endpoints: `GET /api/confessions`, `POST /api/confess`, `GET /api/search-song`, `GET /api/top-searches`, `POST /api/confessions/:id/poke`.
@@ -100,7 +101,7 @@ This document provides architectural rules, operational constraints, and critica
 ### 3.7 Local SEO, GEO & AEO Architecture (DSSC & Davao del Sur)
 - **Target Locality**: Digos City, Davao del Sur, Region XI, Philippines (`geo.region="PH-DAS"`, `en-PH`, `en_PH`).
 - **Canonical Definition & Non-Affiliation**: *"Independent student project. Not affiliated with or endorsed by Davao del Sur State College."*
-- **Disambiguation Link**: Direct link to official college portal `https://www.dssc.edu.ph/` for lost users seeking enrollment, student records, or portal login.
+- **Disambiguation Link**: Direct link to official student/employee portal `https://portal.dssc.edu.ph/` (and institution website `https://www.dssc.edu.ph/`) for lost users seeking enrollment, student records, or portal login.
 - **Dedicated Landing Page**: [`DsscLandingView.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/views/DsscLandingView.jsx) at `/dssc-confessions` featuring an AEO answer box (40–60 words), portal comparison table, submission steps, name search tips, and a single `<h1>`.
 - **Privacy-Guarded Indexation**: Individual `/confession/:id` posts and name search queries (`?to=`, `?search=`) are strictly `noindex`, excluded from sitemaps, and disallowed in `robots.txt`. Only 10 public informational pages are indexable.
 - **Generative AI Orientation**: Root-level `llms.txt` and `llms-full.txt` provide canonical definitions, scope boundaries, and citable facts for LLMs (Perplexity, ChatGPT, Claude).
@@ -112,6 +113,18 @@ This document provides architectural rules, operational constraints, and critica
 - **Atomic Enforcement**: `add_reply(uuid, jsonb, text, int)` Postgres RPC locks the parent confession (`FOR UPDATE`) to avoid race conditions. With 490 existing replies, 15 concurrent replies yield exactly 10 successes (201) and 5 conflicts (409 with code `REPLIES_FULL`).
 - **Fail-Soft Legacy Threads**: Legacy threads with $>500$ replies retain all existing rows without trimming; they report `canReply: false, reason: "full"`. Existing replies remain readable if replies are subsequently turned off.
 - **Tracklist UI**: [`SongTracklist.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/components/ui/SongTracklist.jsx) provides numbered tracks 01 through 500 with cycling pastel badges (`--sky`, `--mint`, `--lilac`, `--peach`, `--butter`, `--pink`), ten-segment capacity meter with a 500-slot count (`aria-label="${count} of ${max} reply slots filled"`), inline composer expanding at the next available track slot, dashed placeholder slots, and author management controls with confirmation modal. Render 25 rows initially, with Show more adding 25 at a time; never render 500 meter nodes.
+
+### 3.9 Typography Scale & Easy-Read Reader Toggle
+- **Unified Scale Tokens**: All font sizes in `client/src/index.css` are standardized into rem/clamp tokens (`--fs-display`, `--fs-h1`, `--fs-h2`, `--fs-h3`, `--fs-body-lg`, `--fs-body`, `--fs-body-sm`, `--fs-meta`, `--fs-label`, `--fs-input`, `--fs-button`, `--fs-button-sm`, `--fs-nav`, `--fs-overline`). Arbitrary sizes (e.g. `text-[13px]`) are strictly prohibited and enforced via `npm run lint:type` (`scripts/lint-typography.mjs`).
+- **Sub-floor Enforcement**: 13px minimum for metadata/badges (`--fs-meta`), 14px minimum for standard UI copy (`--fs-body-sm`), 16px minimum for form inputs/selects/textareas (`--fs-input`) to prevent iOS mobile auto-zoom.
+- **Optical Height Calibration**: Measured x-height of Inter vs. Reenie Beanie at 100px font-size yields a 1.341x ratio. Hand message size `--fs-message-hand` (`clamp(1.5rem, 1.25rem + 1vw, 1.875rem)`) optically harmonizes with Easy-Read Inter size `--fs-message-inter` (`1.0625rem` / 17px).
+- **Easy-Read Reader Toggle**: Opt-in user preference in [`ReaderFontToggle.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/components/ui/ReaderFontToggle.jsx) (`role="radiogroup"`, `role="radio"`, arrow navigation, screen reader live region). Swaps only confession message text and reply notes (`.read-text`) to Inter, while brand headers, logos, and UI remain unchanged. Neutralizes card tilt (`transform: none !important`) in Easy-Read mode for maximum readability.
+- **Toggle Layout Architecture & Variants**: Built with 50/50 equal-width CSS Grid columns (`display: grid; grid-template-columns: 1fr 1fr;`), sliding neo-brutalist thumb (`.reader-toggle__thumb`), $\ge 44\text{px}$ touch targets, scroll anchoring (`requestAnimationFrame` scroll drift correction), 120ms cross-fade transition, and a scoped live-preview font exception inside toggle option labels. Three responsive variants:
+  - `variant="list"`: Home & Browse headers (desktop right-aligned 270px; mobile stacked full-width below header).
+  - `variant="toolbar"`: DetailsView action bar beside Share button (desktop inline 44px height; mobile stacked full-width).
+  - `variant="preview"`: SubmitView composer live preview header.
+- **Persistence & Sync**: Stored in `localStorage` under `reader-font` (`"hand"` or `"inter"`). Defaults to `"inter"` if `prefers-contrast: more` is set without prior preference. Synchronizes across tabs via `window.addEventListener("storage")`. Hydration-safe initial application in `main.jsx`.
+- **Reading Measure**: Narrative containers employ `.long-form` with `--measure-long: 65ch` for comfortable scanning.
 
 ---
 
@@ -141,6 +154,10 @@ This document provides architectural rules, operational constraints, and critica
     Confession posts often contain personal student names or initials. Permitting search engine or AI crawler indexing would risk exposing private student messages in public search engine caches. Keep them `noindex` and out of `sitemap.xml`.
 12. **NEVER bypass `add_reply` or hardcode reply limits**:
     Always enforce the 500-reply cap via the atomic `add_reply` RPC and reference `MAX_REPLIES_PER_CONFESSION` from `server/config/features.js`. Do not perform raw inserts that bypass row locking, and do not discard existing rows on legacy threads that exceed 500 replies.
+13. **NEVER use arbitrary text size classes or raw px in components**:
+    Use the semantic typography tokens from `client/src/index.css` (`.text-meta`, `.text-body-sm`, `.text-button`, `.text-input`, `.text-label`, etc.). Always verify with `npm run lint:type`.
+14. **NEVER squeeze reader toggle inline beside long titles on mobile**:
+    Always allow the reader toggle to wrap to its own full-width row (`w-full`) below headings on viewports `<640px`. Ensure touch target height is $\ge 44\text{px}$ and options maintain equal 50/50 CSS Grid width.
 
 
 

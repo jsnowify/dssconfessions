@@ -118,11 +118,11 @@ export default function Logo({
       <div className={`inline-flex flex-col items-center gap-2 text-center group ${className}`}>
         <LogoMark size={size || 56} decorative={true} />
         <div>
-          <span className="font-script font-bold text-3xl md:text-4xl text-[var(--ink)] block leading-none">
+          <span className="font-script font-bold text-3xl md:text-4xl text-(--ink) block leading-none">
             dssconfessions
           </span>
           {showTagline && (
-            <span className="text-[11px] font-medium text-[var(--primary)] uppercase tracking-wider block mt-1">
+            <span className="text-meta font-medium text-(--primary) uppercase tracking-wider block mt-1">
               Untold words, sent through the song
             </span>
           )}
@@ -135,7 +135,7 @@ export default function Logo({
     return (
       <div className={`inline-flex items-center gap-2 group ${className}`}>
         <LogoMark size={size || 24} decorative={true} />
-        <span className="font-script font-bold text-2xl text-[var(--ink)] leading-none">
+        <span className="font-script font-bold text-2xl text-(--ink) leading-none">
           dssconfessions
         </span>
       </div>
@@ -146,7 +146,7 @@ export default function Logo({
   return (
     <div className={`inline-flex items-center gap-2.5 group ${className}`}>
       <LogoMark size={size || 30} decorative={true} />
-      <span className="font-script font-bold text-3xl text-[var(--ink)] leading-none">
+      <span className="font-script font-bold text-3xl text-(--ink) leading-none">
         dssconfessions
       </span>
     </div>

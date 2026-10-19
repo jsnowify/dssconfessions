@@ -14,6 +14,39 @@ const reasons = [
   ["other", "Something else"],
 ];
 
+const REPORTED_STORAGE_KEY = "dssc_reported_targets";
+
+function getReportedTargets() {
+  try {
+    const raw = localStorage.getItem(REPORTED_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function hasAlreadyReported(type, id) {
+  try {
+    const list = getReportedTargets();
+    return list.includes(`${type}:${id}`);
+  } catch {
+    return false;
+  }
+}
+
+function markTargetAsReported(type, id) {
+  try {
+    const list = getReportedTargets();
+    const key = `${type}:${id}`;
+    if (!list.includes(key)) {
+      list.push(key);
+      localStorage.setItem(REPORTED_STORAGE_KEY, JSON.stringify(list));
+    }
+  } catch {
+    /* Ignore storage limits or private browsing restrictions */
+  }
+}
+
 function ReportDialog({ target, onClose, onSuccess }) {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
@@ -27,6 +60,18 @@ function ReportDialog({ target, onClose, onSuccess }) {
     guard.current = true;
     setBusy(true);
     setError("");
+
+    // Shadow rate limit: if user already submitted a report for this target,
+    // simulate network delay and succeed in UI without hitting backend.
+    if (hasAlreadyReported(target.type, target.id)) {
+      setTimeout(() => {
+        guard.current = false;
+        setBusy(false);
+        onSuccess();
+      }, 400);
+      return;
+    }
+
     try {
       await featureRequest("post", "/api/reports", {
         targetType: target.type,
@@ -34,9 +79,16 @@ function ReportDialog({ target, onClose, onSuccess }) {
         reason,
         details,
       });
+      markTargetAsReported(target.type, target.id);
       onSuccess();
     } catch (e) {
-      setError(e.message);
+      // If server returned rate limit (429), shadow-succeed in the UI
+      if (e?.message && /too many|wait|slow down/i.test(e.message)) {
+        markTargetAsReported(target.type, target.id);
+        onSuccess();
+      } else {
+        setError(e.message);
+      }
     } finally {
       guard.current = false;
       setBusy(false);
@@ -327,7 +379,7 @@ export default function ConfessionFeatures({ data, onDeleted, onPlayReply }) {
       />
 
       {/* Auxiliary Actions Strip */}
-      <div className="feature-actions justify-center mt-8 text-[13px]">
+      <div className="feature-actions justify-center mt-8 text-meta">
         <button
           type="button"
           className="text-action flex items-center gap-1.5"

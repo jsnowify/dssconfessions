@@ -4,6 +4,10 @@ import './index.css'
 import App from './App.jsx'
 import { preloadInitialView } from './route-views'
 import { parseCurrentLocation } from './utils/routing'
+import { applyReaderFontToDocument, getInitialReaderFont } from './hooks/useReaderFont'
+
+// Apply reader font preference to <html> before React mount
+applyReaderFontToDocument(getInitialReaderFont())
 
 async function mount() {
   // Keep the prerendered page visible until its own code is ready. Mounting a
