@@ -23,8 +23,9 @@ const AboutView = () => (
         >
           Joshua "Snowi" Cambronero
         </a>
-        , a 4th-year BSIT student. I built this for fun and to practice software
-        engineering craft with real community vibes for the Davao del Sur State College community.
+        {" — Creative Web Designer & Developer | Web Motion Designer | Human-Computer Interaction."}
+        {" "}I built this for fun and to practice software engineering craft with
+        real community vibes for the Davao del Sur State College community.
       </p>
     </section>
 
