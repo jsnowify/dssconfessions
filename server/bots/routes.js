@@ -1,9 +1,13 @@
 const { createHash, timingSafeEqual, randomUUID } = require("node:crypto");
 const { consumeSharedRateLimit } = require("../utils/rate-limit");
 const { isDeleteKeyConfigured } = require("../utils/delete-key");
-const { POST_QUOTA } = require("../services/confession-submission");
+const {
+  POST_QUOTA,
+  botPostingEnvironment,
+} = require("../services/confession-submission");
 const { validateConfessionInput } = require("../utils/validation");
 const { mountAdminAuth } = require("./admin-auth");
+const { SOURCE, entries, pickStory } = require("./story-library");
 const {
   OPTIONS,
   DEFAULT_SETTINGS,
@@ -12,25 +16,24 @@ const {
   validateDraft,
   digestContent,
   createGenerator,
+  isGenerationConfigured,
 } = require("./generation");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DISCLOSURE = "[Automated fiction]\n\n";
 
 function mountBots(
   app,
   { env, getDatabase, spotify, getToken, submitConfession, ai, allowedOrigins },
 ) {
   const configured = () =>
-    isDeleteKeyConfigured(env) &&
-    Boolean(
-      env.BOT_AI_MODEL && (env.AI_GATEWAY_API_KEY || env.VERCEL_OIDC_TOKEN),
-    );
+    isDeleteKeyConfigured(botPostingEnvironment(env)) &&
+    isGenerationConfigured(env);
   const validSecret = (key) =>
     typeof env[key] === "string" &&
     env[key].length >= 32 &&
     ![
       env.SUPABASE_SERVICE_ROLE,
       env.DELETE_KEY_PEPPER,
+      env.BOT_DELETE_KEY_PEPPER,
       env.REPORT_HASH_SECRET,
       env.AI_GATEWAY_API_KEY,
       env.SPOTIFY_CLIENT_SECRET,
@@ -84,6 +87,11 @@ function mountBots(
     return data;
   };
   const generate = createGenerator({ env, ai });
+  const availableStories = () => control("library_available", { entries });
+  const generateDraft = async (settings, history, signal) =>
+    settings.source === SOURCE
+      ? pickStory(await availableStories())
+      : generate(settings, history, signal);
   const searchSong = async (draft, signal) => {
     const token = await getToken();
     const result = await spotify.get("https://api.spotify.com/v1/search", {
@@ -97,9 +105,9 @@ function mountBots(
     return id;
   };
   const submissionBody = (draft, settings) => ({
-    to: "A fictional listener",
+    to: "Short Stories",
     from: "Mixtape Bot (fiction)",
-    content: DISCLOSURE + draft.content,
+    content: draft.content,
     song: { id: draft.songId },
     allowReplies: settings.allowReplies,
   });
@@ -121,12 +129,15 @@ function mountBots(
       let draft = job.draft;
       if (!draft) {
         const signal = AbortSignal.timeout(28000);
-        draft = await generate(settings, history, signal);
+        draft = await generateDraft(settings, history, signal);
         draft.songId = await searchSong(draft, signal);
         const saved = await control("draft", {
           ...lease,
           draft,
-          digest: digestContent(draft.content),
+          digest:
+            draft.source === SOURCE
+              ? draft.storyDigest
+              : digestContent(draft.content),
         });
         if (saved.state !== "ready") return saved;
       } else {
@@ -188,10 +199,16 @@ function mountBots(
       if (error) throw new BotError("UPSTREAM");
       res.json({
         ...data,
+        library: {
+          total: entries.length,
+          available: (await availableStories()).length,
+        },
         options: OPTIONS,
         defaults: DEFAULT_SETTINGS,
         generationConfigured: configured(),
         schedulerConfigured: validSecret("CRON_SECRET"),
+        generator: env.BOT_GENERATOR || "local",
+        localScheduler: env.BOT_LOCAL_SCHEDULER === "1",
       });
     }),
   );
@@ -229,7 +246,7 @@ function mountBots(
           .json({ error: "Preview quota reached. Try again later." });
       }
       const settings = validateSettings(req.body?.settings);
-      const draft = await generate(settings);
+      const draft = await generateDraft(settings);
       draft.songId = await searchSong(draft, AbortSignal.timeout(6000));
       const body = submissionBody(draft, settings);
       if (!validateConfessionInput(body).valid)
@@ -272,4 +289,4 @@ function mountBots(
     }),
   );
 }
-module.exports = { mountBots, DISCLOSURE };
+module.exports = { mountBots };

@@ -43,7 +43,7 @@ const HomeView = ({
           <p className="text-lg md:text-xl mb-3">
             Untold words, sent through the song.
           </p>
-          <p className="text-xs font-mono text-[var(--ink-soft)] mb-8">
+          <p className="text-xs text-[var(--ink-soft)] mb-8">
             An anonymous music space for the{" "}
             <a
               href="/dssc-confessions"
@@ -93,7 +93,7 @@ const HomeView = ({
         </div>
       </section>
       <section className="steps-section">
-        <h2 className="steps-heading font-mono text-[13px] font-bold tracking-widest text-center mb-8">
+        <h2 className="steps-heading text-[13px] font-bold tracking-widest text-center mb-8">
           How It Works
         </h2>
         <div className="steps-grid">

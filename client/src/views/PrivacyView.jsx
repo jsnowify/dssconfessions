@@ -15,7 +15,7 @@ export default function PrivacyView() {
           Our commitment to complete anonymity, zero-IP logging, abuse
           prevention, and user-controlled content deletion.
         </p>
-        <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
+        <p className="text-xs text-[var(--ink-soft)] mt-3">
           Effective date: October 18, 2026
         </p>
       </div>
@@ -95,7 +95,7 @@ export default function PrivacyView() {
             For urgent takedown inquiries, contact:{" "}
             <a
               href="mailto:joshuacambronero.personal@gmail.com"
-              className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs text-[var(--ink)] underline hover:text-[var(--primary)]"
+              className="bg-[var(--bg-wash)] px-2 py-0.5 rounded text-xs font-bold text-[var(--ink)] underline hover:text-[var(--primary)]"
             >
               joshuacambronero.personal@gmail.com
             </a>
@@ -134,7 +134,7 @@ export default function PrivacyView() {
             If you are a student, faculty member, or individual seeking removal of content regarding your name or likeness, please use the in-app Report flag or contact:{" "}
             <a
               href="mailto:joshuacambronero.personal@gmail.com"
-              className="bg-[var(--bg-wash)] px-2 py-0.5 rounded font-mono text-xs text-[var(--ink)] underline hover:text-[var(--primary)]"
+              className="bg-[var(--bg-wash)] px-2 py-0.5 rounded text-xs font-bold text-[var(--ink)] underline hover:text-[var(--primary)]"
             >
               joshuacambronero.personal@gmail.com
             </a>

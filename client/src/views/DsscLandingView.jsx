@@ -12,7 +12,7 @@ export default function DsscLandingView({ setView }) {
     <div className="max-w-4xl mx-auto px-6 py-8 text-left">
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="mb-6">
-        <ol className="flex items-center gap-2 text-xs font-mono text-[var(--ink-soft)]">
+        <ol className="flex items-center gap-2 text-xs text-[var(--ink-soft)]">
           <li>
             <a
               href="/"
@@ -34,7 +34,7 @@ export default function DsscLandingView({ setView }) {
 
       {/* Header & Tag Badge */}
       <header className="mb-8">
-        <span className="inline-block bg-[var(--lilac)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider shadow-[2px_2px_0_var(--ink)] mb-4">
+        <span className="inline-block bg-[var(--lilac)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0_var(--ink)] mb-4">
           DSSC Community Mixtape
         </span>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-script font-bold text-[var(--ink)] leading-tight mb-4">
@@ -59,7 +59,7 @@ export default function DsscLandingView({ setView }) {
         <p className="text-base sm:text-[17px] font-sans text-[var(--ink)] leading-relaxed mb-4">
           {CANONICAL_DEFINITION}
         </p>
-        <div className="flex flex-wrap gap-2 text-xs font-mono text-[var(--ink-soft)]">
+        <div className="flex flex-wrap gap-2 text-xs text-[var(--ink-soft)]">
           <span className="bg-[var(--sky)] px-2.5 py-0.5 rounded-full border border-[var(--ink)]">
             🎵 Spotify Tracks
           </span>
@@ -84,7 +84,7 @@ export default function DsscLandingView({ setView }) {
           <span className="text-lg" aria-hidden="true">
             ⚠️
           </span>
-          <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
             Independent Student Project Notice
           </h3>
         </div>
@@ -117,7 +117,7 @@ export default function DsscLandingView({ setView }) {
         </h2>
         <div className="overflow-x-auto border-2 border-[var(--ink)] rounded-2xl shadow-[3px_3px_0_var(--ink)] bg-[var(--surface)]">
           <table className="w-full text-left text-xs sm:text-sm font-sans">
-            <thead className="bg-[var(--bg-wash)] border-b-2 border-[var(--ink)] font-mono font-bold text-[var(--ink)]">
+            <thead className="bg-[var(--bg-wash)] border-b-2 border-[var(--ink)] font-bold text-[var(--ink)]">
               <tr>
                 <th scope="col" className="p-3 sm:p-4">Feature</th>
                 <th scope="col" className="p-3 sm:p-4 bg-[var(--sky)]/50">DSSC Confessions</th>
@@ -289,7 +289,7 @@ export default function DsscLandingView({ setView }) {
         <p className="text-sm text-[var(--ink-soft)] leading-relaxed mb-3">
           DSSC Confessions was developed by Joshua &ldquo;Snowi&rdquo; Cambronero as an independent community project. Inspired by musical expression platforms, it was designed to give students in Digos City and Davao del Sur a safe and musical way to share unspoken thoughts.
         </p>
-        <p className="text-xs font-mono text-[var(--ink-soft)]">
+        <p className="text-xs text-[var(--ink-soft)]">
           {/* TODO(owner): confirm that I am a DSSC student before stating it */}
           Independent developer project • Built with React, Express, Supabase &amp; Spotify Web API.
         </p>

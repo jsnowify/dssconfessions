@@ -39,6 +39,7 @@
   --font-script: "Caveat", cursive;
   --font-handwritten: "Reenie Beanie", cursive;
   --font-sans: "Inter", sans-serif;
+  --font-mono: "Inter", sans-serif;
   --color-paper: var(--paper);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
@@ -841,7 +842,9 @@ select:focus-visible {
 .form-crate label {
   color: var(--ink);
 }
-.form-section label > .font-mono {
+.form-section label > .form-badge,
+.form-section label > .font-mono,
+.form-section label > span.text-\[13px\] {
   display: inline-block;
   padding: 2px 6px;
   background: var(--bg-wash);
@@ -1516,3 +1519,20 @@ a:focus-visible .logo-mark .logo-heart,
 }
 
 
+
+/* A fresh record slipped onto the mixtape: one calm, fixed update prompt. */
+.new-confessions {
+  position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(100px, calc(88px + env(safe-area-inset-bottom)));
+  z-index: 45; display: flex; align-items: flex-start; gap: 14px; width: min(360px, calc(100vw - 32px));
+  padding: 18px; border: 2px solid var(--ink); border-radius: 16px 16px 16px 4px;
+  background: var(--butter); color: var(--ink); box-shadow: 5px 5px 0 var(--ink);
+}
+.new-confessions__record { flex: 0 0 42px; height: 42px; border: 2px solid var(--ink); border-radius: 50%; background: repeating-radial-gradient(circle, var(--ink) 0 3px, var(--ink-soft) 4px, var(--ink) 5px 7px); display: grid; place-items: center; }
+.new-confessions__record span { width: 15px; height: 15px; border: 2px solid var(--ink); border-radius: 50%; background: var(--pink); }
+.new-confessions__copy { min-width: 0; }
+.new-confessions__copy p { margin: 0 0 4px; font-weight: 800; font-size: 15px; line-height: 1.4; }
+.new-confessions__copy > span { font-size: 12px; line-height: 1.5; }
+.new-confessions__actions { display: flex; gap: 10px; margin-top: 12px; }
+.new-confessions__actions .btn { min-height: 44px; padding: 8px 15px; font-size: 13px; }
+@media (max-width: 480px) { .new-confessions { right: 16px; padding: 14px; gap: 10px; } }
+body:has(dialog[open]) .new-confessions { visibility: hidden; }

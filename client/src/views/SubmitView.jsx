@@ -101,7 +101,7 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                   className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
                 >
                   To <span className="text-[var(--accent-ink)]">*</span>{" "}
-                  <span className="font-mono font-normal text-[var(--ink-soft)] text-[13px]">
+                  <span className="font-normal text-[var(--ink-soft)] text-[13px]">
                     Required
                   </span>
                 </label>
@@ -124,7 +124,7 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                   className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
                 >
                   From{" "}
-                  <span className="font-mono font-normal text-[var(--ink-soft)] text-[13px]">
+                  <span className="font-normal text-[var(--ink-soft)] text-[13px]">
                     Optional
                   </span>
                 </label>
@@ -152,12 +152,12 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                 className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)]"
               >
                 Your Words <span className="text-[var(--accent)]">*</span>{" "}
-                <span className="font-mono font-normal text-[var(--ink-soft)] text-[13px]">
+                <span className="font-normal text-[var(--ink-soft)] text-[13px]">
                   Required
                 </span>
               </label>
               <span
-                className={`form-counter font-mono text-[13px] ${formData.content.length >= 2700 ? "form-counter--near" : ""}`}
+                className={`form-counter text-[13px] font-bold ${formData.content.length >= 2700 ? "form-counter--near" : ""}`}
               >
                 {formData.content.length} / 3000
               </span>
@@ -188,7 +188,7 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
               className="block text-[13px] font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
             >
               Song Track <span className="text-[var(--accent)]">*</span>{" "}
-              <span className="font-mono font-normal text-[var(--ink-soft)] text-[13px]">
+              <span className="font-normal text-[var(--ink-soft)] text-[13px]">
                 Required
               </span>
             </label>
@@ -347,7 +347,7 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
                     Allow song replies
                   </span>
                   <span
-                    className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[var(--ink)] ${
+                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[var(--ink)] ${
                       formData.allowReplies
                         ? "bg-[var(--mint)] text-[var(--ink)]"
                         : "bg-[var(--bg-wash)] text-[var(--ink-soft)]"
@@ -440,7 +440,7 @@ const SubmitView = ({ submitConfession, fetchFeed, onPosted }) => {
             />
           </div>
 
-          <p className="preview-caption font-mono text-center mt-6 uppercase tracking-wider">
+          <p className="preview-caption font-bold text-center mt-6 uppercase tracking-wider">
             This is exactly how your card will appear in the public feed.
           </p>
           {!formData.allowReplies && (

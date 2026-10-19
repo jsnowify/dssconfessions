@@ -5,12 +5,16 @@
     "node": "24.x"
   },
   "scripts": {
+    "perf:audit": "node scripts/performance/audit.mjs",
+    "perf:snapshot": "node scripts/performance/snapshot.mjs",
+    "perf:compare": "node scripts/performance/compare.mjs",
     "dev": "npm run dev --prefix client",
     "start": "npm start --prefix server",
     "build": "npm run build --prefix client && node scripts/prerender.mjs",
     "lint": "npm run lint --prefix client",
     "test": "npm test --prefix server",
     "verify:bots": "node scripts/verify-bots.cjs",
+    "verify:updates": "node scripts/verify-story-updates.cjs",
     "check:live": "node scripts/check-live.cjs",
     "brand:build": "node scripts/build-brand-assets.mjs",
     "archive:capture": "node scripts/capture-design-archive.mjs",

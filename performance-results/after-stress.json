@@ -1,0 +1,69 @@
+{
+  "phase": "after",
+  "date": "2026-10-19T03:55:30.258Z",
+  "conditions": {
+    "browser": "156.0.8078.4",
+    "viewport": "390x844",
+    "cpuSlowdown": 4,
+    "latencyMs": 80,
+    "downloadBytesPerSecond": 200000,
+    "repeats": 3,
+    "rows": 5000,
+    "externalResources": "neutral fixtures, fonts unavailable; font families unchanged",
+    "database": "isolated single-process PGlite; not a production capacity estimate"
+  },
+  "screens": [],
+  "interactions": {},
+  "stress": [
+    {
+      "concurrency": 10,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 184.1,
+      "p50": 41.4,
+      "p95": 89.82,
+      "max": 248.82
+    },
+    {
+      "concurrency": 25,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 274.5,
+      "p50": 90.33,
+      "p95": 111.87,
+      "max": 139.58
+    },
+    {
+      "concurrency": 50,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 270.04,
+      "p50": 167.38,
+      "p95": 245.1,
+      "max": 345.76
+    }
+  ],
+  "rateLimit": {
+    "allowed": 60,
+    "rejected": 10,
+    "retryAfter": "60"
+  },
+  "writes": {
+    "pokes": {
+      "concurrentRequests": 100,
+      "expectedIncrement": 1000,
+      "actualIncrement": 1000
+    },
+    "replies": {
+      "concurrentRequests": 15,
+      "accepted": 10,
+      "full": 5
+    }
+  }
+}

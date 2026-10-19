@@ -181,14 +181,14 @@ export default function DesignArchiveLightbox({
         <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b-2 border-[var(--ink)] bg-[var(--bg-wash)]">
           {/* Title & Version Badge */}
           <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-0.5 font-mono text-xs font-bold bg-[var(--primary)] text-white rounded-full">
+            <span className="px-2.5 py-0.5 text-xs font-bold bg-[var(--primary)] text-white rounded-full">
               {currentVersion.id.toUpperCase()}
             </span>
             <div>
               <h3 className="font-script font-bold text-2xl text-[var(--ink)] leading-none">
                 {currentVersion.name}
               </h3>
-              <span className="font-mono text-[11px] text-[var(--ink-soft)]">
+              <span className="text-[11px] text-[var(--ink-soft)] font-medium">
                 {currentVersion.period}
               </span>
             </div>
@@ -206,7 +206,7 @@ export default function DesignArchiveLightbox({
                     setCurrentPage(p.id);
                     setIsLoaded(false);
                   }}
-                  className={`px-2.5 py-1 text-xs font-mono font-bold rounded-full transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
                     currentPage === p.id
                       ? "bg-[var(--primary)] text-white"
                       : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
@@ -227,7 +227,7 @@ export default function DesignArchiveLightbox({
                 }}
                 title="Desktop viewport (1440x900)"
                 aria-label="Desktop viewport"
-                className={`px-2.5 py-1 text-xs font-mono font-bold rounded-full transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
                   device === "desktop"
                     ? "bg-[var(--butter)] text-[var(--ink)]"
                     : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
@@ -243,7 +243,7 @@ export default function DesignArchiveLightbox({
                 }}
                 title="Mobile viewport (390x844)"
                 aria-label="Mobile viewport"
-                className={`px-2.5 py-1 text-xs font-mono font-bold rounded-full transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
                   device === "mobile"
                     ? "bg-[var(--butter)] text-[var(--ink)]"
                     : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
@@ -312,14 +312,14 @@ export default function DesignArchiveLightbox({
               />
             </div>
           ) : (
-            <div className="p-8 text-center font-mono text-sm text-[var(--ink-soft)]">
+            <div className="p-8 text-center text-sm text-[var(--ink-soft)]">
               No screenshot available for this view.
             </div>
           )}
         </div>
 
         {/* Lightbox Footer Caption */}
-        <div className="p-3 sm:p-4 border-t-2 border-[var(--ink)] bg-[var(--surface)] flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[var(--ink-soft)]">
+        <div className="p-3 sm:p-4 border-t-2 border-[var(--ink)] bg-[var(--surface)] flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--ink-soft)]">
           <p className="max-w-xl text-left">
             <strong className="text-[var(--ink)]">{currentVersion.name}:</strong>{" "}
             {currentVersion.summary}

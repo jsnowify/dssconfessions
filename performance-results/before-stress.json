@@ -1,0 +1,58 @@
+{
+  "phase": "before",
+  "date": "2026-10-19T03:54:37.648Z",
+  "conditions": {
+    "browser": "156.0.8078.4",
+    "viewport": "390x844",
+    "cpuSlowdown": 4,
+    "latencyMs": 80,
+    "downloadBytesPerSecond": 200000,
+    "repeats": 3,
+    "rows": 5000,
+    "externalResources": "neutral fixtures, fonts unavailable; font families unchanged",
+    "database": "isolated single-process PGlite; not a production capacity estimate"
+  },
+  "screens": [],
+  "interactions": {},
+  "stress": [
+    {
+      "concurrency": 10,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 193.58,
+      "p50": 38.93,
+      "p95": 93.7,
+      "max": 261.24
+    },
+    {
+      "concurrency": 25,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 286.57,
+      "p50": 86.61,
+      "p95": 119.74,
+      "max": 139.15
+    },
+    {
+      "concurrency": 50,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 297.59,
+      "p50": 159.45,
+      "p95": 229.98,
+      "max": 290.11
+    }
+  ],
+  "rateLimit": {
+    "allowed": 60,
+    "rejected": 10,
+    "retryAfter": "60"
+  },
+  "writes": {}
+}

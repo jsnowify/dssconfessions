@@ -99,7 +99,7 @@ const FAQ_ITEMS = [
     id: "how-many-song-replies",
     question: "How many song replies can a confession receive?",
     answer:
-      "Each confession can receive up to 10 anonymous song replies, like a 10-track mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
+      "Each confession can receive up to 500 anonymous song replies on its mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
   },
 ];
 
@@ -171,7 +171,7 @@ export default function FaqView({ setView }) {
           Everything you need to know about anonymity, songs, deletion keys, and
           how DSSC Confessions keeps you safe in the Davao del Sur State College community.
         </p>
-        <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
+        <p className="text-xs text-[var(--ink-soft)] mt-3">
           Last updated: October 18, 2026
         </p>
       </div>
@@ -191,7 +191,7 @@ export default function FaqView({ setView }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b-2 border-[var(--ink)] font-mono text-xs uppercase tracking-wider text-[var(--ink)]">
+              <tr className="border-b-2 border-[var(--ink)] text-xs font-bold uppercase tracking-wider text-[var(--ink)]">
                 <th className="py-3 px-3">Category</th>
                 <th className="py-3 px-3 text-[var(--primary)] font-bold">
                   DSSC Confessions
@@ -244,13 +244,13 @@ export default function FaqView({ setView }) {
       {/* FAQ Dropdown / Accordion Section */}
       <section className="mb-16 text-left">
         <div className="flex items-center justify-between mb-6">
-          <span className="font-mono text-xs uppercase tracking-wider text-[var(--ink-soft)]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--ink-soft)]">
             {FAQ_ITEMS.length} Questions
           </span>
           <button
             type="button"
             onClick={toggleAll}
-            className="text-xs font-bold font-mono uppercase tracking-wider text-[var(--ink)] hover:text-[var(--primary)] underline cursor-pointer"
+            className="text-xs font-bold uppercase tracking-wider text-[var(--ink)] hover:text-[var(--primary)] underline cursor-pointer"
           >
             {allOpen ? "Collapse All ↑" : "Expand All ↓"}
           </button>

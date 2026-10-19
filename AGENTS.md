@@ -107,11 +107,11 @@ This document provides architectural rules, operational constraints, and critica
 - **Static Prerender**: `scripts/prerender.mjs` runs on `npm run build` to output fully populated HTML documents into `client/dist/` for search crawlers while preserving client-side React hydration.
 - **Execution Region**: `vercel.json` functions run in `sin1` (Singapore, $\sim 45\text{ms}$) instead of `syd1` for optimal Core Web Vitals in the Philippines.
 
-### 3.8 Song Replies & Mixtape Tracklist (10-Reply Cap)
-- **10-Reply Cap**: Single source of truth is `MAX_REPLIES_PER_CONFESSION = 10` in `server/config/features.js`.
-- **Atomic Enforcement**: `add_reply(uuid, jsonb, text, int)` Postgres RPC locks the parent confession (`FOR UPDATE`) to avoid race conditions. 15 concurrent replies yield exactly 10 successes (201) and 5 conflicts (409 with code `REPLIES_FULL`).
-- **Fail-Soft Legacy Threads**: Legacy threads with $>10$ replies retain all existing rows without trimming; they report `canReply: false, reason: "full"`. Existing replies remain readable if replies are subsequently turned off.
-- **Tracklist UI**: [`SongTracklist.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/components/ui/SongTracklist.jsx) provides numbered tracks `01`–`10` with cycling pastel badges (`--sky`, `--mint`, `--lilac`, `--peach`, `--butter`, `--pink`), 10-slot vinyl meter (`aria-label="${count} of ${max} reply slots filled"`), inline composer expanding at the next available track slot, dashed placeholder slots, and author management controls with confirmation modal.
+### 3.8 Song Replies & Mixtape Tracklist (500-Reply Cap)
+- **500-Reply Cap**: Single source of truth is `MAX_REPLIES_PER_CONFESSION = 500` in `server/config/features.js`.
+- **Atomic Enforcement**: `add_reply(uuid, jsonb, text, int)` Postgres RPC locks the parent confession (`FOR UPDATE`) to avoid race conditions. With 490 existing replies, 15 concurrent replies yield exactly 10 successes (201) and 5 conflicts (409 with code `REPLIES_FULL`).
+- **Fail-Soft Legacy Threads**: Legacy threads with $>500$ replies retain all existing rows without trimming; they report `canReply: false, reason: "full"`. Existing replies remain readable if replies are subsequently turned off.
+- **Tracklist UI**: [`SongTracklist.jsx`](file:///c:/Coding/JavaScript/Project/dss-confessions/client/src/components/ui/SongTracklist.jsx) provides numbered tracks 01 through 500 with cycling pastel badges (`--sky`, `--mint`, `--lilac`, `--peach`, `--butter`, `--pink`), ten-segment capacity meter with a 500-slot count (`aria-label="${count} of ${max} reply slots filled"`), inline composer expanding at the next available track slot, dashed placeholder slots, and author management controls with confirmation modal. Render 25 rows initially, with Show more adding 25 at a time; never render 500 meter nodes.
 
 ---
 
@@ -140,7 +140,7 @@ This document provides architectural rules, operational constraints, and critica
 11. **NEVER index individual confession posts (`/confession/:id`) or name search queries**:
     Confession posts often contain personal student names or initials. Permitting search engine or AI crawler indexing would risk exposing private student messages in public search engine caches. Keep them `noindex` and out of `sitemap.xml`.
 12. **NEVER bypass `add_reply` or hardcode reply limits**:
-    Always enforce the 10-reply cap via the atomic `add_reply` RPC and reference `MAX_REPLIES_PER_CONFESSION` from `server/config/features.js`. Do not perform raw inserts that bypass row locking, and do not discard existing rows on legacy threads that exceed 10 replies.
+    Always enforce the 500-reply cap via the atomic `add_reply` RPC and reference `MAX_REPLIES_PER_CONFESSION` from `server/config/features.js`. Do not perform raw inserts that bypass row locking, and do not discard existing rows on legacy threads that exceed 500 replies.
 
 
 

@@ -205,8 +205,20 @@ function mountAdminAuth(app, { env, getDatabase, allowedOrigins }) {
         return res
           .status(503)
           .json({ error: "Admin sign-in is not set up yet." });
-      if (!validSession(sessionCookie(req), env))
-        return res.status(401).json({ error: "Please sign in to continue." });
+      const session = sessionCookie(req);
+      if (!validSession(session, env))
+        return res.status(401).json({
+          error: "Your admin session expired. Sign in again to continue.",
+          code: "ADMIN_SESSION_REQUIRED",
+        });
+      // Renew authenticated activity before the next operation crosses expiry.
+      // Idle sessions still expire; invalid sessions can never renew themselves.
+      const issued = Number(session.split(".")[1]);
+      if (Math.floor(Date.now() / 1000) - issued >= SESSION_SECONDS / 2)
+        res.cookie(COOKIE, createAdminSession(env), {
+          ...cookieOptions(req),
+          maxAge: SESSION_SECONDS * 1000,
+        });
       next();
     },
   );

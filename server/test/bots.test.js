@@ -21,7 +21,9 @@ const {
 } = require("../bots/generation");
 
 const TRACK = "0123456789ABCDEFGHIJKL";
+const { entries, SOURCE } = require("../bots/story-library");
 const MIGRATION = "20261019024537_confession_bots.sql";
+const DISCLOSURE_MIGRATION = "20261019034400_bot_disclosure_in_recipient.sql";
 const fiction = [
   "Sometimes the quiet walk home feels warmer than all the noisy conversations I had during the day.",
   "I finally finished the little goal that used to scare me. Tonight this playlist feels like permission to begin again.",
@@ -42,6 +44,9 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
     "20261018110837_schema_catch_up.sql",
     "20261018140000_replies_tracklist_cap.sql",
     MIGRATION,
+    DISCLOSURE_MIGRATION,
+    "20261019043830_curated_horror_library.sql",
+    "20261019043834_replies_500.sql",
   ])
     await db.exec(
       readFileSync(join(__dirname, "../../supabase/migrations", file), "utf8"),
@@ -54,6 +59,7 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
     BOT_ADMIN_SESSION_SECRET: "session-secret-".repeat(4),
     CRON_SECRET: "cron-".repeat(8),
     BOT_AI_MODEL: "test/model",
+    BOT_GENERATOR: "ai",
     AI_GATEWAY_API_KEY: "fixture-key",
   };
   let text = fiction[0],
@@ -327,6 +333,53 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
     },
   );
   await t.test(
+    "active admin sessions renew; expired removal requests cannot delete posts",
+    async () => {
+      await reset();
+      const bot = await save();
+      const published = await run(bot.id);
+      assert.equal(published.body.state, "submitted");
+      const id = (await db.query("select id from public.confessions limit 1"))
+        .rows[0].id;
+      const call = async (session) => {
+        const response = await fetch(
+          `http://127.0.0.1:${server.address().port}/api/admin/bots/remove`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Bot-Admin": "1",
+              Cookie: `dss_bot_admin=${session}`,
+            },
+            body: JSON.stringify({ confessionId: id }),
+          },
+        );
+        return {
+          status: response.status,
+          headers: response.headers,
+          body: await response.json(),
+        };
+      };
+      const expired = await call(createAdminSession(env, Date.now() - 1900000));
+      assert.equal(expired.status, 401);
+      assert.equal(expired.body.code, "ADMIN_SESSION_REQUIRED");
+      assert.equal(expired.headers.get("set-cookie"), null);
+      assert.equal(await count(), 1);
+      const active = await call(createAdminSession(env, Date.now() - 1700000));
+      assert.equal(active.status, 200);
+      assert.equal(active.body.removed, true);
+      assert.ok(
+        validSession(
+          decodeURIComponent(
+            active.headers.get("set-cookie").split(";")[0].split("=")[1],
+          ),
+          env,
+        ),
+      );
+      assert.equal(await count(), 0);
+    },
+  );
+  await t.test(
     "password attempts are protected by shared database quotas",
     async () => {
       let last;
@@ -439,6 +492,218 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
     },
   );
   await t.test(
+    "built-in preview and publication use the protected shared workflow without AI credentials",
+    async () => {
+      await reset();
+      const original = { ...env };
+      env.BOT_GENERATOR = "local";
+      env.BOT_DELETE_KEY_PEPPER = "fixture-local-bot-pepper-".repeat(3);
+      delete env.DELETE_KEY_PEPPER;
+      delete env.BOT_AI_MODEL;
+      delete env.AI_GATEWAY_API_KEY;
+      try {
+        const preview = await admin("/preview", { settings: DEFAULT_SETTINGS });
+        assert.equal(preview.status, 200);
+        assert.equal(preview.body.published, false);
+        assert.equal(await count(), 0);
+        const bot = await save(true, { postLimit: 1 });
+        assert.equal((await run(bot.id)).body.state, "submitted");
+        assert.equal(aiCalls, 0);
+        const row = (
+          await db.query(
+            "select is_automated,recipient_to,content from public.confessions",
+          )
+        ).rows[0];
+        assert.equal(row.is_automated, true);
+        assert.equal(row.recipient_to, "Short Stories");
+        assert.ok(!row.content.startsWith("[Automated fiction]"));
+        assert.equal((await run(bot.id)).body.state, "idle");
+      } finally {
+        delete env.BOT_DELETE_KEY_PEPPER;
+        Object.assign(env, original);
+      }
+    },
+  );
+  await t.test(
+    "imported stories have a two-per-Manila-day cap, persistent deduplication, safe retries and fixed schedule",
+    async () => {
+      await reset();
+      const settings = {
+        source: SOURCE,
+        intervalMinutes: 720,
+        language: "Tagalog",
+        postLimit: 500,
+        allowReplies: true,
+      };
+      const bot = await save(true, settings);
+      const slot = (
+        await db.query(
+          "select (next_run_at at time zone 'Asia/Manila')::time::text as time from app_private.confession_bots where id=$1",
+          [bot.id],
+        )
+      ).rows[0].time;
+      assert.ok(["08:00:00", "20:00:00"].includes(slot));
+      const preview = await admin("/preview", {
+        settings: { ...DEFAULT_SETTINGS, ...settings },
+      });
+      assert.equal(preview.status, 200);
+      assert.equal(await count(), 0);
+      const key = randomUUID();
+      lostPublish = true;
+      const first = await run(bot.id, key);
+      assert.equal(first.body.state, "submitted");
+      assert.equal((await run(bot.id, key)).body.state, "submitted");
+      const firstJob = (
+        await db.query(
+          "select * from app_private.confession_bot_jobs where request_key=$1",
+          [key],
+        )
+      ).rows[0];
+      assert.equal(firstJob.draft.source, SOURCE);
+      assert.equal(
+        (await admin("/remove", { confessionId: firstJob.confession_id })).body
+          .removed,
+        true,
+      );
+      assert.equal((await run(bot.id)).body.state, "submitted");
+      const used = (
+        await db.query(
+          "select draft->>'storyId' as id from app_private.confession_bot_jobs where status='submitted'",
+        )
+      ).rows.map((row) => Number(row.id));
+      assert.equal(new Set(used).size, 2);
+      assert.equal(
+        (await run(bot.id)).body.state,
+        "idle",
+        "removed posts still count toward today's cap",
+      );
+      const available = await rpc("bot_control", {
+        p_action: "library_available",
+        p_input: { entries },
+      });
+      assert.equal(available.length, 498);
+      assert.ok(!available.includes(firstJob.draft.storyId));
+      await db.exec(
+        "update app_private.confession_bot_jobs set updated_at=now()-interval '1 day'; update app_private.confession_bots set next_run_at=now()-interval '1 minute'",
+      );
+      assert.equal(
+        (await request("/api/cron/confession-bots", undefined, env.CRON_SECRET))
+          .body.state,
+        "submitted",
+      );
+      assert.equal(
+        (await request("/api/cron/confession-bots", undefined, env.CRON_SECRET))
+          .body.state,
+        "idle",
+      );
+      assert.equal(
+        (
+          await rpc("bot_control", {
+            p_action: "library_available",
+            p_input: { entries },
+          })
+        ).length,
+        497,
+      );
+      assert.equal(aiCalls, 0);
+    },
+  );
+  await t.test(
+    "a previously published raw story is excluded and a fully used collection pauses without fallback generation",
+    async () => {
+      await reset();
+      const bot = await save(true, {
+        source: SOURCE,
+        intervalMinutes: 720,
+        language: "Tagalog",
+        postLimit: 500,
+      });
+      await db.query(
+        "insert into public.confessions(recipient_to,content) values('SAMPLE',$1)",
+        [entries[0].story],
+      );
+      let available = await rpc("bot_control", {
+        p_action: "library_available",
+        p_input: { entries },
+      });
+      assert.equal(available.length, 499);
+      assert.ok(!available.includes(entries[0].id));
+      await db.query(
+        `insert into app_private.confession_bot_jobs(bot_id,request_key,status,content_digest,draft,updated_at)
+      select $1,gen_random_uuid(),'submitted',e->>'digest',jsonb_build_object('source',$3::text,'storyId',e->'id','content',e->>'content'),now()-interval '1 day'
+      from jsonb_array_elements($2::jsonb) e`,
+        [bot.id, JSON.stringify(entries), SOURCE],
+      );
+      available = await rpc("bot_control", {
+        p_action: "library_available",
+        p_input: { entries },
+      });
+      assert.deepEqual(available, []);
+      assert.equal((await run(bot.id)).body.state, "failed");
+      assert.equal((await admin()).body.bots[0].enabled, false);
+      assert.equal(await count(), 1);
+      assert.equal(aiCalls, 0);
+    },
+  );
+  await t.test(
+    "database disclosure guard accepts the recipient format and rejects impersonation or draft tampering",
+    async () => {
+      await reset();
+      const bot = await save(true, { postLimit: 2 });
+      for (const legacy of [false, true]) {
+        const claim = await rpc("bot_control", {
+          p_action: "claim",
+          p_input: { botId: bot.id, requestKey: randomUUID(), manual: true },
+        });
+        const lease = { jobId: claim.job.id, lease: claim.job.lease };
+        await rpc("bot_control", {
+          p_action: "draft",
+          p_input: {
+            ...lease,
+            draft: {
+              content: fiction[legacy ? 1 : 0],
+              songQuery: "Sample Song",
+            },
+            digest: digestContent(fiction[legacy ? 1 : 0]),
+          },
+        });
+        const row = {
+          recipient_to: legacy ? "A fictional listener" : "Short Stories",
+          sender_from: "Mixtape Bot (fiction)",
+          content:
+            (legacy ? "[Automated fiction]\n\n" : "") + fiction[legacy ? 1 : 0],
+          song_name: "Sample Song",
+          artist_name: "Sample Artist",
+          allow_replies: false,
+          delete_key_hash: "a".repeat(64),
+        };
+        for (const invalid of [
+          { ...row, recipient_to: "A real person" },
+          { ...row, sender_from: "Anonymous" },
+          { ...row, content: "Changed after approval" },
+        ]) {
+          await assert.rejects(
+            rpc("bot_control", {
+              p_action: "publish",
+              p_input: { ...lease, row: invalid },
+            }),
+            /Invalid bot submission/,
+          );
+        }
+        assert.equal(
+          (
+            await rpc("bot_control", {
+              p_action: "publish",
+              p_input: { ...lease, row },
+            })
+          ).state,
+          "submitted",
+        );
+      }
+      assert.equal(await count(), 2);
+    },
+  );
+  await t.test(
     "simultaneous retry keys publish once through shared validation, Spotify and atomic commit",
     async () => {
       await reset();
@@ -452,8 +717,8 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
       const row = (await db.query("select * from public.confessions")).rows[0];
       assert.equal(row.is_automated, true);
       assert.equal(row.sender_from, "Mixtape Bot (fiction)");
-      assert.equal(row.recipient_to, "A fictional listener");
-      assert.match(row.content, /^\[Automated fiction\]\n\n/);
+      assert.equal(row.recipient_to, "Short Stories");
+      assert.equal(row.content, fiction[0]);
       assert.equal(row.song_name, "Verified song");
       assert.match(row.delete_key_hash, /^[a-f0-9]{64}$/);
       assert.equal((await run(bot.id, key)).body.state, "submitted");
@@ -463,7 +728,10 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
       await db.exec("reset role");
       await db.exec(
         readFileSync(
-          join(__dirname, "../../supabase/migrations", MIGRATION),
+          join(
+            __dirname,
+            "../../supabase/migrations/20261019043830_curated_horror_library.sql",
+          ),
           "utf8",
         ),
       );
@@ -835,15 +1103,14 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
                 ["run", "check:schema", "--prefix", "server"],
               ];
           const schema = await promisify(execFile)(cmd, args, {
-              cwd: join(__dirname, "../.."),
-              shell: process.platform === "win32",
-              env: {
-                ...process.env,
-                SUPABASE_URL: "http://127.0.0.1:4173",
-                SUPABASE_SERVICE_ROLE: env.SUPABASE_SERVICE_ROLE,
-              },
+            cwd: join(__dirname, "../.."),
+            shell: process.platform === "win32" && !process.env.npm_execpath,
+            env: {
+              ...process.env,
+              SUPABASE_URL: "http://127.0.0.1:4173",
+              SUPABASE_SERVICE_ROLE: env.SUPABASE_SERVICE_ROLE,
             },
-          );
+          });
           assert.match(schema.stdout, /Schema check: 53 passed, 0 failed/);
           console.log(
             "PASS npm run check:schema --prefix server: 53 read-only probes against isolated migrated database.",
@@ -950,11 +1217,89 @@ test("bot jobs, permissions and HTTP workflow against real PostgreSQL", async (t
           );
           await page.goto("http://127.0.0.1:4173/");
           await page
-            .getByText("Automated fiction · Not a real student story", {
+            .getByText("To: Short Stories", {
               exact: true,
             })
             .first()
             .waitFor();
+          await page.goto("http://127.0.0.1:4173/admin/bots");
+          await page
+            .getByLabel("Password", { exact: true })
+            .fill(OWNER_PASSWORD);
+          await page
+            .getByRole("button", { name: "Sign in", exact: true })
+            .click();
+          await page
+            .getByRole("button", { name: "Remove bot post", exact: true })
+            .click();
+          const removal = page.getByRole("dialog", {
+            name: "Remove this bot post?",
+          });
+          await page.context().addCookies([
+            {
+              name: "dss_bot_admin",
+              value: createAdminSession(env, Date.now() - 1900000),
+              domain: "127.0.0.1",
+              path: "/api/admin/bots",
+              httpOnly: true,
+              sameSite: "Strict",
+            },
+          ]);
+          await removal
+            .getByRole("button", { name: "Remove bot post", exact: true })
+            .click();
+          await page
+            .getByText(
+              "Your admin session expired. Sign in again to continue.",
+              { exact: true },
+            )
+            .waitFor();
+          assert.equal(await count(), 1);
+          await page
+            .getByLabel("Password", { exact: true })
+            .fill(OWNER_PASSWORD);
+          await page
+            .getByRole("button", { name: "Sign in", exact: true })
+            .click();
+          await removal.waitFor();
+          assert.equal(
+            await count(),
+            1,
+            "sign-in must not automatically retry a deletion",
+          );
+          await removal
+            .getByRole("button", { name: "Remove bot post", exact: true })
+            .click();
+          await page.getByText("Bot post removed.", { exact: true }).waitFor();
+          assert.equal(await count(), 0);
+          await page
+            .getByRole("button", { name: "Sign out", exact: true })
+            .waitFor();
+          await page
+            .getByRole("button", { name: "Remove bot post", exact: true })
+            .click();
+          await removal
+            .getByRole("button", { name: "Remove bot post", exact: true })
+            .click();
+          await page
+            .getByText("This bot post is already removed or unavailable.", {
+              exact: true,
+            })
+            .waitFor();
+          const collection = editor.getByRole("combobox", { name: "Story collection" });
+          if (await collection.evaluate(element => element.tagName === "SELECT")) await collection.selectOption(SOURCE);
+          else {
+            await collection.click();
+            await page.getByRole("option", { name: "500 Pinoy horror stories", exact: true }).click();
+          }
+          await editor.getByRole("button", { name: "Save settings", exact: true }).click();
+          await page.getByText("Settings saved.", { exact: true }).waitFor();
+          assert.equal((await db.query("select settings->>'source' as source from app_private.confession_bots")).rows[0].source, SOURCE);
+          await editor.getByRole("button", { name: "Preview only", exact: true }).click();
+          await page.getByRole("heading", { name: "Fictional draft · unpublished" }).waitFor();
+          await page.getByText("To: Short Stories · From: Mixtape Bot (fiction)", { exact: true }).waitFor();
+          assert.equal(await count(), 0);
+          await page.getByRole("button", { name: "Close preview" }).click();
           assert.deepEqual(errors, []);
         } finally {
           if (browser) await browser.close();

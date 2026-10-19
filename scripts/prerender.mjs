@@ -16,6 +16,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const distDir = path.join(rootDir, "client", "dist");
 const publicDir = path.join(rootDir, "client", "public");
+const routeModules = {
+  "/browse": "src/views/BrowseView.jsx",
+  "/confess": "src/views/SubmitView.jsx",
+  "/about": "src/views/AboutView.jsx",
+  "/dssc-confessions": "src/views/DsscLandingView.jsx",
+  "/faq": "src/views/FaqView.jsx",
+  "/privacy": "src/views/PrivacyView.jsx",
+  "/guides/how-to-send-an-anonymous-song-confession": "src/views/guides/HowToSendGuide.jsx",
+  "/guides/how-to-choose-a-song-for-your-confession": "src/views/guides/HowToChooseSongGuide.jsx",
+  "/guides/is-it-safe-to-send-an-anonymous-confession": "src/views/guides/IsItSafeGuide.jsx",
+};
 
 function escapeHtml(str) {
   return String(str)
@@ -30,7 +41,7 @@ function getPrerenderBody(route, config) {
   if (route === "/dssc-confessions") {
     return `
       <main style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;line-height:1.6;color:#1F2A44;">
-        <nav aria-label="Breadcrumb" style="font-family:monospace;font-size:12px;margin-bottom:20px;">
+        <nav aria-label="Breadcrumb" style="font-family:sans-serif;font-size:12px;margin-bottom:20px;">
           <a href="/">Home</a> / <span>DSSC Confessions</span>
         </nav>
         <h1 style="font-size:2.2rem;margin-bottom:16px;">${escapeHtml(config.h1)}</h1>
@@ -60,7 +71,7 @@ function getPrerenderBody(route, config) {
           <p>DSSC Confessions is committed to a safe, positive environment for all students in Davao del Sur. Harassment, bullying, doxxing, naming minors, and hate speech are strictly prohibited.</p>
           <p>Any visitor can report a confession using the in-app flag icon. Urgent reports are hidden automatically from the public feed.</p>
         </section>
-        <footer style="margin-top:50px;padding-top:20px;border-top:1px solid #1F2A44;font-family:monospace;font-size:12px;text-align:center;">
+        <footer style="margin-top:50px;padding-top:20px;border-top:1px solid #1F2A44;font-family:sans-serif;font-size:12px;text-align:center;">
           <p>Independent student project, not affiliated with or endorsed by Davao del Sur State College.</p>
         </footer>
       </main>
@@ -72,7 +83,7 @@ function getPrerenderBody(route, config) {
     <main style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;line-height:1.6;color:#1F2A44;">
       <h1 style="font-size:2rem;margin-bottom:16px;">${escapeHtml(config.h1)}</h1>
       <p style="font-size:1.05rem;color:#4A5568;">${escapeHtml(config.description)}</p>
-      <footer style="margin-top:50px;padding-top:20px;border-top:1px solid #1F2A44;font-family:monospace;font-size:12px;text-align:center;">
+      <footer style="margin-top:50px;padding-top:20px;border-top:1px solid #1F2A44;font-family:sans-serif;font-size:12px;text-align:center;">
         <p>Independent student project, not affiliated with or endorsed by Davao del Sur State College.</p>
       </footer>
     </main>
@@ -92,6 +103,7 @@ async function prerender() {
   }
 
   const siteUrl = process.env.VITE_SITE_URL || DEFAULT_SITE_URL;
+  const manifest = JSON.parse(await fs.readFile(path.join(distDir, ".vite/manifest.json"), "utf8"));
 
   for (const [route, config] of Object.entries(ROUTES_CONFIG)) {
     const canonicalUrl = `${siteUrl}${config.path === "/" ? "/" : config.path}`;
@@ -99,6 +111,18 @@ async function prerender() {
     const bodyContent = getPrerenderBody(route, config);
 
     let html = templateHtml;
+    // Fetch only this page's chunk in parallel with the entry script, rather
+    // than waiting for React to request it. Other screens stay on demand.
+    const preloads = new Set();
+    const visit = (key) => {
+      const chunk = manifest[key];
+      if (!chunk || chunk.isEntry || preloads.has(chunk.file)) return;
+      preloads.add(chunk.file);
+      for (const imported of chunk.imports || []) visit(imported);
+    };
+    visit(routeModules[route]);
+    if (preloads.size) html = html.replace("</head>", [...preloads].map(file =>
+      `    <link rel="modulepreload" crossorigin href="/${file}" />\n`).join("") + "  </head>");
 
     // 1. Language attribute
     html = html.replace(/<html[^>]*>/i, '<html lang="en-PH">');

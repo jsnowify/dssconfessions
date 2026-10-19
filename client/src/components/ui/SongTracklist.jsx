@@ -43,13 +43,15 @@ export default function SongTracklist({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [brokenImages, setBrokenImages] = useState({});
+  const [visibleCount, setVisibleCount] = useState(25);
 
   const song = useSongSearch();
   const searchInputRef = useRef(null);
   const submitGuardRef = useRef(false);
 
   const count = meta?.count ?? replies.length;
-  const max = meta?.max ?? 10;
+  const max = meta?.max ?? 500;
+  const meterSegments = Math.min(max, 10);
   const canReply = meta?.canReply ?? (allowReplies && count < max);
   const spotsLeft = Math.max(0, max - count);
 
@@ -133,18 +135,18 @@ export default function SongTracklist({
             >
               Mixtape tracklist
             </h2>
-            <span className="font-mono text-xs font-bold px-3 py-1 rounded-full border-2 border-[var(--ink)] bg-[var(--surface)] text-[var(--ink)] shadow-[2px_2px_0_var(--ink)]">
+            <span className="text-xs font-bold px-3 py-1 rounded-full border-2 border-[var(--ink)] bg-[var(--surface)] text-[var(--ink)] shadow-[2px_2px_0_var(--ink)]">
               {count} / {max} songs
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-            <p className="font-mono text-xs text-[var(--ink-soft)]">
+            <p className="text-xs text-[var(--ink-soft)]">
               {statusMicroCopy}
             </p>
             {!authorKey && onUnlockAuthor && count > 0 && (
               <button
                 type="button"
-                className="font-mono text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] underline cursor-pointer"
+                className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] underline cursor-pointer"
                 onClick={onUnlockAuthor}
               >
                 Author? Manage replies
@@ -153,14 +155,14 @@ export default function SongTracklist({
           </div>
         </div>
 
-        {/* 10-Slot Vinyl Meter */}
+        {/* Compact capacity meter, independent of the number of reply slots. */}
         <div
           className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl border-2 border-[var(--ink)] bg-[var(--surface)] shadow-[2px_2px_0_var(--ink)] self-start sm:self-auto"
           role="img"
           aria-label={`${count} of ${max} reply slots filled`}
         >
-          {Array.from({ length: max }).map((_, idx) => {
-            const isFilled = idx < count;
+          {Array.from({ length: meterSegments }).map((_, idx) => {
+            const isFilled = idx < Math.ceil((count / max) * meterSegments);
             return (
               <span
                 key={idx}
@@ -169,7 +171,7 @@ export default function SongTracklist({
                     ? "bg-[var(--ink)] border border-[var(--ink)]"
                     : "border-2 border-dashed border-[var(--ink-soft)] bg-transparent opacity-50"
                 }`}
-                title={`Track ${idx + 1}: ${isFilled ? "Filled" : "Empty"}`}
+                aria-hidden="true"
               >
                 {isFilled && (
                   <span className="w-1 h-1 rounded-full bg-[var(--pink)]" />
@@ -177,6 +179,12 @@ export default function SongTracklist({
               </span>
             );
           })}
+          <span
+            className="text-xs font-bold whitespace-nowrap"
+            aria-hidden="true"
+          >
+            {count}/{max}
+          </span>
         </div>
       </div>
 
@@ -185,7 +193,10 @@ export default function SongTracklist({
         <div className="mt-4 p-3 rounded-xl border-2 border-[var(--ink)] bg-[var(--butter)] flex items-center justify-between gap-3 shadow-[2px_2px_0_var(--ink)]">
           <div className="flex items-center gap-2 text-xs font-bold text-[var(--ink)]">
             <span aria-hidden="true">🔑</span>
-            <span>Managing replies as author — click Remove on any track to delete it.</span>
+            <span>
+              Managing replies as author — click Remove on any track to delete
+              it.
+            </span>
           </div>
           <button
             type="button"
@@ -199,7 +210,11 @@ export default function SongTracklist({
 
       {/* Loading State */}
       {loading && (
-        <div className="py-8 space-y-4" role="status" aria-label="Loading tracklist">
+        <div
+          className="py-8 space-y-4"
+          role="status"
+          aria-label="Loading tracklist"
+        >
           {[1, 2, 3].map((n) => (
             <div
               key={n}
@@ -240,15 +255,16 @@ export default function SongTracklist({
               <p className="font-script text-2xl text-[var(--ink)] font-bold mb-1">
                 No songs on this mixtape yet!
               </p>
-              <p className="font-mono text-xs text-[var(--ink-soft)]">
-                Track 01 is waiting for you. Choose a song to start the tracklist.
+              <p className="text-xs text-[var(--ink-soft)]">
+                Track 01 is waiting for you. Choose a song to start the
+                tracklist.
               </p>
             </div>
           )}
 
           {/* Rendered Tracks */}
           <ol className="space-y-3">
-            {replies.map((item, index) => {
+            {replies.slice(0, visibleCount).map((item, index) => {
               const trackNum = String(index + 1).padStart(2, "0");
               const trackColor = PASTEL_COLORS[index % PASTEL_COLORS.length];
               const spotifyId =
@@ -263,7 +279,7 @@ export default function SongTracklist({
                   <div className="flex items-center gap-3 md:gap-4">
                     {/* Track Number Badge */}
                     <span
-                      className="w-8 h-8 rounded-lg border-2 border-[var(--ink)] font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-[1px_1px_0_var(--ink)]"
+                      className="w-8 h-8 rounded-lg border-2 border-[var(--ink)] font-bold text-xs flex items-center justify-center shrink-0 shadow-[1px_1px_0_var(--ink)]"
                       style={{ backgroundColor: trackColor }}
                     >
                       {trackNum}
@@ -317,14 +333,18 @@ export default function SongTracklist({
                   {/* Optional Note (Liner-note / Tape sticker) */}
                   {item.note && (
                     <div className="mt-3 p-2.5 rounded-lg border-2 border-[var(--ink)] bg-[var(--bg-wash)] text-[13px] text-[var(--ink)] break-words shadow-[1px_1px_0_var(--ink)] relative">
-                      <span className="font-bold mr-1 text-[var(--ink-soft)]">Note:</span>
+                      <span className="font-bold mr-1 text-[var(--ink-soft)]">
+                        Note:
+                      </span>
                       <span>{item.note}</span>
                     </div>
                   )}
 
                   {/* Metadata & Actions */}
-                  <div className="mt-2.5 flex items-center justify-between text-[11px] font-mono text-[var(--ink-soft)] pt-1">
-                    <span>{dateFormatter.format(new Date(item.created_at))}</span>
+                  <div className="mt-2.5 flex items-center justify-between text-[11px] text-[var(--ink-soft)] pt-1">
+                    <span>
+                      {dateFormatter.format(new Date(item.created_at))}
+                    </span>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
@@ -349,6 +369,16 @@ export default function SongTracklist({
               );
             })}
           </ol>
+          {visibleCount < replies.length && (
+            <button
+              type="button"
+              className="btn btn-paper min-h-[44px]"
+              onClick={() => setVisibleCount((value) => value + 25)}
+            >
+              Show more songs ({Math.min(visibleCount, replies.length)} of{" "}
+              {replies.length})
+            </button>
+          )}
 
           {/* Composer Slot (First open slot) */}
           {canReply && (
@@ -362,7 +392,7 @@ export default function SongTracklist({
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className="w-8 h-8 rounded-lg border-2 border-[var(--ink)] font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-[1px_1px_0_var(--ink)]"
+                      className="w-8 h-8 rounded-lg border-2 border-[var(--ink)] font-bold text-xs flex items-center justify-center shrink-0 shadow-[1px_1px_0_var(--ink)]"
                       style={{ backgroundColor: nextTrackColor }}
                     >
                       {nextTrackNum}
@@ -371,7 +401,7 @@ export default function SongTracklist({
                       + Add your song (track {nextTrackNum})
                     </span>
                   </div>
-                  <span className="px-3 py-1 rounded-full border-2 border-[var(--ink)] bg-[var(--butter)] text-xs font-bold font-mono text-[var(--ink)] shadow-[1px_1px_0_var(--ink)]">
+                  <span className="px-3 py-1 rounded-full border-2 border-[var(--ink)] bg-[var(--butter)] text-xs font-bold text-[var(--ink)] shadow-[1px_1px_0_var(--ink)]">
                     + Add song
                   </span>
                 </button>
@@ -384,7 +414,7 @@ export default function SongTracklist({
                   <div className="flex items-center justify-between pb-3 border-b border-[var(--ink)]/20 mb-3">
                     <div className="flex items-center gap-2">
                       <span
-                        className="w-7 h-7 rounded-lg border-2 border-[var(--ink)] font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-[1px_1px_0_var(--ink)]"
+                        className="w-7 h-7 rounded-lg border-2 border-[var(--ink)] font-bold text-xs flex items-center justify-center shrink-0 shadow-[1px_1px_0_var(--ink)]"
                         style={{ backgroundColor: nextTrackColor }}
                       >
                         {nextTrackNum}
@@ -393,13 +423,16 @@ export default function SongTracklist({
                         Add track {nextTrackNum}
                       </h3>
                     </div>
-                    <span className="font-mono text-xs text-[var(--ink-soft)]">
+                    <span className="text-xs text-[var(--ink-soft)]">
                       {note.length} / 140
                     </span>
                   </div>
 
                   {/* Song Selection */}
-                  <label htmlFor="tracklist-song-search" className="block text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5">
+                  <label
+                    htmlFor="tracklist-song-search"
+                    className="block text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+                  >
                     Choose a song (required)
                   </label>
 
@@ -448,7 +481,10 @@ export default function SongTracklist({
                         disabled={submitting}
                       />
                       {song.isSearching && (
-                        <p role="status" className="font-mono text-xs text-[var(--ink-soft)] mt-1.5">
+                        <p
+                          role="status"
+                          className="text-xs text-[var(--ink-soft)] mt-1.5"
+                        >
                           Searching Spotify…
                         </p>
                       )}
@@ -482,7 +518,7 @@ export default function SongTracklist({
                                   {item.artists[0]?.name}
                                 </span>
                               </div>
-                              <span className="text-xs font-mono font-bold text-[var(--primary)] shrink-0">
+                              <span className="text-xs font-bold text-[var(--primary)] shrink-0">
                                 Select
                               </span>
                             </button>
@@ -494,7 +530,7 @@ export default function SongTracklist({
                         song.hasSearched &&
                         song.songs.length === 0 &&
                         !song.selectedSong && (
-                          <p className="font-mono text-xs text-[var(--ink-soft)] mt-1.5">
+                          <p className="text-xs text-[var(--ink-soft)] mt-1.5">
                             No songs found. Try a different search term.
                           </p>
                         )}
@@ -502,7 +538,10 @@ export default function SongTracklist({
                   )}
 
                   {/* Note Field */}
-                  <label htmlFor="tracklist-note" className="block text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5">
+                  <label
+                    htmlFor="tracklist-note"
+                    className="block text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-1.5"
+                  >
                     Short note (optional, 140 characters)
                   </label>
                   <textarea
@@ -518,7 +557,10 @@ export default function SongTracklist({
 
                   {/* Submission Error Alert */}
                   {submitError && (
-                    <p role="alert" className="feature-error mt-2 text-xs font-bold text-[var(--coral)]">
+                    <p
+                      role="alert"
+                      className="feature-error mt-2 text-xs font-bold text-[var(--coral)]"
+                    >
                       {submitError}
                     </p>
                   )}
@@ -550,27 +592,29 @@ export default function SongTracklist({
           {canReply && spotsLeft > 1 && (
             <div className="space-y-2 pt-1">
               {/* Show up to 2 empty dashed outline slots */}
-              {Array.from({ length: Math.min(2, spotsLeft - 1) }).map((_, idx) => {
-                const slotIndex = count + 1 + idx;
-                const slotNum = String(slotIndex + 1).padStart(2, "0");
-                return (
-                  <div
-                    key={slotIndex}
-                    className="p-3 rounded-xl border-2 border-dashed border-[var(--ink-soft)]/40 bg-white/30 flex items-center gap-3 opacity-60"
-                  >
-                    <span className="w-7 h-7 rounded-lg border-2 border-dashed border-[var(--ink-soft)] font-mono text-xs flex items-center justify-center shrink-0 text-[var(--ink-soft)]">
-                      {slotNum}
-                    </span>
-                    <span className="font-mono text-xs text-[var(--ink-soft)]">
-                      Slot {slotNum} · Waiting for a song...
-                    </span>
-                  </div>
-                );
-              })}
+              {Array.from({ length: Math.min(2, spotsLeft - 1) }).map(
+                (_, idx) => {
+                  const slotIndex = count + 1 + idx;
+                  const slotNum = String(slotIndex + 1).padStart(2, "0");
+                  return (
+                    <div
+                      key={slotIndex}
+                      className="p-3 rounded-xl border-2 border-dashed border-[var(--ink-soft)]/40 bg-white/30 flex items-center gap-3 opacity-60"
+                    >
+                      <span className="w-7 h-7 rounded-lg border-2 border-dashed border-[var(--ink-soft)] font-bold text-xs flex items-center justify-center shrink-0 text-[var(--ink-soft)]">
+                        {slotNum}
+                      </span>
+                      <span className="text-xs text-[var(--ink-soft)]">
+                        Slot {slotNum} · Waiting for a song...
+                      </span>
+                    </div>
+                  );
+                },
+              )}
 
               {/* Summary pill if more than 3 total empty slots */}
               {spotsLeft > 3 && (
-                <div className="text-center py-2 px-3 rounded-lg border border-dashed border-[var(--ink-soft)]/40 bg-white/20 font-mono text-xs text-[var(--ink-soft)]">
+                <div className="text-center py-2 px-3 rounded-lg border border-dashed border-[var(--ink-soft)]/40 bg-white/20 text-xs font-medium text-[var(--ink-soft)]">
                   + {spotsLeft - 3} more open spots on this mixtape
                 </div>
               )}
@@ -580,14 +624,15 @@ export default function SongTracklist({
           {/* Full State Banner */}
           {count >= max && (
             <div className="p-4 rounded-xl border-2 border-[var(--ink)] bg-[var(--surface)] text-center shadow-[2px_2px_0_var(--ink)]">
-              <span className="inline-block px-3 py-1 rounded-full bg-[var(--mint)] border-2 border-[var(--ink)] font-mono text-xs font-bold text-[var(--ink)] mb-2 shadow-[1px_1px_0_var(--ink)]">
+              <span className="inline-block px-3 py-1 rounded-full bg-[var(--mint)] border-2 border-[var(--ink)] text-xs font-bold text-[var(--ink)] mb-2 shadow-[1px_1px_0_var(--ink)]">
                 Tracklist Complete
               </span>
               <p className="text-sm font-bold text-[var(--ink)] mb-1">
                 This mixtape is full ({count}/{max} songs).
               </p>
-              <p className="font-mono text-xs text-[var(--ink-soft)]">
-                The confession author can remove tracks using their delete key to free up spots.
+              <p className="text-xs text-[var(--ink-soft)]">
+                The confession author can remove tracks using their delete key
+                to free up spots.
               </p>
             </div>
           )}
@@ -595,7 +640,7 @@ export default function SongTracklist({
           {/* Disabled State Banner */}
           {!allowReplies && (
             <div className="p-4 rounded-xl border-2 border-dashed border-[var(--ink-soft)] bg-white/40 text-center">
-              <p className="font-mono text-xs text-[var(--ink-soft)]">
+              <p className="text-xs text-[var(--ink-soft)]">
                 Song replies are turned off for this confession.
               </p>
             </div>

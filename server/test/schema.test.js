@@ -147,6 +147,9 @@ test("one-file catch-up repairs legacy, partial and current schemas without losi
   await db.exec(sql);
   await db.exec(repliesMigration);
   await db.exec(readFileSync(join(__dirname, "../../supabase/migrations/20261019024537_confession_bots.sql"), "utf8"));
+  await db.exec(readFileSync(join(__dirname, "../../supabase/migrations/20261019034400_bot_disclosure_in_recipient.sql"), "utf8"));
+  await db.exec(readFileSync(join(__dirname, "../../supabase/migrations/20261019043830_curated_horror_library.sql"), "utf8"));
+  await db.exec(readFileSync(join(__dirname, "../../supabase/migrations/20261019043834_replies_500.sql"), "utf8"));
   assert.deepEqual(
     (
       await db.query(

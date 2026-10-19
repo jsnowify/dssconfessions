@@ -1,4 +1,5 @@
 import { ConfessionCard } from "../components/ui/ConfessionCard";
+import { recipientLabel } from "../utils/confession-labels";
 import { useExport } from "../hooks/useExport";
 import { useState } from "react";
 import ConfessionFeatures from "../components/ui/ConfessionFeatures";
@@ -19,7 +20,7 @@ const DetailsView = ({
       <div className="details-view min-h-screen flex flex-col items-center justify-center px-4 text-center">
         <h1 className="sr-only">Confession</h1>
         <div className="w-8 h-8 border-2 border-[var(--ink)] border-t-[var(--mustard)] rounded-full animate-spin mb-4" />
-        <p className="font-mono text-sm uppercase tracking-wider text-[var(--text-soft)]">
+        <p className="text-sm font-bold uppercase tracking-wider text-[var(--text-soft)]">
           Loading confession...
         </p>
       </div>
@@ -74,7 +75,7 @@ const DetailsView = ({
 
       {/* Recipient Title (keeping handwriting font) */}
       <h1 className="text-5xl md:text-7xl font-handwritten mb-8 z-10 text-center px-4 text-[var(--ink)] break-words max-w-full">
-        Hello, {selectedConfession.recipient_to}
+        Hello, {recipientLabel(selectedConfession)}
       </h1>
 
       <div className="detail-card-wrap">
@@ -112,7 +113,7 @@ const DetailsView = ({
       )}
 
       {/* Metadata */}
-      <p className="mt-6 text-[13px] font-mono text-[var(--ink-soft)] uppercase tracking-wider z-10 text-center">
+      <p className="mt-6 text-[13px] font-bold text-[var(--ink-soft)] uppercase tracking-wider z-10 text-center">
         SENT VIA DSSCONFESSIONS • FROM:{" "}
         {selectedConfession.sender_from || "ANONYMOUS"}
       </p>

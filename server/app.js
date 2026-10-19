@@ -205,7 +205,9 @@ function createApp({
 
   app.get("/api/confessions", readLimiter, async (req, res) => {
     try {
-      const { to, id } = req.query;
+      const { to, id, latest } = req.query;
+      if (latest !== undefined && latest !== "1")
+        return res.status(400).json({ error: "Invalid latest-post check." });
       if (to !== undefined && typeof to !== "string") {
         return res
           .status(400)
@@ -223,7 +225,7 @@ function createApp({
           options?.withPoke !== false &&
           (typeof visible !== "object" || visible?.withPoke !== false);
         const baseColumns = withPoke ? PUBLIC_COLUMNS : `${LEGACY_PUBLIC_COLUMNS},is_automated`;
-        const cols = options.withAutomation === false ? baseColumns.replace(",is_automated", "") : baseColumns;
+        const cols = latest === "1" ? "id,created_at" : options.withAutomation === false ? baseColumns.replace(",is_automated", "") : baseColumns;
         let query = getDatabase().from("confessions").select(cols);
         if (isVis) query = query.eq("is_hidden", false);
         if (id?.trim()) {
@@ -239,7 +241,7 @@ function createApp({
             .order("created_at", { ascending: false })
             .limit(50);
         } else {
-          query = query.order("created_at", { ascending: false }).limit(20);
+          query = query.order("created_at", { ascending: false }).limit(latest === "1" ? 1 : 20);
         }
         return query;
       };

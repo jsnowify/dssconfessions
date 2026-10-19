@@ -9,7 +9,7 @@ const AboutView = () => (
 
     {/* Section 1: The Creator */}
     <section className="sleeve-panel about-tile about-tile--creator p-7 md:p-8">
-      <span className="liner-tag font-mono">CREDITS</span>
+      <span className="liner-tag font-bold">CREDITS</span>
       <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 tracking-tight text-[var(--ink)]">
         The Creator
       </h2>
@@ -30,13 +30,13 @@ const AboutView = () => (
 
     {/* Section 2: Key Facts & Entity Disclosures (Semantic <dl>) */}
     <section className="sleeve-panel about-tile p-7 md:p-8 bg-[var(--surface)] border-2 border-[var(--ink)] rounded-2xl shadow-[4px_4px_0_var(--ink)]">
-      <span className="liner-tag font-mono">COMMUNITY CONTEXT</span>
+      <span className="liner-tag font-bold">COMMUNITY CONTEXT</span>
       <h2 className="text-xl md:text-2xl font-bold uppercase mb-4 tracking-tight text-[var(--ink)]">
         Key Facts
       </h2>
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-sans">
         <div className="p-3 bg-[var(--sky)]/30 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
             Audience &amp; Region
           </dt>
           <dd className="text-[var(--ink-soft)] leading-relaxed">
@@ -44,7 +44,7 @@ const AboutView = () => (
           </dd>
         </div>
         <div className="p-3 bg-[var(--butter)]/40 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
             Affiliation Status
           </dt>
           <dd className="text-[var(--ink-soft)] leading-relaxed">
@@ -52,7 +52,7 @@ const AboutView = () => (
           </dd>
         </div>
         <div className="p-3 bg-[var(--mint)]/30 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
             Service Model
           </dt>
           <dd className="text-[var(--ink-soft)] leading-relaxed">
@@ -60,7 +60,7 @@ const AboutView = () => (
           </dd>
         </div>
         <div className="p-3 bg-[var(--lilac)]/30 rounded-xl border border-[var(--ink)]/20">
-          <dt className="font-mono font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
+          <dt className="font-bold text-xs uppercase tracking-wider text-[var(--ink)] mb-1">
             DSSC Community Hub
           </dt>
           <dd className="text-[var(--ink-soft)] leading-relaxed">
@@ -79,7 +79,7 @@ const AboutView = () => (
 
     {/* Section 3: Inspiration */}
     <section className="sleeve-panel about-tile about-tile--inspiration p-7 md:p-8">
-      <span className="liner-tag font-mono">LINER NOTES</span>
+      <span className="liner-tag font-bold">LINER NOTES</span>
       <h2 className="text-xl md:text-2xl font-bold uppercase mb-3 tracking-tight text-[var(--ink)]">
         Inspiration
       </h2>
@@ -102,9 +102,9 @@ const AboutView = () => (
     {/* Section 4: Privacy Guarantee */}
     <section className="sleeve-panel about-tile about-tile--privacy p-7 md:p-8 relative">
       <Doodle kind="shield" className="privacy-doodle" />
-      <span className="liner-tag font-mono">THE FINE PRINT</span>
+      <span className="liner-tag font-bold">THE FINE PRINT</span>
       <div className="mb-2">
-        <span className="inline-block bg-[var(--mustard)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-3 py-0.5 text-[13px] font-mono font-bold uppercase tracking-wider">
+        <span className="inline-block bg-[var(--mustard)] text-[var(--ink)] border-2 border-[var(--ink)] rounded-full px-3 py-0.5 text-[13px] font-bold uppercase tracking-wider">
           Anonymous by design · Limited safety data
         </span>
       </div>

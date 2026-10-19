@@ -48,7 +48,14 @@ const columns = {
 const privateColumns = ["key", "hits", "expires_at"];
 const functions = [
   { name: "bot_dashboard", args: {} },
-  { name: "bot_control", args: { p_action: "schema_probe", p_input: "{}" }, expected: "Invalid bot action" },
+  {
+    name: "bot_control",
+    args: { p_action: "capabilities", p_input: "{}" },
+    validate: (data) =>
+      data?.recipientDisclosure === "Short Stories" &&
+      data?.storyLibrary === "pinoy-horror-500" &&
+      data?.dailyStoryLimit === 2,
+  },
   {
     name: "consume_api_rate_limit",
     args: { p_key: "", p_window_seconds: 0, p_limit: 0 },
@@ -75,7 +82,12 @@ const functions = [
   },
   {
     name: "add_reply",
-    args: { p_confession_id: "not-a-uuid", p_track: "{}", p_note: "", p_max: 10 },
+    args: {
+      p_confession_id: "not-a-uuid",
+      p_track: "{}",
+      p_note: "",
+      p_max: 500,
+    },
     expected: "22P02",
   },
   { name: "visible_top_searches", args: { p_limit: 1 } },
@@ -104,11 +116,11 @@ const functions = [
 async function checkSchema(database, output = console.log) {
   let failed = 0,
     passed = 0;
-  const probe = async (name, execute, expected) => {
+  const probe = async (name, execute, expected, validate) => {
     try {
-      const { error } = await execute();
+      const { data, error } = await execute();
       const valid =
-        !error ||
+        (!error && (!validate || validate(data))) ||
         (error.code === "P0001" && error.message === expected) ||
         (error.code === "22P02" && expected === "22P02");
       if (valid) {
@@ -118,7 +130,7 @@ async function checkSchema(database, output = console.log) {
         );
       } else {
         failed++;
-        const code = /^(?:[A-Z0-9]{5}|PGRST\d{3})$/.test(error.code)
+        const code = /^(?:[A-Z0-9]{5}|PGRST\d{3})$/.test(error?.code)
           ? error.code
           : "upstream";
         output(`FAIL ${name} code=${code}`);
@@ -151,6 +163,7 @@ async function checkSchema(database, output = console.log) {
       `rpc public.${fn.name}`,
       () => database.rpc(fn.name, fn.args, { get: true }),
       fn.expected,
+      fn.validate,
     );
   }
   output(`Schema check: ${passed} passed, ${failed} failed.`);

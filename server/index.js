@@ -3,6 +3,7 @@
   quiet: true,
 });
 const { createApp } = require("./app");
+const { startLocalScheduler } = require("./bots/local-scheduler");
 
 const port = process.env.PORT || 5000;
 createApp().listen(port, "0.0.0.0", (error) => {
@@ -12,4 +13,5 @@ createApp().listen(port, "0.0.0.0", (error) => {
     return;
   }
   console.log(`Server live on port ${port}`);
+  startLocalScheduler({ env: process.env, port });
 });

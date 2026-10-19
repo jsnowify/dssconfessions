@@ -122,7 +122,7 @@ export default function Logo({
             dssconfessions
           </span>
           {showTagline && (
-            <span className="text-[11px] font-mono font-medium text-[var(--primary)] uppercase tracking-wider block mt-1">
+            <span className="text-[11px] font-medium text-[var(--primary)] uppercase tracking-wider block mt-1">
               Untold words, sent through the song
             </span>
           )}

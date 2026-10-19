@@ -28,153 +28,7 @@ const migration = "20261018110837_schema_catch_up.sql";
 const repliesMigration = "20261018140000_replies_tracklist_cap.sql";
 
 // Real SQL under the API, with a minimal Supabase query adapter for local tests.
-function adapter(db, calls) {
-  const identifier = (name) => {
-    assert.match(name, /^[a-z_]+$/);
-    return `"${name}"`;
-  };
-  return {
-    async rpc(name, params) {
-      calls.push({ rpc: name, params });
-      try {
-        if (["confession_preview", "visible_song_replies"].includes(name)) {
-          return {
-            data: (
-              await db.query(`select * from public.${identifier(name)}($1)`, [
-                params.p_id,
-              ])
-            ).rows,
-          };
-        }
-        if (name === "poke_confession") {
-          return {
-            data: (
-              await db.query("select public.poke_confession($1, $2) as count", [
-                params.p_confession_id,
-                params.p_amount ?? 1,
-              ])
-            ).rows[0]?.count,
-          };
-        }
-        if (name === "visible_top_searches")
-          return {
-            data: (
-              await db.query("select * from public.visible_top_searches($1)", [
-                params.p_limit,
-              ])
-            ).rows,
-          };
-        const args = Object.keys(params)
-          .map((key, i) => `${identifier(key)} => $${i + 1}`)
-          .join(",");
-        const values = Object.values(params).map((v) =>
-          typeof v === "object" && v !== null ? JSON.stringify(v) : v,
-        );
-        return {
-          data: (
-            await db.query(
-              `select public.${identifier(name)}(${args}) as result`,
-              values,
-            )
-          ).rows[0].result,
-        };
-      } catch (error) {
-        return { error: { code: error.code } };
-      }
-    },
-    from(table) {
-      const state = {
-        operation: "select",
-        columns: "id",
-        filters: [],
-        orders: [],
-        limit: null,
-      };
-      const query = {
-        select(columns) {
-          assert.ok(!columns.includes("*"));
-          state.columns = columns;
-          return query;
-        },
-        eq(column, value) {
-          state.filters.push([column, "=", value]);
-          return query;
-        },
-        ilike(column, value) {
-          state.filters.push([column, "ilike", value]);
-          return query;
-        },
-        gte(column, value) {
-          state.filters.push([column, ">=", value]);
-          return query;
-        },
-        order(column, options) {
-          state.orders.push(
-            `${identifier(column)} ${options.ascending ? "asc" : "desc"}`,
-          );
-          return query;
-        },
-        limit(value) {
-          state.limit = value;
-          return query;
-        },
-        insert(rows) {
-          state.operation = "insert";
-          state.rows = rows;
-          return query;
-        },
-        delete() {
-          state.operation = "delete";
-          return query;
-        },
-        then(resolve, reject) {
-          const execute = async () => {
-            try {
-              calls.push({
-                table,
-                operation: state.operation,
-                columns: state.columns,
-                filters: state.filters,
-              });
-              let params = [],
-                sql;
-              if (state.operation === "insert") {
-                const row = state.rows[0];
-                params = Object.values(row);
-                sql = `insert into public.${identifier(table)} (${Object.keys(row).map(identifier)}) values (${params.map((_, i) => `$${i + 1}`)}) returning id`;
-              } else {
-                sql =
-                  state.operation === "delete"
-                    ? `delete from public.${identifier(table)}`
-                    : `select ${state.columns.split(",").map(identifier)} from public.${identifier(table)}`;
-                if (state.filters.length)
-                  sql +=
-                    " where " +
-                    state.filters
-                      .map(([column, op, value]) => {
-                        params.push(value);
-                        return `${identifier(column)} ${op} $${params.length}`;
-                      })
-                      .join(" and ");
-                if (state.orders.length)
-                  sql += " order by " + state.orders.join(",");
-                if (state.limit !== null) {
-                  params.push(state.limit);
-                  sql += ` limit $${params.length}`;
-                }
-              }
-              return { data: (await db.query(sql, params)).rows };
-            } catch (error) {
-              return { error: { code: error.code } };
-            }
-          };
-          return execute().then(resolve, reject);
-        },
-      };
-      return query;
-    },
-  };
-}
+const { adapter } = require("../test-support/database.cjs");
 
 test("anonymous features against real Postgres schema and HTTP routes", async (t) => {
   const db = new PGlite({ extensions: { pg_trgm } });
@@ -185,12 +39,18 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
     `supabase/migrations/${migration}`,
     `supabase/migrations/${repliesMigration}`,
     "supabase/migrations/20261019024537_confession_bots.sql",
+    "supabase/migrations/20261019034400_bot_disclosure_in_recipient.sql",
+    "supabase/migrations/20261019043830_curated_horror_library.sql",
+    "supabase/migrations/20261019043834_replies_500.sql",
   ])
     await db.exec(readFileSync(join(__dirname, "../..", file), "utf8"));
   // Reapplying the new migration preserves existing rows and definitions.
   await db.exec(
     readFileSync(
-      join(__dirname, "../../supabase/migrations", repliesMigration),
+      join(
+        __dirname,
+        "../../supabase/migrations/20261019043834_replies_500.sql",
+      ),
       "utf8",
     ),
   );
@@ -565,10 +425,14 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
         429,
       );
 
-      // Concurrency & 10-reply limit test:
-      // Firing 15 simultaneous reply POSTs to one confession results in exactly 10 successes
+      // Race at the 500-reply boundary: 490 existing + 15 simultaneous attempts.
       const freshRow = await post();
       const freshRoute = `/api/confessions/${freshRow.id}/replies`;
+      const seeded = config.MAX_REPLIES_PER_CONFESSION - 10;
+      await db.query(
+        "insert into public.replies(confession_id,song_name,artist_name,spotify_track_id) select $1,'Seed song','Seed artist',$2 from generate_series(1,$3::int)",
+        [freshRow.id, TRACK, seeded],
+      );
 
       const concurrentResults = await Promise.all(
         Array.from({ length: 15 }, (_, i) =>
@@ -583,8 +447,8 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
       const successes = concurrentResults.filter((r) => r.status === 201);
       const fulls = concurrentResults.filter((r) => r.status === 409);
 
-      assert.equal(successes.length, config.MAX_REPLIES_PER_CONFESSION);
-      assert.equal(fulls.length, 15 - config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(successes.length, 10);
+      assert.equal(fulls.length, 5);
       for (const full of fulls) {
         assert.equal(full.body.code, "REPLIES_FULL");
         assert.equal(full.body.max, config.MAX_REPLIES_PER_CONFESSION);
@@ -600,7 +464,10 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
       assert.equal(visibleInDb, config.MAX_REPLIES_PER_CONFESSION);
 
       const fullGet = await request(freshRoute);
-      assert.equal(fullGet.body.replies.length, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(
+        fullGet.body.replies.length,
+        config.MAX_REPLIES_PER_CONFESSION,
+      );
       assert.equal(fullGet.body.meta.count, config.MAX_REPLIES_PER_CONFESSION);
       assert.equal(fullGet.body.meta.canReply, false);
       assert.equal(fullGet.body.meta.reason, "full");
@@ -612,7 +479,10 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
         { key: freshRow.key },
       );
       assert.equal(removeRes.status, 200);
-      assert.equal(removeRes.body.meta.count, config.MAX_REPLIES_PER_CONFESSION - 1);
+      assert.equal(
+        removeRes.body.meta.count,
+        config.MAX_REPLIES_PER_CONFESSION - 1,
+      );
       assert.equal(removeRes.body.meta.canReply, true);
 
       // Now a new reply can be posted and succeeds
@@ -622,21 +492,29 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
         "192.0.2.99",
       );
       assert.equal(freedPost.status, 201);
-      assert.equal(freedPost.body.meta.count, config.MAX_REPLIES_PER_CONFESSION);
+      assert.equal(
+        freedPost.body.meta.count,
+        config.MAX_REPLIES_PER_CONFESSION,
+      );
 
       // Legacy thread test:
-      // A confession seeded with 12 replies directly via SQL (exceeding cap)
+      // A legacy confession above the current cap must retain every reply.
       const legacyRow = await post();
       const legacyRoute = `/api/confessions/${legacyRow.id}/replies`;
-      for (let i = 0; i < 12; i++) {
+      const legacyCount = config.MAX_REPLIES_PER_CONFESSION + 2;
+      for (let i = 0; i < legacyCount; i++) {
         await db.query(
           "insert into public.replies(confession_id, song_name, artist_name, spotify_track_id) values($1, $2, $3, $4)",
           [legacyRow.id, `Legacy Song ${i + 1}`, "Legacy Artist", TRACK],
         );
       }
       const legacyGet = await request(legacyRoute);
-      assert.equal(legacyGet.body.replies.length, 12, "must return all 12 legacy replies");
-      assert.equal(legacyGet.body.meta.count, 12);
+      assert.equal(
+        legacyGet.body.replies.length,
+        legacyCount,
+        "must return all legacy replies",
+      );
+      assert.equal(legacyGet.body.meta.count, legacyCount);
       assert.equal(legacyGet.body.meta.max, config.MAX_REPLIES_PER_CONFESSION);
       assert.equal(legacyGet.body.meta.canReply, false);
       assert.equal(legacyGet.body.meta.reason, "full");
@@ -657,7 +535,7 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
           [legacyRow.id],
         )
       ).rows[0].n;
-      assert.equal(legacyCountAfter, 12);
+      assert.equal(legacyCountAfter, legacyCount);
 
       // Disabled replies test
       await db.query(
@@ -675,14 +553,19 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
       const disabledGet = await request(legacyRoute);
       assert.equal(disabledGet.body.meta.canReply, false);
       assert.equal(disabledGet.body.meta.reason, "disabled");
-      assert.equal(disabledGet.body.replies.length, 12, "existing replies remain readable when disabled");
+      assert.equal(
+        disabledGet.body.replies.length,
+        legacyCount,
+        "existing replies remain readable when disabled",
+      );
 
       await db.query(
         "update public.confessions set is_hidden=true where id=$1",
         [legacyRow.id],
       );
       assert.equal(
-        (await request(legacyRoute, { song: { id: TRACK } }, "192.0.2.102")).status,
+        (await request(legacyRoute, { song: { id: TRACK } }, "192.0.2.102"))
+          .status,
         404,
       );
       assert.equal(
@@ -776,8 +659,8 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
       await request(`/api/confessions/${row.id}/replies`, {
         song: { id: TRACK },
       });
-      const reply = (await request(`/api/confessions/${row.id}/replies`))
-        .body.replies[0];
+      const reply = (await request(`/api/confessions/${row.id}/replies`)).body
+        .replies[0];
       for (let i = 2; i <= 4; i++)
         await request(
           "/api/reports",
@@ -821,6 +704,7 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
       for (const signature of [
         "public.submit_content_report(text,uuid,text,text,text,integer,boolean)",
         "public.add_song_reply(uuid,jsonb,text,integer)",
+        "public.add_reply(uuid,jsonb,text,integer)",
         "public.visible_top_searches(integer)",
         "public.confession_preview(uuid)",
         "public.visible_song_replies(uuid)",
@@ -893,7 +777,11 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
       const row = await post();
 
       // 1. Default amount (1)
-      const first = await request(`/api/confessions/${row.id}/poke`, {}, "POST");
+      const first = await request(
+        `/api/confessions/${row.id}/poke`,
+        {},
+        "POST",
+      );
       assert.equal(first.status, 200);
       assert.deepEqual(first.body, { count: 1 });
 
@@ -908,10 +796,26 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
 
       // 3. Concurrent requests do not lose increments
       const burstResults = await Promise.all([
-        request(`/api/confessions/${row.id}/poke`, { amount: 10 }, "192.0.2.10"),
-        request(`/api/confessions/${row.id}/poke`, { amount: 10 }, "192.0.2.11"),
-        request(`/api/confessions/${row.id}/poke`, { amount: 10 }, "192.0.2.12"),
-        request(`/api/confessions/${row.id}/poke`, { amount: 10 }, "192.0.2.13"),
+        request(
+          `/api/confessions/${row.id}/poke`,
+          { amount: 10 },
+          "192.0.2.10",
+        ),
+        request(
+          `/api/confessions/${row.id}/poke`,
+          { amount: 10 },
+          "192.0.2.11",
+        ),
+        request(
+          `/api/confessions/${row.id}/poke`,
+          { amount: 10 },
+          "192.0.2.12",
+        ),
+        request(
+          `/api/confessions/${row.id}/poke`,
+          { amount: 10 },
+          "192.0.2.13",
+        ),
       ]);
       assert.ok(burstResults.every((res) => res.status === 200));
 
@@ -927,8 +831,13 @@ test("anonymous features against real Postgres schema and HTTP routes", async (t
 
       // 4. Amount validation: integer between 1 and 100
       assert.equal(
-        (await request(`/api/confessions/${row.id}/poke`, { amount: 0 }, "POST"))
-          .status,
+        (
+          await request(
+            `/api/confessions/${row.id}/poke`,
+            { amount: 0 },
+            "POST",
+          )
+        ).status,
         400,
       );
       assert.equal(

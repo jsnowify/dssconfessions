@@ -1,0 +1,875 @@
+{
+  "phase": "before",
+  "date": "2026-10-19T03:48:13.520Z",
+  "conditions": {
+    "browser": "156.0.8078.4",
+    "viewport": "390x844",
+    "cpuSlowdown": 4,
+    "latencyMs": 80,
+    "downloadBytesPerSecond": 200000,
+    "repeats": 3,
+    "rows": 5000,
+    "externalResources": "neutral fixtures, fonts unavailable; font families unchanged",
+    "database": "isolated single-process PGlite; not a production capacity estimate",
+    "httpStressIsolated": true
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "url": "/",
+      "runs": [
+        {
+          "lcp": 3044,
+          "cls": 0.02028384833086547,
+          "blocking": 736,
+          "longTasks": 7,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3136,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 3428,
+          "cls": 0.02028384833086547,
+          "blocking": 913,
+          "longTasks": 7,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3494.8000000044703,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 3212,
+          "cls": 0.02028384833086547,
+          "blocking": 901,
+          "longTasks": 5,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3269.10000000149,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3269.1,
+        "lcp": 3212,
+        "cls": 0.02,
+        "blocking": 901,
+        "longTasks": 7,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Browse",
+      "url": "/browse",
+      "runs": [
+        {
+          "lcp": 732,
+          "cls": 0,
+          "blocking": 446,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2515.5,
+          "apiRequests": 2,
+          "api": [
+            "/api/top-searches?limit=8",
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 536,
+          "cls": 0,
+          "blocking": 691,
+          "longTasks": 5,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3065.10000000149,
+          "apiRequests": 2,
+          "api": [
+            "/api/top-searches?limit=8",
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 656,
+          "cls": 0,
+          "blocking": 703,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2733.7000000029802,
+          "apiRequests": 2,
+          "api": [
+            "/api/top-searches?limit=8",
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 2733.7,
+        "lcp": 656,
+        "cls": 0,
+        "blocking": 691,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 2
+      }
+    },
+    {
+      "name": "Browse results",
+      "url": "/browse?to=SAMPLE",
+      "runs": [
+        {
+          "lcp": 5376,
+          "cls": 0.1761141628856794,
+          "blocking": 2402,
+          "longTasks": 7,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 4668.79999999702,
+          "apiRequests": 4,
+          "api": [
+            "/api/top-searches?limit=8",
+            "/api/confessions?to=SAMPLE",
+            "/api/confessions",
+            "/api/confessions?to=SAMPLE"
+          ]
+        },
+        {
+          "lcp": 5412,
+          "cls": 0.1761141628856794,
+          "blocking": 3084,
+          "longTasks": 11,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 5665.89999999851,
+          "apiRequests": 4,
+          "api": [
+            "/api/top-searches?limit=8",
+            "/api/confessions?to=SAMPLE",
+            "/api/confessions",
+            "/api/confessions?to=SAMPLE"
+          ]
+        },
+        {
+          "lcp": 4084,
+          "cls": 0.17482345644003203,
+          "blocking": 1525,
+          "longTasks": 6,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 4172,
+          "apiRequests": 4,
+          "api": [
+            "/api/top-searches?limit=8",
+            "/api/confessions?to=SAMPLE",
+            "/api/confessions",
+            "/api/confessions?to=SAMPLE"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 4668.8,
+        "lcp": 5376,
+        "cls": 0.18,
+        "blocking": 2402,
+        "longTasks": 7,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 4
+      }
+    },
+    {
+      "name": "Confess",
+      "url": "/confess",
+      "runs": [
+        {
+          "lcp": 664,
+          "cls": 0,
+          "blocking": 434,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2880.8000000044703,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 724,
+          "cls": 0,
+          "blocking": 459,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3049.2999999970198,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 636,
+          "cls": 0,
+          "blocking": 541,
+          "longTasks": 4,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2792.2000000029802,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 2880.8,
+        "lcp": 664,
+        "cls": 0,
+        "blocking": 459,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Confession",
+      "url": "/confession/11111111-1111-4111-8111-111111111111?_spa=1",
+      "runs": [
+        {
+          "lcp": 3072,
+          "cls": 0,
+          "blocking": 852,
+          "longTasks": 7,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3250.5,
+          "apiRequests": 4,
+          "api": [
+            "/api/confessions",
+            "/api/confessions?id=11111111-1111-4111-8111-111111111111",
+            "/api/confessions/11111111-1111-4111-8111-111111111111/settings",
+            "/api/confessions/11111111-1111-4111-8111-111111111111/replies"
+          ]
+        },
+        {
+          "lcp": 2624,
+          "cls": 0,
+          "blocking": 715,
+          "longTasks": 6,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2749.7000000029802,
+          "apiRequests": 4,
+          "api": [
+            "/api/confessions",
+            "/api/confessions?id=11111111-1111-4111-8111-111111111111",
+            "/api/confessions/11111111-1111-4111-8111-111111111111/settings",
+            "/api/confessions/11111111-1111-4111-8111-111111111111/replies"
+          ]
+        },
+        {
+          "lcp": 3080,
+          "cls": 0,
+          "blocking": 774,
+          "longTasks": 6,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3231.8000000044703,
+          "apiRequests": 4,
+          "api": [
+            "/api/confessions",
+            "/api/confessions?id=11111111-1111-4111-8111-111111111111",
+            "/api/confessions/11111111-1111-4111-8111-111111111111/settings",
+            "/api/confessions/11111111-1111-4111-8111-111111111111/replies"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3231.8,
+        "lcp": 3072,
+        "cls": 0,
+        "blocking": 774,
+        "longTasks": 6,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 4
+      }
+    },
+    {
+      "name": "About",
+      "url": "/about",
+      "runs": [
+        {
+          "lcp": 2620,
+          "cls": 0,
+          "blocking": 720,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2991,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2488,
+          "cls": 0,
+          "blocking": 636,
+          "longTasks": 4,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2921.60000000149,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2520,
+          "cls": 0,
+          "blocking": 457,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2928.6999999955297,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 2928.7,
+        "lcp": 2520,
+        "cls": 0,
+        "blocking": 636,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "DSSC",
+      "url": "/dssc-confessions",
+      "runs": [
+        {
+          "lcp": 3508,
+          "cls": 0,
+          "blocking": 633,
+          "longTasks": 4,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3937.2000000029802,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2496,
+          "cls": 0,
+          "blocking": 460,
+          "longTasks": 5,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2947.5,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 3144,
+          "cls": 0,
+          "blocking": 888,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3474.39999999851,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3474.4,
+        "lcp": 3144,
+        "cls": 0,
+        "blocking": 633,
+        "longTasks": 4,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "FAQ",
+      "url": "/faq",
+      "runs": [
+        {
+          "lcp": 2544,
+          "cls": 0,
+          "blocking": 401,
+          "longTasks": 4,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3011.7000000029802,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2476,
+          "cls": 0,
+          "blocking": 432,
+          "longTasks": 2,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2793.8000000044703,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2480,
+          "cls": 0,
+          "blocking": 551,
+          "longTasks": 4,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3043.9000000059605,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3011.7,
+        "lcp": 2480,
+        "cls": 0,
+        "blocking": 432,
+        "longTasks": 4,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Privacy",
+      "url": "/privacy",
+      "runs": [
+        {
+          "lcp": 2496,
+          "cls": 0,
+          "blocking": 325,
+          "longTasks": 2,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2856.7999999970198,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2380,
+          "cls": 0,
+          "blocking": 581,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2834,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2640,
+          "cls": 0,
+          "blocking": 410,
+          "longTasks": 5,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3011,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 2856.8,
+        "lcp": 2496,
+        "cls": 0,
+        "blocking": 410,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Send guide",
+      "url": "/guides/how-to-send-an-anonymous-song-confession",
+      "runs": [
+        {
+          "lcp": 3108,
+          "cls": 0,
+          "blocking": 835,
+          "longTasks": 5,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3821.10000000149,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2964,
+          "cls": 0,
+          "blocking": 916,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3295.39999999851,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2116,
+          "cls": 0,
+          "blocking": 321,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2489.7999999970198,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3295.4,
+        "lcp": 2964,
+        "cls": 0,
+        "blocking": 835,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Song guide",
+      "url": "/guides/how-to-choose-a-song-for-your-confession",
+      "runs": [
+        {
+          "lcp": 2696,
+          "cls": 0,
+          "blocking": 519,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3154.8000000044703,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2716,
+          "cls": 0,
+          "blocking": 520,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3023.60000000149,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2920,
+          "cls": 0,
+          "blocking": 648,
+          "longTasks": 4,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3358.10000000149,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3154.8,
+        "lcp": 2716,
+        "cls": 0,
+        "blocking": 520,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Safety guide",
+      "url": "/guides/is-it-safe-to-send-an-anonymous-confession",
+      "runs": [
+        {
+          "lcp": 2652,
+          "cls": 0,
+          "blocking": 646,
+          "longTasks": 2,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2956.2999999970198,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2756,
+          "cls": 0,
+          "blocking": 617,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3128,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 2608,
+          "cls": 0,
+          "blocking": 404,
+          "longTasks": 3,
+          "jsBytes": 129479,
+          "scripts": 1,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 3000.3000000044703,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 3000.3,
+        "lcp": 2652,
+        "cls": 0,
+        "blocking": 617,
+        "longTasks": 3,
+        "jsBytes": 129479,
+        "scripts": 1,
+        "apiRequests": 1
+      }
+    },
+    {
+      "name": "Bot login",
+      "url": "/admin/bots",
+      "runs": [
+        {
+          "lcp": 704,
+          "cls": 0.44457561986197525,
+          "blocking": 454,
+          "longTasks": 2,
+          "jsBytes": 132883,
+          "scripts": 2,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2383,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 608,
+          "cls": 0.44457561986197525,
+          "blocking": 794,
+          "longTasks": 4,
+          "jsBytes": 132883,
+          "scripts": 2,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2962.6999999955297,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        },
+        {
+          "lcp": 696,
+          "cls": 0.44457561986197525,
+          "blocking": 502,
+          "longTasks": 3,
+          "jsBytes": 132883,
+          "scripts": 2,
+          "overflow": false,
+          "archiveRequests": 0,
+          "ready": 2573.10000000149,
+          "apiRequests": 1,
+          "api": [
+            "/api/confessions"
+          ]
+        }
+      ],
+      "median": {
+        "ready": 2573.1,
+        "lcp": 696,
+        "cls": 0.44,
+        "blocking": 502,
+        "longTasks": 3,
+        "jsBytes": 132883,
+        "scripts": 2,
+        "apiRequests": 1
+      }
+    }
+  ],
+  "interactions": {},
+  "stress": [
+    {
+      "concurrency": 10,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 193.58,
+      "p50": 38.93,
+      "p95": 93.7,
+      "max": 261.24
+    },
+    {
+      "concurrency": 25,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 286.57,
+      "p50": 86.61,
+      "p95": 119.74,
+      "max": 139.15
+    },
+    {
+      "concurrency": 50,
+      "requests": 300,
+      "statuses": {
+        "200": 300
+      },
+      "throughput": 297.59,
+      "p50": 159.45,
+      "p95": 229.98,
+      "max": 290.11
+    }
+  ],
+  "rateLimit": {
+    "allowed": 60,
+    "rejected": 10,
+    "retryAfter": "60"
+  },
+  "writes": {},
+  "httpStressMeasuredAt": "2026-10-19T03:54:37.648Z"
+}

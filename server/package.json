@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "bots:stories": "node scripts/enable-story-library.js",
+    "bots:enable": "node scripts/enable-local-bots.js",
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "node --test",

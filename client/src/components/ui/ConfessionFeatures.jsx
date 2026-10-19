@@ -222,12 +222,16 @@ export default function ConfessionFeatures({ data, onDeleted, onPlayReply }) {
           ),
         ]);
         if (!controller.signal.aborted) {
-          const list = Array.isArray(res) ? res : (res?.replies || []);
+          const list = Array.isArray(res) ? res : res?.replies || [];
           const resMeta = res?.meta || {
             count: list.length,
             max: 10,
             canReply: options?.allowReplies && list.length < 10,
-            reason: !options?.allowReplies ? "disabled" : (list.length >= 10 ? "full" : null),
+            reason: !options?.allowReplies
+              ? "disabled"
+              : list.length >= 10
+                ? "full"
+                : null,
           };
           setSettings(options);
           setReplies(list);
@@ -417,7 +421,8 @@ export default function ConfessionFeatures({ data, onDeleted, onPlayReply }) {
           }}
         >
           <p className="mb-4">
-            This permanently removes the reply and frees up a spot on this mixtape.
+            This permanently removes the reply and frees up a spot on this
+            mixtape.
           </p>
           {removeError && (
             <p role="alert" className="feature-error mb-3">

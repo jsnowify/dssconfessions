@@ -14,11 +14,19 @@ class SubmissionError extends Error {
     this.details = details;
   }
 }
+function botPostingEnvironment(env) {
+  // A local bot may have its own author-key secret. This never rotates the
+  // existing human-post secret; automation keys are not returned to visitors.
+  return env.BOT_DELETE_KEY_PEPPER
+    ? { ...env, DELETE_KEY_PEPPER: env.BOT_DELETE_KEY_PEPPER }
+    : env;
+}
 
 // Both anonymous submissions and the authenticated worker use this boundary.
 // Automation context is supplied by server code, never by a public request body.
 function createConfessionSubmission({ env, getDatabase, spotify, getToken }) {
   return async (body, automation) => {
+    const postingEnv = automation ? botPostingEnvironment(env) : env;
     const { valid, errors, data } = validateConfessionInput(body);
     if (!valid) throw new SubmissionError(400, "Invalid submission", errors);
     if (
@@ -26,7 +34,7 @@ function createConfessionSubmission({ env, getDatabase, spotify, getToken }) {
       typeof body.allowReplies !== "boolean"
     )
       throw new SubmissionError(400, "Allow replies must be a boolean.");
-    if (!isDeleteKeyConfigured(env)) {
+    if (!isDeleteKeyConfigured(postingEnv)) {
       console.error("DELETE_KEY_PEPPER is not configured independently");
       throw new SubmissionError(
         503,
@@ -51,7 +59,7 @@ function createConfessionSubmission({ env, getDatabase, spotify, getToken }) {
       content: data.content,
       ...songColumns,
       allow_replies: body.allowReplies ?? true,
-      delete_key_hash: hashDeleteKey(deleteKey, env.DELETE_KEY_PEPPER),
+      delete_key_hash: hashDeleteKey(deleteKey, postingEnv.DELETE_KEY_PEPPER),
     };
     try {
       if (automation) {
@@ -74,4 +82,4 @@ function createConfessionSubmission({ env, getDatabase, spotify, getToken }) {
   };
 }
 
-module.exports = { createConfessionSubmission, POST_QUOTA, SubmissionError };
+module.exports = { createConfessionSubmission, POST_QUOTA, SubmissionError, botPostingEnvironment };

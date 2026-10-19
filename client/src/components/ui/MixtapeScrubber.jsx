@@ -43,7 +43,10 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
   const idleHeartTimerRef = useRef(null);
 
   // Pre-allocated particle pool
-  const poolRef = useRef(createParticlePool(SCRUBBER_CONFIG.MAX_PARTICLES_DESKTOP));
+  const poolRef = useRef(null);
+  if (poolRef.current === null) {
+    poolRef.current = createParticlePool(SCRUBBER_CONFIG.MAX_PARTICLES_DESKTOP);
+  }
   const nextParticleIdxRef = useRef(0);
   const colorIdxRef = useRef(0);
   const [activeParticles, setActiveParticles] = useState([]);
@@ -712,7 +715,7 @@ export default function MixtapeScrubber({ isMenuOpen = false }) {
           {/* Decorative mm:ss Readout (aria-hidden) */}
           <span
             aria-hidden="true"
-            className="font-mono text-[11px] font-bold text-[var(--ink-soft)] shrink-0 w-10 text-center select-none"
+            className="text-[11px] font-bold text-[var(--ink-soft)] shrink-0 w-10 text-center select-none"
           >
             {formatPretendTime(progress)}
           </span>

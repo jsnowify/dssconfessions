@@ -1,4 +1,4 @@
-const MAX_REPLIES_PER_CONFESSION = 10;
+const MAX_REPLIES_PER_CONFESSION = 500;
 
 module.exports = Object.freeze({
   autoHideReports: 3,

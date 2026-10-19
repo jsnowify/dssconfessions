@@ -397,7 +397,7 @@ export const ROUTES_CONFIG = {
             name: "How many song replies can a confession receive?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Each confession can receive up to 10 anonymous song replies, like a 10-track mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
+              text: "Each confession can receive up to 500 anonymous song replies on its mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
             },
           },
         ],

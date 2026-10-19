@@ -1,100 +1,35 @@
 import Doodle from "./components/ui/Doodle";
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Navbar from "./components/layout/Navbar";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import HomeView from "./views/HomeView";
-import BrowseView from "./views/BrowseView";
-import SubmitView from "./views/SubmitView";
-import AboutView from "./views/AboutView";
-import DetailsView from "./views/DetailsView";
-import FaqView from "./views/FaqView";
-import PrivacyView from "./views/PrivacyView";
-import HowToSendGuide from "./views/guides/HowToSendGuide";
-import HowToChooseSongGuide from "./views/guides/HowToChooseSongGuide";
-import IsItSafeGuide from "./views/guides/IsItSafeGuide";
 import { useConfessions, fetchConfessionById } from "./hooks";
 import DeleteKeyReceipt from "./components/ui/DeleteKeyReceipt";
 import Toast from "./components/ui/Toast";
 import MixtapeScrubber from "./components/ui/MixtapeScrubber";
 import Logo from "./components/ui/Logo";
 import DesignArchive from "./components/ui/DesignArchive";
-import DsscLandingView from "./views/DsscLandingView";
+import NewConfessionsNotice from "./components/ui/NewConfessionsNotice";
 import { useSeo } from "./seo/useSeo";
-const BotAdminView = lazy(() => import("./views/BotAdminView"));
+import { routeViews } from "./route-views";
+import { parseCurrentLocation } from "./utils/routing";
 
-/**
- * Parses current window pathname and search query into a structured route.
- */
-function parseCurrentLocation() {
-  const pathname =
-    window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
-  const searchParams = new URLSearchParams(window.location.search);
-  if (pathname === "/admin/bots") return { view: "bot-admin", query: "", confessionId: null };
-
-  // 1. Confession deep link: /confession/:id or ?confession=:id or ?id=:id
-  const confessionMatch = pathname.match(/^\/confession(?:s)?\/([a-f0-9-]+)$/i);
-  const confessionId =
-    confessionMatch?.[1] ||
-    searchParams.get("confession") ||
-    searchParams.get("id");
-  if (confessionId) {
-    return { view: "details", confessionId, query: "" };
-  }
-
-  // 2. Browse: /browse or ?to= or ?search=
-  if (
-    pathname === "/browse" ||
-    searchParams.has("to") ||
-    searchParams.has("search")
-  ) {
-    const query = searchParams.get("to") || searchParams.get("search") || "";
-    return { view: "browse", query, confessionId: null };
-  }
-
-  // 3. Submit: /confess or /submit
-  if (pathname === "/confess" || pathname === "/submit") {
-    return { view: "submit", query: "", confessionId: null };
-  }
-
-  // 4. About: /about
-  if (pathname === "/about") {
-    return { view: "about", query: "", confessionId: null };
-  }
-
-  // 4b. DSSC Community Landing Page: /dssc-confessions
-  if (pathname === "/dssc-confessions") {
-    return { view: "dssc-landing", query: "", confessionId: null };
-  }
-
-  // 5. FAQ: /faq
-  if (pathname === "/faq") {
-    return { view: "faq", query: "", confessionId: null };
-  }
-
-  // 6. Privacy: /privacy
-  if (pathname === "/privacy") {
-    return { view: "privacy", query: "", confessionId: null };
-  }
-
-  // 7. Guides
-  if (
-    pathname === "/guides/how-to-send-an-anonymous-song-confession" ||
-    pathname === "/guides/how-to-send-an-anonymous-confession"
-  ) {
-    return { view: "guide-how-to-send", query: "", confessionId: null };
-  }
-  if (pathname === "/guides/how-to-choose-a-song-for-your-confession") {
-    return { view: "guide-choose-song", query: "", confessionId: null };
-  }
-  if (pathname === "/guides/is-it-safe-to-send-an-anonymous-confession") {
-    return { view: "guide-is-it-safe", query: "", confessionId: null };
-  }
-
-  // Default: Home
-  return { view: "home", query: "", confessionId: null };
-}
-
-export default function App() {
+export default function App({ initialViews = {} }) {
+  const BrowseView = initialViews["browse"] || routeViews["browse"];
+  const SubmitView = initialViews["submit"] || routeViews["submit"];
+  const AboutView = initialViews["about"] || routeViews["about"];
+  const DetailsView = initialViews["details"] || routeViews["details"];
+  const FaqView = initialViews["faq"] || routeViews["faq"];
+  const PrivacyView = initialViews["privacy"] || routeViews["privacy"];
+  const DsscLandingView =
+    initialViews["dssc-landing"] || routeViews["dssc-landing"];
+  const HowToSendGuide =
+    initialViews["guide-how-to-send"] || routeViews["guide-how-to-send"];
+  const HowToChooseSongGuide =
+    initialViews["guide-choose-song"] || routeViews["guide-choose-song"];
+  const IsItSafeGuide =
+    initialViews["guide-is-it-safe"] || routeViews["guide-is-it-safe"];
+  const BotAdminView = initialViews["bot-admin"] || routeViews["bot-admin"];
   const initialRouteRef = useRef(parseCurrentLocation());
   const [view, setView] = useState(initialRouteRef.current.view);
   const [selectedConfession, setSelectedConfession] = useState(null);
@@ -121,7 +56,9 @@ export default function App() {
     fetchFeed,
     submitConfession,
     searchConfessions,
-  } = useConfessions();
+    hasNewPosts,
+    dismissNewPosts,
+  } = useConfessions({ enabled: view === "home" });
 
   const loadConfessionDetails = useCallback(async (id, signal) => {
     setIsConfessionLoading(true);
@@ -147,6 +84,8 @@ export default function App() {
   // Sync initial state and handle deep links on initial page load
   useEffect(() => {
     const init = initialRouteRef.current;
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
     if (init.view === "details" && init.confessionId) {
       loadConfessionDetails(init.confessionId);
     }
@@ -181,6 +120,9 @@ export default function App() {
         targetUrl,
       );
     }
+    return () => {
+      window.history.scrollRestoration = previousRestoration;
+    };
   }, [loadConfessionDetails]);
 
   // Handle browser back and forward button events
@@ -225,6 +167,13 @@ export default function App() {
   const handleNavigate = useCallback(
     (targetView, options = {}) => {
       setIsMenuOpen(false);
+      // Back/Forward restores the entry being revisited, so save the position
+      // on the page we are leaving before pushing the destination entry.
+      window.history.replaceState(
+        { ...window.history.state, scrollY: window.scrollY },
+        "",
+        window.location.href,
+      );
 
       if (targetView === "details") {
         const confession = options.confession;
@@ -343,67 +292,75 @@ export default function App() {
       {/* Main content area */}
       <main className={`flex-1 ${view === "details" ? "" : "pt-28 pb-20"}`}>
         <ErrorBoundary key={view}>
-          {view === "bot-admin" && <Suspense fallback={<p role="status">Loading bot controls…</p>}><BotAdminView /></Suspense>}
-          {view === "home" && (
-            <HomeView
-              feed={feed}
-              isFeedLoading={isFeedLoading}
-              feedError={feedError}
-              onRetry={fetchFeed}
-              onSelectConfession={handleSelectConfession}
-              setView={handleNavigate}
-            />
-          )}
-          {view === "browse" && (
-            <BrowseView
-              onSelectConfession={handleSelectConfession}
-              searchConfessions={searchConfessions}
-              initialQuery={browseQuery}
-            />
-          )}
-          {view === "submit" && (
-            <SubmitView
-              submitConfession={submitConfession}
-              fetchFeed={fetchFeed}
-              setView={handleNavigate}
-              onPosted={setDeleteReceipt}
-            />
-          )}
-          {view === "about" && <AboutView />}
-          {view === "dssc-landing" && (
-            <DsscLandingView setView={handleNavigate} />
-          )}
-          {view === "faq" && <FaqView setView={handleNavigate} />}
-          {view === "privacy" && <PrivacyView setView={handleNavigate} />}
-          {view === "guide-how-to-send" && (
-            <HowToSendGuide setView={handleNavigate} />
-          )}
-          {view === "guide-choose-song" && (
-            <HowToChooseSongGuide setView={handleNavigate} />
-          )}
-          {view === "guide-is-it-safe" && (
-            <IsItSafeGuide setView={handleNavigate} />
-          )}
-          {view === "details" && (
-            <DetailsView
-              key={selectedConfession?.id || "loading"}
-              selectedConfession={selectedConfession}
-              onBack={handleBack}
-              fromView={fromView}
-              isLoading={isConfessionLoading}
-              error={confessionError}
-              onDeleted={() => {
-                fetchFeed();
-                handleNavigate("home", { replace: true });
-                setNotice("Confession deleted.");
-              }}
-            />
-          )}
+          <Suspense
+            fallback={
+              <p role="status" className="px-6 py-12 text-center">
+                Loading page…
+              </p>
+            }
+          >
+            {view === "bot-admin" && <BotAdminView />}
+            {view === "home" && (
+              <HomeView
+                feed={feed}
+                isFeedLoading={isFeedLoading}
+                feedError={feedError}
+                onRetry={fetchFeed}
+                onSelectConfession={handleSelectConfession}
+                setView={handleNavigate}
+              />
+            )}
+            {view === "browse" && (
+              <BrowseView
+                onSelectConfession={handleSelectConfession}
+                searchConfessions={searchConfessions}
+                initialQuery={browseQuery}
+              />
+            )}
+            {view === "submit" && (
+              <SubmitView
+                submitConfession={submitConfession}
+                fetchFeed={fetchFeed}
+                setView={handleNavigate}
+                onPosted={setDeleteReceipt}
+              />
+            )}
+            {view === "about" && <AboutView />}
+            {view === "dssc-landing" && (
+              <DsscLandingView setView={handleNavigate} />
+            )}
+            {view === "faq" && <FaqView setView={handleNavigate} />}
+            {view === "privacy" && <PrivacyView setView={handleNavigate} />}
+            {view === "guide-how-to-send" && (
+              <HowToSendGuide setView={handleNavigate} />
+            )}
+            {view === "guide-choose-song" && (
+              <HowToChooseSongGuide setView={handleNavigate} />
+            )}
+            {view === "guide-is-it-safe" && (
+              <IsItSafeGuide setView={handleNavigate} />
+            )}
+            {view === "details" && (
+              <DetailsView
+                key={selectedConfession?.id || "loading"}
+                selectedConfession={selectedConfession}
+                onBack={handleBack}
+                fromView={fromView}
+                isLoading={isConfessionLoading}
+                error={confessionError}
+                onDeleted={() => {
+                  fetchFeed();
+                  handleNavigate("home", { replace: true });
+                  setNotice("Confession deleted.");
+                }}
+              />
+            )}
+          </Suspense>
         </ErrorBoundary>
       </main>
 
       {/* Footer */}
-      <footer className="site-footer pt-12 pb-28 px-6 border-t-2 border-[var(--ink)] bg-[var(--bg-wash)] text-[var(--ink-soft)] font-mono text-xs">
+      <footer className="site-footer pt-12 pb-28 px-6 border-t-2 border-[var(--ink)] bg-[var(--bg-wash)] text-[var(--ink-soft)] text-xs font-sans">
         <div className="max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-left">
           {/* Brand Col */}
           <div className="md:col-span-1">
@@ -588,7 +545,8 @@ export default function App() {
           </div>
         </div>
         <div className="max-w-5xl mx-auto w-full text-center text-[11px] font-sans text-[var(--ink-soft)] mt-4">
-          Independent student project, not affiliated with or endorsed by Davao del Sur State College.
+          Independent student project, not affiliated with or endorsed by Davao
+          del Sur State College.
         </div>
       </footer>
       {deleteReceipt && (
@@ -601,6 +559,9 @@ export default function App() {
         />
       )}
       <MixtapeScrubber isMenuOpen={isMenuOpen} />
+      {view === "home" && hasNewPosts && !isMenuOpen && !deleteReceipt && (
+        <NewConfessionsNotice onRefresh={fetchFeed} onLater={dismissNewPosts} />
+      )}
       <Toast message={notice} show={Boolean(notice)} onClose={closeNotice} />
     </div>
   );

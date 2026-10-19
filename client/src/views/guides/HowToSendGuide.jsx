@@ -15,7 +15,7 @@ export default function HowToSendGuide({ setView }) {
           A comprehensive guide to putting your feelings into words, attaching
           the perfect Spotify soundtrack, and keeping your submission safe.
         </p>
-        <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
+        <p className="text-xs text-[var(--ink-soft)] mt-3">
           Published: October 18, 2026 • Verified for DSSConfessions
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function HowToSendGuide({ setView }) {
             would recognize (like &quot;Your Library Seatmate&quot; or &quot;The
             boy with the green umbrella&quot;), you can type that as your pseudonym.
           </p>
-          <div className="bg-[var(--bg-wash)] border border-[var(--ink)]/30 rounded-xl p-4 text-xs font-mono">
+          <div className="bg-[var(--bg-wash)] border border-[var(--ink)]/30 rounded-xl p-4 text-xs">
             <strong>Tip:</strong> Avoid using full legal names or phone numbers
             in the recipient field to respect community privacy standards.
           </div>

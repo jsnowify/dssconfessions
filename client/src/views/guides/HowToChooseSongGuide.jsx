@@ -15,7 +15,7 @@ export default function HowToChooseSongGuide({ setView }) {
           The right soundtrack says what words cannot. Explore song
           recommendations and pairing strategies organized by emotion.
         </p>
-        <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
+        <p className="text-xs text-[var(--ink-soft)] mt-3">
           Published: October 18, 2026 • Curated for DSSConfessions
         </p>
       </div>
@@ -54,7 +54,7 @@ export default function HowToChooseSongGuide({ setView }) {
             <h3 className="font-bold text-xs uppercase tracking-wider text-[var(--ink-soft)] mb-2">
               Recommended Tracks (Searchable on Spotify)
             </h3>
-            <ul className="space-y-1.5 font-mono text-xs">
+            <ul className="space-y-1.5 text-xs text-[var(--ink)]">
               <li>• &quot;Oceans & Engines&quot; by NIKI</li>
               <li>• &quot;Leonora&quot; by Sugarcane</li>
               <li>• &quot;Leaves&quot; by Ben&amp;Ben</li>
@@ -85,7 +85,7 @@ export default function HowToChooseSongGuide({ setView }) {
             <h3 className="font-bold text-xs uppercase tracking-wider text-[var(--ink-soft)] mb-2">
               Recommended Tracks (Searchable on Spotify)
             </h3>
-            <ul className="space-y-1.5 font-mono text-xs">
+            <ul className="space-y-1.5 text-xs text-[var(--ink)]">
               <li>• &quot;Palagi&quot; by TJ Monterde</li>
               <li>• &quot;Until I Found You&quot; by Stephen Sanchez</li>
               <li>• &quot;Mahika&quot; by Adie, Janine Berdin</li>
@@ -117,7 +117,7 @@ export default function HowToChooseSongGuide({ setView }) {
             <h3 className="font-bold text-xs uppercase tracking-wider text-[var(--ink-soft)] mb-2">
               Recommended Tracks (Searchable on Spotify)
             </h3>
-            <ul className="space-y-1.5 font-mono text-xs">
+            <ul className="space-y-1.5 text-xs text-[var(--ink)]">
               <li>• &quot;The Scientist&quot; by Coldplay</li>
               <li>• &quot;Back to December&quot; by Taylor Swift</li>
               <li>• &quot;Hard To Say I&apos;m Sorry&quot; by Chicago</li>
@@ -149,7 +149,7 @@ export default function HowToChooseSongGuide({ setView }) {
             <h3 className="font-bold text-xs uppercase tracking-wider text-[var(--ink-soft)] mb-2">
               Recommended Tracks (Searchable on Spotify)
             </h3>
-            <ul className="space-y-1.5 font-mono text-xs">
+            <ul className="space-y-1.5 text-xs text-[var(--ink)]">
               <li>• &quot;You&apos;ve Got a Friend in Me&quot; by Randy Newman</li>
               <li>• &quot;With a Little Help from My Friends&quot; by The Beatles</li>
               <li>• &quot;Count on Me&quot; by Bruno Mars</li>
@@ -181,7 +181,7 @@ export default function HowToChooseSongGuide({ setView }) {
             <h3 className="font-bold text-xs uppercase tracking-wider text-[var(--ink-soft)] mb-2">
               Recommended Tracks (Searchable on Spotify)
             </h3>
-            <ul className="space-y-1.5 font-mono text-xs">
+            <ul className="space-y-1.5 text-xs text-[var(--ink)]">
               <li>• &quot;Somewhere Only We Know&quot; by Keane</li>
               <li>• &quot;Happier&quot; by Ed Sheeran</li>
               <li>• &quot;Kathang Isip&quot; by Ben&amp;Ben</li>

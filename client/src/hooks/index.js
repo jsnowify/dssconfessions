@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import axios from "axios";
 
 export const api = axios.create({
@@ -22,11 +22,14 @@ export const fetchTopSearches = async (signal) => {
   }
 };
 
-export const useConfessions = () => {
+export const useConfessions = ({ enabled = true } = {}) => {
   const [feed, setFeed] = useState([]);
   const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [feedError, setFeedError] = useState(null);
   const [refreshSequence, setRefreshSequence] = useState(0);
+  const loadedSequence = useRef(null);
+  const [pendingPost, setPendingPost] = useState(null);
+  const dismissedPost = useRef(null);
 
   const fetchFeed = useCallback(() => {
     setIsFeedLoading(true);
@@ -35,6 +38,9 @@ export const useConfessions = () => {
   }, []);
 
   useEffect(() => {
+    // Retain the feed during navigation; informational pages need no feed read.
+    // A successful post/delete invalidates it even while Home is unmounted.
+    if (!enabled || loadedSequence.current === refreshSequence) return;
     const controller = new AbortController();
     api
       .get("/api/confessions", { signal: controller.signal })
@@ -42,6 +48,9 @@ export const useConfessions = () => {
         if (controller.signal.aborted) return;
         if (!Array.isArray(res.data)) throw new Error("Invalid feed response");
         setFeed(res.data);
+        setPendingPost(null);
+        dismissedPost.current = null;
+        loadedSequence.current = refreshSequence;
       })
       .catch((error) => {
         if (controller.signal.aborted) return;
@@ -52,9 +61,60 @@ export const useConfessions = () => {
         if (!controller.signal.aborted) setIsFeedLoading(false);
       });
     return () => controller.abort();
-  }, [refreshSequence]);
+  }, [enabled, refreshSequence]);
 
-  const submitConfession = async (formData, selectedSong) => {
+  useEffect(() => {
+    if (
+      !enabled ||
+      isFeedLoading ||
+      feedError ||
+      loadedSequence.current === null
+    )
+      return;
+    const controller = new AbortController();
+    let checking = false;
+    const check = async () => {
+      if (checking || document.hidden || navigator.onLine === false) return;
+      checking = true;
+      try {
+        const { data } = await api.get("/api/confessions", {
+          params: { latest: "1" },
+          signal: controller.signal,
+        });
+        const newest = data?.[0];
+        if (
+          controller.signal.aborted ||
+          !newest?.id ||
+          newest.id === dismissedPost.current ||
+          feed.some((post) => post.id === newest.id)
+        )
+          return;
+        if (
+          !feed.length ||
+          Date.parse(newest.created_at) > Date.parse(feed[0].created_at)
+        )
+          setPendingPost(newest.id);
+      } catch {
+        /* Updates are optional; keep the current feed usable. */
+      } finally {
+        checking = false;
+      }
+    };
+    const timer = setInterval(check, 60000);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      clearInterval(timer);
+      controller.abort();
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [enabled, isFeedLoading, feedError, feed]);
+
+  const dismissNewPosts = useCallback(() => {
+    dismissedPost.current = pendingPost;
+    setPendingPost(null);
+  }, [pendingPost]);
+
+  const submitConfession = useCallback(async (formData, selectedSong) => {
     if (!selectedSong?.id) {
       throw new Error("No song selected.");
     }
@@ -74,9 +134,9 @@ export const useConfessions = () => {
         "Delete key was not returned. Please contact the site owner before retrying.",
       );
     return res.data;
-  };
+  }, []);
 
-  const searchConfessions = async (query, signal) => {
+  const searchConfessions = useCallback(async (query, signal) => {
     if (!query || !query.trim()) return [];
     const res = await api.get("/api/confessions", {
       params: { to: query.trim() },
@@ -84,7 +144,7 @@ export const useConfessions = () => {
     });
     if (!Array.isArray(res.data)) throw new Error("Invalid search response");
     return res.data;
-  };
+  }, []);
 
   return {
     feed,
@@ -93,6 +153,8 @@ export const useConfessions = () => {
     fetchFeed,
     submitConfession,
     searchConfessions,
+    hasNewPosts: Boolean(pendingPost),
+    dismissNewPosts,
   };
 };
 

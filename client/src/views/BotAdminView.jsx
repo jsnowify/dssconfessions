@@ -15,15 +15,24 @@ const problems = {
   DUPLICATE: "Content was too similar to a previous generated post.",
   INVALID_OUTPUT: "The generator returned an invalid draft.",
   CONFIGURATION: "Generation is not configured.",
+  LIBRARY_EXHAUSTED:
+    "All stories from this collection have been posted. This bot is paused.",
   ATTEMPTS_EXHAUSTED: "Stopped after three attempts.",
 };
 
 function BotEditor({ bot, defaults, options, busy, onSave, onPreview, onRun }) {
-  const [settings, setSettings] = useState(bot?.settings || defaults);
+  const [settings, setSettings] = useState(() => ({
+    ...defaults,
+    ...bot?.settings,
+    language:
+      bot?.settings.source === "pinoy-horror-500" ? "Tagalog" : "English",
+    storyTypes: bot?.settings.storyTypes || defaults.storyTypes,
+  }));
   const [enabled, setEnabled] = useState(bot?.enabled || false);
   const update = (key, value) =>
     setSettings((previous) => ({ ...previous, [key]: value }));
   const completed = bot && bot.published_count >= bot.settings.postLimit;
+  const imported = settings.source === "pinoy-horror-500";
   return (
     <section
       className="bot-editor"
@@ -50,6 +59,34 @@ function BotEditor({ bot, defaults, options, busy, onSave, onPreview, onRun }) {
         }}
       >
         <fieldset disabled={busy} className="bot-fields">
+          <Select
+            label="Story collection"
+            value={settings.source || "generated"}
+            options={[
+              { value: "generated", label: "Built-in funny / horror" },
+              { value: "pinoy-horror-500", label: "500 Pinoy horror stories" },
+            ]}
+            onChange={(source) =>
+              setSettings((previous) => ({
+                ...previous,
+                source,
+                language: source === "pinoy-horror-500" ? "Tagalog" : "English",
+                intervalMinutes: source === "pinoy-horror-500" ? 720 : 1440,
+                postLimit: source === "pinoy-horror-500" ? 500 : 10,
+                storyTypes:
+                  source === "pinoy-horror-500"
+                    ? ["horror"]
+                    : ["funny", "horror"],
+              }))
+            }
+          />
+          {imported && (
+            <p>
+              Original Tagalog stories, picked randomly without repeats. Two per
+              day: 8 AM and 8 PM Philippine time. Pauses when the collection
+              runs out.
+            </p>
+          )}
           <label>
             Bot name
             <input
@@ -66,7 +103,7 @@ function BotEditor({ bot, defaults, options, busy, onSave, onPreview, onRun }) {
                 type="number"
                 required
                 min={1}
-                max={100}
+                max={imported ? 1000 : 100}
                 value={settings.postLimit}
                 onChange={(event) =>
                   update("postLimit", Number(event.target.value))
@@ -81,25 +118,26 @@ function BotEditor({ bot, defaults, options, busy, onSave, onPreview, onRun }) {
                 min={15}
                 max={10080}
                 value={settings.intervalMinutes}
+                disabled={imported}
                 onChange={(event) =>
                   update("intervalMinutes", Number(event.target.value))
                 }
               />
             </label>
           </div>
-          <fieldset className="bot-categories">
-            <legend>Topics</legend>
-            {options.categories.map((category) => (
+          <fieldset className="bot-categories" disabled={imported}>
+            <legend>Story type</legend>
+            {options.storyTypes.map((category) => (
               <label key={category}>
                 <input
                   type="checkbox"
-                  checked={settings.categories.includes(category)}
+                  checked={settings.storyTypes.includes(category)}
                   onChange={(event) =>
                     update(
-                      "categories",
+                      "storyTypes",
                       event.target.checked
-                        ? [...settings.categories, category]
-                        : settings.categories.filter(
+                        ? [...settings.storyTypes, category]
+                        : settings.storyTypes.filter(
                             (value) => value !== category,
                           ),
                     )
@@ -119,13 +157,16 @@ function BotEditor({ bot, defaults, options, busy, onSave, onPreview, onRun }) {
               <Select
                 key={key}
                 label={title}
-                options={options[list].map((value) => ({
+                options={(imported && key === "language"
+                  ? ["Tagalog"]
+                  : options[list]
+                ).map((value) => ({
                   value,
                   label: label(value),
                 }))}
                 value={settings[key]}
                 onChange={(value) => update(key, value)}
-                disabled={busy}
+                disabled={busy || imported}
               />
             ))}
           </div>
@@ -194,14 +235,14 @@ export default function BotAdminView() {
     },
     [],
   );
-  const lock = () => {
+  const lock = (keepRemoval = false) => {
     controller.current?.abort();
     runKeys.current = {};
     working.current = false;
     setDashboard(null);
     setCredential("");
     setPreview(null);
-    setRemove(null);
+    if (!keepRemoval) setRemove(null);
     setBusy(false);
   };
   const request = async (path = "", body) => {
@@ -226,7 +267,7 @@ export default function BotAdminView() {
       await operation();
     } catch (error) {
       if (active.signal.aborted) return;
-      if (error.response?.status === 401) lock();
+      if (error.response?.status === 401) lock(Boolean(dashboard));
       setNotice(
         error.response?.data?.error ||
           "The request did not finish. Refresh activity before retrying; run retries reuse the same request key.",
@@ -279,6 +320,12 @@ export default function BotAdminView() {
           submissions stay anonymous.
         </p>
       </header>
+      {dashboard?.library && (
+        <p>
+          {dashboard.library.available} of {dashboard.library.total} collection
+          stories still available. Posted stories stay excluded after removal.
+        </p>
+      )}
       <p role="status" aria-live="polite" className="bot-notice">
         {busy ? "Working…" : notice}
       </p>
@@ -339,7 +386,7 @@ export default function BotAdminView() {
             !dashboard.schedulerConfigured) && (
             <p className="bot-warning">
               {!dashboard.generationConfigured &&
-                "Generation credentials or posting configuration are missing. "}
+                "Posting setup is incomplete. "}
               {!dashboard.schedulerConfigured &&
                 "The scheduler secret is missing. "}
               Configure the server environment before enabling automated
@@ -347,9 +394,8 @@ export default function BotAdminView() {
             </p>
           )}
           <p className="bot-note">
-            The included schedule checks daily at 8 am Philippine time. Shorter
-            intervals need a more frequent authenticated scheduler. Each tick
-            publishes at most one eligible post across all bots.
+            Bots follow the frequency you save and stop when their post limit is
+            reached. The local schedule runs while your backend is open.
           </p>
           <div className="bot-editors">
             {dashboard.bots.map((bot) => (
@@ -457,7 +503,7 @@ export default function BotAdminView() {
           </button>
         </Modal>
       )}
-      {remove && (
+      {dashboard && remove && (
         <Modal title="Remove this bot post?" onClose={() => setRemove(null)}>
           <p>
             This removes the generated confession and its song replies. Its job
@@ -469,10 +515,16 @@ export default function BotAdminView() {
               disabled={busy}
               onClick={() =>
                 act(async () => {
-                  await request("/remove", { confessionId: remove });
+                  const result = await request("/remove", {
+                    confessionId: remove,
+                  });
                   setRemove(null);
+                  setNotice(
+                    result.removed
+                      ? "Bot post removed."
+                      : "This bot post is already removed or unavailable.",
+                  );
                   await refresh();
-                  setNotice("Bot post removed.");
                 })
               }
             >

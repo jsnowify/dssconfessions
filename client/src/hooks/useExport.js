@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getVibe, vibeHexMap } from "../utils/vibes";
 import { roundRect, drawSmartText } from "../utils/canvas";
+import { recipientLabel } from "../utils/confession-labels";
 
 export const useExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -35,7 +36,7 @@ export const useExport = () => {
 
       ctx.fillStyle = "#000000";
       ctx.font = "bold 80px Georgia, serif";
-      ctx.fillText("Hello, " + selectedConfession.recipient_to, centerX, 300);
+      ctx.fillText("Hello, " + recipientLabel(selectedConfession), centerX, 300);
 
       ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
       ctx.shadowBlur = 50;

@@ -3,6 +3,7 @@ import Vinyl from "./Vinyl";
 import Doodle from "./Doodle";
 import PokeButton from "./PokeButton";
 import { cardPastel } from "../../utils/pastel";
+import { recipientLabel } from "../../utils/confession-labels";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -23,6 +24,9 @@ export const ConfessionCard = React.memo(
       hasOverflow ||
       isExpanded;
     useEffect(() => {
+      // These cards already show Read more; measuring their clamped text only
+      // adds a layout read and observer callback for every feed/search result.
+      if (full || isExpanded || content.length > 120 || content.split("\n").length > 3) return;
       const node = messageRef.current;
       if (!node) return;
       const observer = new ResizeObserver(() =>
@@ -30,7 +34,7 @@ export const ConfessionCard = React.memo(
       );
       observer.observe(node);
       return () => observer.disconnect();
-    }, [content, isExpanded]);
+    }, [content, isExpanded, full]);
     const songTitle =
       data?.song_name || (isPreview ? "Choose a soundtrack" : "Untitled Track");
     const artistName =
@@ -49,7 +53,6 @@ export const ConfessionCard = React.memo(
         style={{ "--tile": cardPastel(data.id) }}
         className={`record-card ${isPreview ? "record-card--preview" : ""} ${full ? "record-card--full" : ""}`}
       >
-        {(data.is_automated || data.content?.startsWith("[Automated fiction]")) && <p className="automation-label">Automated fiction · Not a real student story</p>}
         <div className="record-card__clip">
           <div
             className="card record-card__face text-left"
@@ -58,14 +61,14 @@ export const ConfessionCard = React.memo(
             <header className="record-card__header">
               <span
                 className="tag-to font-bold uppercase tracking-wider"
-                title={data?.recipient_to || "......"}
+                title={recipientLabel(data) || "......"}
               >
                 <Doodle kind="note" />
                 <span className="truncate">
-                  To: {data?.recipient_to || "......"}
+                  To: {recipientLabel(data) || "......"}
                 </span>
               </span>
-              <span className="record-date font-mono">
+              <span className="record-date">
                 {isPreview ? "PREVIEW" : dateLabel}
               </span>
             </header>
@@ -140,7 +143,7 @@ export const ConfessionCard = React.memo(
                   </span>
                 </div>
               </div>
-              <footer className="record-card__footer font-mono uppercase tracking-wider flex items-center justify-between gap-2">
+              <footer className="record-card__footer uppercase tracking-wider flex items-center justify-between gap-2">
                 <span className="truncate max-w-[180px]">
                   from: {data?.sender_from || "Anonymous"}
                 </span>

@@ -15,7 +15,7 @@ export default function IsItSafeGuide({ setView }) {
           Understand how DSSConfessions protects your privacy, how our
           zero-IP architecture functions, and what guidelines keep everyone safe.
         </p>
-        <p className="font-mono text-xs text-[var(--ink-soft)] mt-3">
+        <p className="text-xs text-[var(--ink-soft)] mt-3">
           Published: October 18, 2026 • Verified Privacy Standards
         </p>
       </div>

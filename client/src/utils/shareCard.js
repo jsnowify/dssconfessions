@@ -1,5 +1,6 @@
 import { cardPastel } from "./pastel";
 import { roundRect } from "./canvas";
+import { recipientLabel } from "./confession-labels";
 
 function fit(ctx, text, width) {
   let value = String(text || "");
@@ -89,7 +90,7 @@ export async function createShareCard(data, height = 1350) {
   ctx.fillStyle = color("--ink");
   ctx.font = `bold 34px ${ui}`;
   ctx.fillText(
-    fit(ctx, `TO: ${data.recipient_to || "Someone"}`, 712),
+    fit(ctx, `TO: ${recipientLabel(data) || "Someone"}`, 712),
     150,
     196,
   );

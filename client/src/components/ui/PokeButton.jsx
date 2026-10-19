@@ -238,7 +238,7 @@ export default function PokeButton({
         </svg>
         <span>Poke</span>
         {count > 0 && (
-          <span className="font-mono text-[10px] ml-0.5">
+          <span className="text-[10px] font-semibold ml-0.5">
             {formatCount(count)}
           </span>
         )}

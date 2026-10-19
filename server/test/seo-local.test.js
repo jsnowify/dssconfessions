@@ -144,6 +144,19 @@ test("Local SEO, GEO, AEO & Schema Invariants Suite", async (t) => {
     );
   });
 
+  await t.test("route preloads fetch only the current screen and keep archive code on demand", () => {
+    if (!fs.existsSync(path.join(distDir, ".vite/manifest.json"))) return;
+    for (const [route, expected] of [["", null], ["browse", "BrowseView"], ["confess", "SubmitView"], ["faq", "FaqView"], ["dssc-confessions", "DsscLandingView"]]) {
+      const html = fs.readFileSync(path.join(distDir, route, "index.html"), "utf8");
+      const links = [...html.matchAll(/rel="modulepreload"[^>]*href="([^"]+)"/g)].map(m => m[1]);
+      if (expected) assert.ok(links.some(link => link.includes(expected)), route);
+      else assert.equal(links.length, 0);
+      for (const link of links) {
+        assert.ok(fs.existsSync(path.join(distDir, link.replace(/^\//, ""))));
+        assert.ok(!/DesignArchive|BotAdmin|DetailsView/.test(link));
+      }
+    }
+  });
   await t.test("Prerendered outputs respect density, single h1 and disclosure invariants", () => {
     const landingPath = path.join(distDir, "dssc-confessions", "index.html");
     const homePath = path.join(distDir, "index.html");

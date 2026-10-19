@@ -36,7 +36,7 @@ const BrowseView = ({
 
   const executeSearch = useCallback(
     async (queryToUse) => {
-      const rawTerm = typeof queryToUse === "string" ? queryToUse : searchQuery;
+      const rawTerm = typeof queryToUse === "string" ? queryToUse : "";
       const term = rawTerm.trim().slice(0, 50);
       if (!term) return;
 
@@ -84,7 +84,7 @@ const BrowseView = ({
         }
       }
     },
-    [searchQuery, searchConfessions],
+    [searchConfessions],
   );
 
   // Run search if an initial query was passed (from URL or back nav)
@@ -129,12 +129,12 @@ const BrowseView = ({
             maxLength={50}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && executeSearch()}
+            onKeyDown={(e) => e.key === "Enter" && executeSearch(searchQuery)}
           />
         </div>
         <button
           type="button"
-          onClick={() => executeSearch()}
+          onClick={() => executeSearch(searchQuery)}
           disabled={isLoading}
           className="btn btn-ink h-14 px-8 font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 shrink-0"
         >
@@ -170,7 +170,7 @@ const BrowseView = ({
             <p className="error-on-dark font-medium mb-4">{searchError}</p>
             <button
               type="button"
-              onClick={() => executeSearch()}
+              onClick={() => executeSearch(searchQuery)}
               className="btn btn-paper px-6 py-3 text-[13px] uppercase font-bold tracking-wider"
             >
               Try Again
