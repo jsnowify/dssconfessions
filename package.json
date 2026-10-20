@@ -8,6 +8,7 @@
     "perf:audit": "node scripts/performance/audit.mjs",
     "perf:snapshot": "node scripts/performance/snapshot.mjs",
     "perf:compare": "node scripts/performance/compare.mjs",
+    "perf:feed": "node scripts/performance/feed-latency.cjs",
     "dev": "npm run dev --prefix client",
     "start": "npm start --prefix server",
     "build": "npm run build --prefix client && node scripts/prerender.mjs",

@@ -47,6 +47,11 @@ const columns = {
 };
 const privateColumns = ["key", "hits", "expires_at"];
 const functions = [
+  {
+    name: "read_confession_feed",
+    args: { p_key: "", p_window_seconds: 0, p_read_limit: 0 },
+    expected: "Invalid rate-limit parameters",
+  },
   { name: "bot_dashboard", args: {} },
   {
     name: "bot_control",

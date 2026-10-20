@@ -52,7 +52,7 @@ function adapter(db, calls) {
           ).rows[0].result,
         };
       } catch (error) {
-        return { error: { code: error.code } };
+        return { error: { code: error.code, message: error.message } };
       }
     },
     from(table) {
@@ -84,6 +84,10 @@ function adapter(db, calls) {
         },
         gte(column, value) {
           state.filters.push([column, ">=", value]);
+          return query;
+        },
+        lt(column, value) {
+          state.filters.push([column, "<", value]);
           return query;
         },
         in(column, values) {
@@ -215,7 +219,7 @@ function adapter(db, calls) {
               const rows = (await db.query(sql, params)).rows;
               return { data: state.single ? (rows[0] || null) : rows };
             } catch (error) {
-              return { error: { code: error.code } };
+              return { error: { code: error.code, message: error.message } };
             }
           };
           return execute().then(resolve, reject);

@@ -1,4 +1,5 @@
 const { AsyncLocalStorage } = require("node:async_hooks");
+const { performance } = require("node:perf_hooks");
 
 const context = new AsyncLocalStorage();
 const IDENTIFIER = "[a-z_][a-z_0-9]*";
@@ -42,8 +43,18 @@ function logDatabaseError(error, operation, route) {
 }
 
 function databaseContext(req, res, next) {
+  const startedAt = performance.now();
+  const timing = { databaseMs: 0, databaseCalls: 0 };
+  const writeHead = res.writeHead;
+  res.writeHead = function (...args) {
+    if (!res.headersSent) res.setHeader("Server-Timing",
+      `app;dur=${(performance.now() - startedAt).toFixed(1)}, db;dur=${timing.databaseMs.toFixed(1)}, db_calls;desc="${timing.databaseCalls}"`,
+    );
+    return writeHead.apply(this, args);
+  };
   context.run(
     {
+      timing,
       route: () =>
         `${req.method} ${Array.isArray(req.route?.path) ? req.route.path.join("|") : req.route?.path || "unmatched"}`,
     },
@@ -56,18 +67,25 @@ function instrumentDatabase(database) {
     new Proxy(query, {
       get(target, property) {
         if (property === "then")
-          return (resolve, reject) =>
-            target.then(
+          return (resolve, reject) => {
+            const timing = context.getStore()?.timing;
+            const startedAt = performance.now();
+            if (timing) timing.databaseCalls++;
+            const finish = () => { if (timing) timing.databaseMs += performance.now() - startedAt; };
+            return target.then(
               (result) => {
+                finish();
                 if (result?.error) logDatabaseError(result.error, operation);
                 return typeof resolve === "function" ? resolve(result) : result;
               },
               (error) => {
+                finish();
                 logDatabaseError(error, operation);
                 if (typeof reject === "function") return reject(error);
                 throw error;
               },
             );
+          };
         const value = target[property];
         if (typeof value !== "function") return value;
         return (...args) => {

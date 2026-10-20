@@ -5,6 +5,7 @@ const cors = require("cors");
 const axios = require("axios");
 const { getSpotifyToken } = require("./utils/spotify");
 const { createLimiter } = require("./utils/rate-limit");
+const { parseFeedQuery, recipientPattern, createFeedLimiter } = require("./utils/confession-feed");
 const { createSearchTracker } = require("./utils/search-trends");
 const { isDeleteKeyConfigured } = require("./utils/delete-key");
 const { createConfessionSubmission, POST_QUOTA, SubmissionError } = require("./services/confession-submission");
@@ -100,14 +101,14 @@ function createApp({
     ...POST_QUOTA,
     message: "Too many confessions. Please wait 15 minutes.",
   });
-  const readLimiter = createLimiter({
-    env,
-    getDatabase,
+  const readQuota = {
     scope: "read",
     windowMs: 60000,
     limit: 60,
     message: "Too many requests. Please slow down.",
-  });
+  };
+  const readLimiter = createLimiter({ env, getDatabase, ...readQuota });
+  const feedLimiter = createFeedLimiter({ env, getDatabase, readLimiter, quota: readQuota });
 
   app.get("/", (req, res) => res.json({ status: "online" }));
   app.get("/api/health", async (req, res) => {
@@ -205,37 +206,15 @@ function createApp({
     }
   });
 
-  app.get("/api/confessions", readLimiter, async (req, res) => {
+  app.get("/api/confessions", feedLimiter, async (req, res) => {
     try {
-      const { to, id, latest, before, limit: reqLimit } = req.query;
-      if (latest !== undefined && latest !== "1")
-        return res.status(400).json({ error: "Invalid latest-post check." });
-      if (to !== undefined && typeof to !== "string") {
-        return res
-          .status(400)
-          .json({ error: "Recipient must be a single search string." });
+      const selection = req.feedSelection || parseFeedQuery(req.query);
+      if (selection.error) return res.status(400).json({ error: selection.error });
+      const { to, id, latest, before, parsedLimit } = selection;
+      if (req.feedRows) {
+        if (req.feedRows.length && to?.trim()) trackSearch(req.ip, to);
+        return res.json(req.feedRows);
       }
-      if (id !== undefined && typeof id !== "string") {
-        return res
-          .status(400)
-          .json({ error: "Confession ID must be a single string." });
-      }
-      if (before !== undefined) {
-        if (
-          typeof before !== "string" ||
-          !before.trim() ||
-          isNaN(Date.parse(before))
-        ) {
-          return res
-            .status(400)
-            .json({ error: "Invalid before cursor timestamp." });
-        }
-      }
-      const defaultLimit = to?.trim() ? 50 : 20;
-      const parsedLimit =
-        typeof reqLimit === "string" && /^\d+$/.test(reqLimit)
-          ? Math.min(50, Math.max(1, Number(reqLimit)))
-          : (latest === "1" ? 1 : defaultLimit);
 
       const buildQuery = (visible, options = {}) => {
         const isVis =
@@ -254,12 +233,8 @@ function createApp({
           const cleanId = id.trim();
           query = query.eq("id", cleanId).limit(1);
         } else if (to?.trim()) {
-          const search = to
-            .trim()
-            .slice(0, 50)
-            .replace(/[\\%_]/g, "\\$&");
           query = query
-            .ilike("recipient_to", `%${search}%`)
+            .ilike("recipient_to", recipientPattern(to))
             .order("created_at", { ascending: false });
           if (before?.trim()) {
             query = query.lt(
@@ -280,15 +255,6 @@ function createApp({
         }
         return query;
       };
-      // Validate before executing either the filtered or legacy read.
-      if (
-        id?.trim() &&
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          id.trim(),
-        )
-      ) {
-        return res.status(400).json({ error: "Invalid confession ID format." });
-      }
       const { data, error } = await readVisibleConfessions(
         getDatabase,
         buildQuery,

@@ -1,13 +1,19 @@
 const { createHmac } = require("node:crypto");
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 
-async function consumeSharedRateLimit({ env, getDatabase, scope, client, windowMs, limit }) {
+function sharedRateLimitParams({ env, scope, client, windowMs, limit }) {
   if (!env.SUPABASE_SERVICE_ROLE) throw new Error("Rate-limit configuration is missing");
   const key = createHmac("sha256", env.SUPABASE_SERVICE_ROLE)
     .update(`${scope}:${ipKeyGenerator(client)}`).digest("hex");
-  const { data, error } = await getDatabase().rpc("consume_api_rate_limit", {
+  return {
     p_key: key, p_window_seconds: windowMs / 1000, p_limit: limit,
-  });
+  };
+}
+
+async function consumeSharedRateLimit(options) {
+  const { data, error } = await options.getDatabase().rpc(
+    "consume_api_rate_limit", sharedRateLimitParams(options),
+  );
   if (error || typeof data?.allowed !== "boolean") throw new Error("Rate-limit store is unavailable");
   return data;
 }
@@ -32,4 +38,4 @@ function createLimiter({ env, getDatabase, scope, windowMs, limit, message }) {
   };
 }
 
-module.exports = { createLimiter, consumeSharedRateLimit };
+module.exports = { createLimiter, consumeSharedRateLimit, sharedRateLimitParams };

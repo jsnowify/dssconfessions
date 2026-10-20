@@ -14,7 +14,7 @@ const ID = '11111111-1111-4111-8111-111111111111';
 const TRACK = '0123456789ABCDEFGHIJKL';
 const PASSWORD = 'performance-fixture-password';
 
-async function startFixture() {
+async function startFixture({ decorateDatabase = database => database } = {}) {
   const db = new PGlite({ extensions: { pg_trgm } });
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
     create table public.confessions(id uuid primary key default gen_random_uuid(),
@@ -23,7 +23,8 @@ async function startFixture() {
       artist_name text,album_art text,spotify_url text);`);
   for (const file of ['20261018110837_schema_catch_up.sql',
     '20261018140000_replies_tracklist_cap.sql', '20261019024537_confession_bots.sql',
-    '20261019034400_bot_disclosure_in_recipient.sql', '20261019043830_curated_horror_library.sql', '20261019043834_replies_500.sql']) {
+    '20261019034400_bot_disclosure_in_recipient.sql', '20261019043830_curated_horror_library.sql', '20261019043834_replies_500.sql',
+    '20261020014012_optimized_confession_feed.sql']) {
     await db.exec(readFileSync(resolve(root, 'supabase/migrations', file), 'utf8'));
   }
   await db.query(`insert into public.confessions(id,recipient_to,sender_from,content,
@@ -45,7 +46,7 @@ async function startFixture() {
     album: { images: [] }, external_urls: { spotify: `https://open.spotify.com/track/${TRACK}` } };
   // The adapter is shared with the existing HTTP integration suite.
   const calls = [];
-  const database = adapter(db, calls);
+  const database = decorateDatabase(adapter(db, calls));
   const server = createApp({ env, database, background: work => work,
     getToken: async () => 'fixture-token',
     spotify: { get: async url => ({ data: url.endsWith('/search') ? { tracks: { items: [track] } } : track }) },

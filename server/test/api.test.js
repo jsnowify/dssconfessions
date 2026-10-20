@@ -313,9 +313,9 @@ test("Vercel uses shared counters with hashed IPs and rejects exhausted limits",
   assert.equal(res.status, 429);
   assert.equal(res.headers.get("retry-after"), "42");
   const [, name, params] = database.calls[0];
-  assert.equal(name, "consume_api_rate_limit");
+  assert.equal(name, "read_confession_feed");
   assert.match(params.p_key, /^[a-f0-9]{64}$/);
-  assert.equal(params.p_limit, 60);
+  assert.equal(params.p_read_limit, 60);
   assert.equal(
     database.calls.some(([name]) => name === "from"),
     false,

@@ -4,7 +4,7 @@
   "installCommand": "npm ci --prefix server --omit=dev && npm ci --prefix client",
   "buildCommand": "npm run build",
   "outputDirectory": "client/dist",
-  "regions": ["sin1"],
+  "regions": ["syd1"],
   "crons": [{ "path": "/api/cron/confession-bots", "schedule": "0 0 * * *" }],
   "functions": { "api/index.js": { "maxDuration": 45 } },
   "rewrites": [
