@@ -29,7 +29,7 @@ const AboutView = () => (
         real community vibes for the Davao del Sur State College community.
       </p>
     </section>
-    w{/* Section 2: Key Facts & Entity Disclosures (Semantic <dl>) */}
+    {/* Section 2: Key Facts & Entity Disclosures (Semantic <dl>) */}
     <section className="sleeve-panel about-tile p-7 md:p-8 bg-(--surface) border-2 border-(--ink) rounded-2xl shadow-[4px_4px_0_var(--ink)]">
       <span className="liner-tag font-bold">COMMUNITY CONTEXT</span>
       <h2 className="text-xl md:text-2xl font-bold uppercase mb-4 tracking-tight text-(--ink)">
