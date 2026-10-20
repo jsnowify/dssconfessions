@@ -1,107 +1,11 @@
+import PageLink from "../components/ui/PageLink";
 import { useState, useEffect } from "react";
 import Doodle from "../components/ui/Doodle";
 import {
-  CANONICAL_DEFINITION,
-  DISCLOSURE_SENTENCE,
   OFFICIAL_COLLEGE_NAME,
   OFFICIAL_COLLEGE_URL,
 } from "../seo/routes";
-
-const FAQ_ITEMS = [
-  {
-    id: "what-is-dssconfessions",
-    question: "What is DSSC Confessions?",
-    answer: CANONICAL_DEFINITION,
-    extra:
-      "Unlike traditional social media confession pages that rely on Google Forms or Facebook posts, DSSC Confessions integrates directly with Spotify to attach music to your words, generates one-time author deletion keys, and maintains strict zero-IP logging.",
-  },
-  {
-    id: "is-dssc-confessions-official",
-    question: "Is DSSC Confessions the official DSSC website or student portal?",
-    answer:
-      "No. DSSC Confessions is an independent, student-made creative website. It is not the official website, student portal, or grading system of Davao del Sur State College. For official enrollment and records, visit the official college site.",
-    extra: `If you are looking for the official college administration, please visit ${OFFICIAL_COLLEGE_URL}.`,
-  },
-  {
-    id: "is-dssc-affiliated",
-    question: "Is DSSC Confessions affiliated with Davao del Sur State College?",
-    answer:
-      "No. DSSC Confessions is not affiliated with, sponsored by, or endorsed by Davao del Sur State College. The college name is used purely descriptively to identify the student and campus community we serve.",
-    extra: DISCLOSURE_SENTENCE,
-  },
-  {
-    id: "where-to-find-official-dssc",
-    question: "Where can I find the official DSSC website or student portal?",
-    answer:
-      "The official website of Davao del Sur State College is at https://www.dssc.edu.ph/. For student and employee portal services (enrollment, grades, records), access the official DSSC Portal directly at https://portal.dssc.edu.ph/.",
-  },
-  {
-    id: "who-can-send-confession",
-    question: "Who can send a confession?",
-    answer:
-      "Anyone in the Davao del Sur State College community—students, alumni, faculty, and friends across Digos City and Davao del Sur—can send an anonymous confession. No account, student ID, or login is required.",
-  },
-  {
-    id: "is-it-anonymous",
-    question: "Is DSSC Confessions safe and anonymous?",
-    answer:
-      "Yes. We require no accounts, email addresses, or phone numbers. We never log raw IP addresses or device fingerprints. Abuse-prevention safeguards operate without storing or logging your personal identity.",
-    extra:
-      "When you post, we only store the recipient name, optional sender pseudonym, message text, and verified Spotify track details. No identifiers tying the post to your network or identity exist.",
-  },
-  {
-    id: "how-to-report-confession",
-    question: "How do I report or remove a confession about me?",
-    answer:
-      "Click the flag icon on any confession card and choose 'This is about me and I want it removed' or another reason. Confessions receiving verified urgent reports are hidden automatically from public view.",
-  },
-  {
-    id: "how-to-delete-confession",
-    question: "How do I delete a confession I posted?",
-    answer:
-      "When you submit a confession, you receive a private one-time Delete Key. Enter this key on your confession card at any time to permanently remove it from our database.",
-    extra:
-      "Please keep your Delete Key safe. Because we do not store emails or accounts, a lost Delete Key cannot be recovered automatically.",
-  },
-  {
-    id: "who-made-dssconfessions",
-    question: "Who runs DSSC Confessions?",
-    answer:
-      "DSSC Confessions was built by Joshua as an independent community project to give the Davao del Sur State College student community a warm, creative, music-driven space for unspoken thoughts.",
-  },
-  {
-    id: "what-are-pokes",
-    question: "What are Pokes on confessions?",
-    answer:
-      "A Poke is a lightweight, friendly tap on a confession. Tapping Poke increments the counter to let the author know someone read their story, with zero user tracking.",
-  },
-  {
-    id: "how-to-send-a-confession",
-    question: "How do I send a confession with a song?",
-    answer:
-      "Go to the Confess page, enter the recipient's name, type your message, search for your chosen song on Spotify, and tap Post Confession. You will immediately receive a private one-time Delete Key that lets you delete the confession whenever you want.",
-    steps: [
-      "Open the Confess page from the navigation bar.",
-      "Enter the recipient's name (e.g., their first name or nickname).",
-      "Write your message (up to 3,000 characters).",
-      "Search Spotify for the song that captures your feelings and select it.",
-      "Review the Live Preview and tap Post Confession.",
-      "Save your private Delete Key safely.",
-    ],
-  },
-  {
-    id: "how-to-find-confessions",
-    question: "How do I find confessions written for my name?",
-    answer:
-      "Visit the Browse page and type your name, nickname, or initials into the search bar. DSSC Confessions will find all public confessions dedicated to that recipient, with matching songs and timestamps.",
-  },
-  {
-    id: "how-many-song-replies",
-    question: "How many song replies can a confession receive?",
-    answer:
-      "Each confession can receive up to 500 anonymous song replies on its mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
-  },
-];
+import { FAQ_ITEMS } from "../content/faq";
 
 export default function FaqView({ setView }) {
   const [openItems, setOpenItems] = useState(() => {
@@ -125,7 +29,10 @@ export default function FaqView({ setView }) {
         requestAnimationFrame(() => {
           const el = document.getElementById(hashId);
           if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            el.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+                block: "start",
+              });
           }
         });
       }
@@ -303,32 +210,31 @@ export default function FaqView({ setView }) {
                   </span>
                 </button>
 
-                {isOpen && (
-                  <div
-                    id={`faq-panel-${item.id}`}
-                    role="region"
-                    aria-labelledby={`faq-btn-${item.id}`}
-                    className="px-5 pb-6 md:px-6 md:pb-6 pt-2 border-t border-(--ink)/15 text-(--ink) animate-fade-in long-form"
-                  >
-                    <p className="text-sm md:text-base leading-relaxed font-medium mb-2">
-                      {item.answer}
+                <div
+                  hidden={!isOpen}
+                  id={`faq-panel-${item.id}`}
+                  role="region"
+                  aria-labelledby={`faq-btn-${item.id}`}
+                  className="px-5 pb-6 md:px-6 md:pb-6 pt-2 border-t border-(--ink)/15 text-(--ink) animate-fade-in long-form"
+                >
+                  <p className="text-sm md:text-base leading-relaxed font-medium mb-2">
+                    {item.answer}
+                  </p>
+                  {item.extra && (
+                    <p className="text-(--ink-soft) text-sm leading-relaxed mt-2">
+                      {item.extra}
                     </p>
-                    {item.extra && (
-                      <p className="text-(--ink-soft) text-sm leading-relaxed mt-2">
-                        {item.extra}
-                      </p>
-                    )}
-                    {item.steps && (
-                      <ol className="mt-3 list-decimal list-inside space-y-1.5 text-sm text-(--ink)">
-                        {item.steps.map((step, idx) => (
-                          <li key={idx} className="font-medium">
-                            {step}
-                          </li>
-                        ))}
-                      </ol>
-                    )}
-                  </div>
-                )}
+                  )}
+                  {item.steps && (
+                    <ol className="mt-3 list-decimal list-inside space-y-1.5 text-sm text-(--ink)">
+                      {item.steps.map((step, idx) => (
+                        <li key={idx} className="font-medium">
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
               </article>
             );
           })}
@@ -345,27 +251,15 @@ export default function FaqView({ setView }) {
           words anonymously to someone at DSSC.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={() => setView("submit")}
-            className="btn btn-ink px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer"
-          >
+          <PageLink href="/confess" view="submit" setView={setView} className="btn btn-ink px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer">
             Write a Confession
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("browse")}
-            className="btn btn-paper px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer"
-          >
+          </PageLink>
+          <PageLink href="/browse" view="browse" setView={setView} className="btn btn-paper px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer">
             Search Your Name
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("dssc-landing")}
-            className="btn btn-paper px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer"
-          >
+          </PageLink>
+          <PageLink href="/dssc-confessions" view="dssc-landing" setView={setView} className="btn btn-paper px-6 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer">
             DSSC Community Info
-          </button>
+          </PageLink>
         </div>
       </section>
     </div>

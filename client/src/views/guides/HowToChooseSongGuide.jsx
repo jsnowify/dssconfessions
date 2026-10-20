@@ -1,3 +1,4 @@
+import PageLink from "../../components/ui/PageLink";
 import Doodle from "../../components/ui/Doodle";
 
 export default function HowToChooseSongGuide({ setView }) {
@@ -234,13 +235,9 @@ export default function HowToChooseSongGuide({ setView }) {
         <p className="text-sm text-(--ink-soft) mb-6 max-w-md mx-auto">
           Head over to the submission form and search for your chosen track.
         </p>
-        <button
-          type="button"
-          onClick={() => setView("submit")}
-          className="btn btn-ink px-8 py-3.5 font-bold text-sm uppercase tracking-wider cursor-pointer"
-        >
+        <PageLink href="/confess" view="submit" setView={setView} className="btn btn-ink px-8 py-3.5 font-bold text-sm uppercase tracking-wider cursor-pointer">
           Attach a Song & Post
-        </button>
+        </PageLink>
       </div>
     </article>
   );

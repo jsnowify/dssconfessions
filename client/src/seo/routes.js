@@ -4,41 +4,26 @@
  * JSON-LD schema builder, and llms.txt.
  */
 
-export const SITE_NAME = "DSSC Confessions";
-export const SITE_ALTERNATE_NAMES = ["dssconfessions", "DSSC Confession Page"];
-
-export const CANONICAL_DEFINITION =
-  "DSSC Confessions (dssconfessions) is a free, independent website where people in the Davao del Sur State College community can send an anonymous message to someone, paired with a song, without creating an account. It is not affiliated with or endorsed by Davao del Sur State College.";
-
-export const DISCLOSURE_SENTENCE =
-  "Independent student project. Not affiliated with or endorsed by Davao del Sur State College.";
-
-export const DISAMBIGUATION_NOTE =
-  "Looking for the official college website or student portal?";
-
-export const OFFICIAL_COLLEGE_NAME = "Davao del Sur State College";
-export const OFFICIAL_COLLEGE_URL = "https://www.dssc.edu.ph/";
-export const OFFICIAL_PORTAL_URL = "https://portal.dssc.edu.ph/";
-export const OFFICIAL_WIKIPEDIA_URL =
-  "https://en.wikipedia.org/wiki/Davao_del_Sur_State_College";
-
-export const DEFAULT_SITE_URL = "https://dssconfessions.vercel.app";
-export const DEFAULT_LANG = "en-PH";
-export const DEFAULT_LOCALE = "en_PH";
-export const GEO_REGION = "PH-DAS"; // ISO 3166-2 for Davao del Sur
-
-export const CREATOR_INFO = {
-  name: "Joshua",
-  role: "Creator & Developer of DSSConfessions",
-  sameAs: [], // TODO(owner): Add public GitHub/LinkedIn profile URL if desired
-};
+import {
+  SITE_NAME,
+  SITE_ALTERNATE_NAMES,
+  CANONICAL_DEFINITION,
+  DISCLOSURE_SENTENCE,
+  OFFICIAL_COLLEGE_NAME,
+  OFFICIAL_COLLEGE_URL,
+  OFFICIAL_WIKIPEDIA_URL,
+  DEFAULT_LANG,
+  CREATOR_INFO,
+} from "./identity.js";
+import { FAQ_ITEMS } from "../content/faq.js";
+export * from "./identity.js";
 
 export const ROUTES_CONFIG = {
   "/": {
     path: "/",
     title: "DSSC Confessions | Anonymous Song Confessions & Stories",
     description:
-      "Send an anonymous confession paired with a song to someone in the Davao del Sur State College community. Free, no accounts, and 100% private.",
+      "Send an anonymous confession paired with a song to someone in the Davao del Sur State College community. Free, no account required. Independent community project.",
     robots: "index, follow",
     ogType: "website",
     h1: "Leave a confession. Attach a soundtrack.",
@@ -101,7 +86,7 @@ export const ROUTES_CONFIG = {
   },
   "/dssc-confessions": {
     path: "/dssc-confessions",
-    title: "DSSC Confessions | Anonymous Song Confessions, Davao del Sur",
+    title: "DSSC Confessions | Song Dedications for the DSSC Community",
     description:
       "Send an anonymous confession paired with a song to someone in the Davao del Sur State College community. Free, no accounts. Independent student project.",
     robots: "index, follow",
@@ -115,7 +100,7 @@ export const ROUTES_CONFIG = {
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        name: "DSSC Confessions | Anonymous Song Confessions, Davao del Sur",
+        name: "DSSC Confessions | Song Dedications for the DSSC Community",
         url: `${siteUrl}/dssc-confessions`,
         description: CANONICAL_DEFINITION,
         disambiguatingDescription:
@@ -312,96 +297,11 @@ export const ROUTES_CONFIG = {
         name: "Frequently Asked Questions | DSSC Confessions",
         url: `${siteUrl}/faq`,
         inLanguage: DEFAULT_LANG,
-        mainEntity: [
-          {
-            "@type": "Question",
-            name: "What is DSSC Confessions?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: CANONICAL_DEFINITION,
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Is DSSC Confessions the official DSSC website or student portal?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "No. DSSC Confessions is an independent, student-made creative website. It is not the official website, student portal, or grading system of Davao del Sur State College. For official enrollment and records, visit the official college site.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Is DSSC Confessions affiliated with Davao del Sur State College?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "No. DSSC Confessions is not affiliated with, sponsored by, or endorsed by Davao del Sur State College. The college name is used purely descriptively to identify the student and campus community we serve.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Where can I find the official DSSC website or student portal?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "The official website of Davao del Sur State College is at https://www.dssc.edu.ph/. For student and employee portal services (enrollment, grades, records), access the official DSSC Portal directly at https://portal.dssc.edu.ph/.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Who can send a confession?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Anyone in the Davao del Sur State College community—students, alumni, faculty, and friends across Digos City and Davao del Sur—can send an anonymous confession. No account, student ID, or login is required.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Is DSSC Confessions safe and anonymous?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Yes. We require no accounts, email addresses, or phone numbers. We never log raw IP addresses or device fingerprints. Abuse-prevention safeguards operate without storing or logging your personal identity.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "How do I report or remove a confession about me?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Click the flag icon on any confession card and choose 'This is about me and I want it removed' or another reason. Confessions receiving verified urgent reports are hidden automatically from public view.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "How do I delete a confession I posted?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "When you submit a confession, you receive a private one-time Delete Key. Enter this key on your confession card at any time to permanently remove it from our database.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Who runs DSSC Confessions?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "DSSC Confessions was built by Joshua as an independent community project to give the Davao del Sur State College student community a warm, creative, music-driven space for unspoken thoughts.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "What are Pokes on confessions?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "A Poke is a lightweight, friendly tap on a confession. Tapping Poke increments the counter to let the author know someone read their story, with zero user tracking.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "How many song replies can a confession receive?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Each confession can receive up to 500 anonymous song replies on its mixtape. The author can turn off replies when posting, or use their private Delete Key to remove individual replies and free up spots.",
-            },
-          },
-        ],
+        mainEntity: FAQ_ITEMS.map(({ question, answer }) => ({
+          "@type": "Question",
+          name: question,
+          acceptedAnswer: { "@type": "Answer", text: answer },
+        })),
       },
       {
         "@context": "https://schema.org",

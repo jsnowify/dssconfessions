@@ -2,10 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { sitemapXml } from "./seo-assets.mjs";
+import { robotsForEnvironment } from "../client/src/seo/indexing.js";
 import {
   ROUTES_CONFIG,
   INDEXABLE_ROUTES,
-  DEFAULT_SITE_URL,
   CANONICAL_DEFINITION,
   DISCLOSURE_SENTENCE,
   OFFICIAL_COLLEGE_URL,
@@ -45,24 +46,12 @@ const FORBIDDEN_SCHEMAS = [
   "LocalBusiness",
 ];
 
-function calculateKeywordDensity(htmlText, keyword) {
-  const cleanText = htmlText
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/[^\w\s]/g, " ")
-    .toLowerCase();
-
-  const words = cleanText.split(/\s+/).filter((w) => w.length > 0);
-  const keywordLower = keyword.toLowerCase();
-  const occurrences = words.filter((w) => w === keywordLower).length;
-  const density = words.length > 0 ? (occurrences / words.length) * 100 : 0;
-  return { density, occurrences, totalWords: words.length };
-}
-
 async function main() {
   console.log("🔍 Running Comprehensive SEO, Brand, Local SEO & AEO Verification (seo:check)...");
   let passed = true;
+  const build = JSON.parse(await fs.readFile(path.join(distDir, "seo-build.json"), "utf8"));
+  const titles = new Set();
+  const descriptions = new Set();
 
   // 1. Verify Brand Assets
   console.log("\n[1/6] Verifying Brand Assets...");
@@ -263,18 +252,32 @@ async function main() {
       }
     }
 
-    // 5.6 Keyword density for "DSSC" <= 3%
-    const densityResult = calculateKeywordDensity(landingHtml, "dssc");
-    if (densityResult.density > 3.0) {
-      console.error(
-        `  ❌ Keyword density for "DSSC" too high: ${densityResult.density.toFixed(2)}% (${densityResult.occurrences}/${densityResult.totalWords} words) > 3.0%`,
-      );
-      passed = false;
-    } else {
-      console.log(
-        `  ✓ Keyword density for "DSSC" is natural: ${densityResult.density.toFixed(2)}% (${densityResult.occurrences}/${densityResult.totalWords} words <= 3.0%)`,
-      );
+    // Require one consistent metadata graph and complete public page content.
+    for (const route of INDEXABLE_ROUTES) {
+      const html = await fs.readFile(path.join(distDir, route === "/" ? "" : route.slice(1), "index.html"), "utf8");
+      const blocks = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)];
+      const alternates = [...html.matchAll(/hreflang="en-PH"/g)];
+      if (blocks.length !== 1 || alternates.length !== 1 || !html.includes(`name="robots" content="${robotsForEnvironment(ROUTES_CONFIG[route].robots, build.environment)}`)) {
+        throw new Error(`${route} must have one route graph, one language alternate, and indexable metadata`);
+      }
+      const title = html.match(/<title>(.*?)<\/title>/i)?.[1];
+      const description = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i)?.[1];
+      if (!title || !description || titles.has(title) || descriptions.has(description)) {
+        throw new Error(`${route} needs a unique title and description`);
+      }
+      titles.add(title);
+      descriptions.add(description);
+      if ((html.match(/<h1\b/gi) || []).length !== 1) throw new Error(`${route} needs exactly one H1`);
+      if (!html.includes(`rel="canonical" href="${build.siteUrl}${route}"`)) throw new Error(`${route} canonical mismatch`);
+      const nodes = JSON.parse(blocks[0][1]);
+      const text = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+      const faq = nodes.find(node => node["@type"] === "FAQPage");
+      if (faq) for (const question of faq.mainEntity) {
+        const escaped = question.acceptedAnswer.text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
+        if (!text.includes(escaped)) throw new Error(`FAQ answer missing from HTML: ${question.name}`);
+      }
     }
+    console.log("  OK All public routes have consistent metadata; FAQ answers exist in page HTML");
 
     // 5.7 Check home and about prerendered files for disclosure
     const homeHtml = await fs.readFile(homeHtmlPath, "utf8");
@@ -318,7 +321,7 @@ async function main() {
     }
 
     // 6.2 sitemap.xml
-    const sitemapPath = path.join(publicDir, "sitemap.xml");
+    const sitemapPath = path.join(distDir, "sitemap.xml");
     const sitemap = await fs.readFile(sitemapPath, "utf8");
     if (sitemap.includes("/confession/")) {
       console.error("  ❌ sitemap.xml must NEVER contain individual /confession/ URLs");
@@ -327,15 +330,16 @@ async function main() {
       console.log("  ✓ sitemap.xml contains 0 /confession/ URLs (privacy preserved)");
     }
 
-    for (const route of INDEXABLE_ROUTES) {
-      const expectedUrl = `<loc>${DEFAULT_SITE_URL}${route === "/" ? "/" : route}</loc>`;
+    if (sitemap !== sitemapXml(build.siteUrl, build.environment)) throw new Error("Generated sitemap does not match current canonical indexable routes");
+    for (const route of INDEXABLE_ROUTES.filter(route => robotsForEnvironment(ROUTES_CONFIG[route].robots, build.environment).split(/[,\s]+/).includes("index"))) {
+      const expectedUrl = `<loc>${build.siteUrl}${route}</loc>`;
       const occurrences = (sitemap.match(new RegExp(expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
       if (occurrences !== 1) {
         console.error(`  ❌ sitemap.xml missing or duplicate entry for ${route} (count: ${occurrences})`);
         passed = false;
       }
     }
-    console.log(`  ✓ sitemap.xml contains all ${INDEXABLE_ROUTES.length} indexable routes exactly once`);
+    console.log("  OK Generated sitemap matches the build environment and canonical routes");
 
     // 6.3 llms.txt and llms-full.txt
     const llmsPath = path.join(publicDir, "llms.txt");

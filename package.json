@@ -20,7 +20,8 @@
     "check:live": "node scripts/check-live.cjs",
     "brand:build": "node scripts/build-brand-assets.mjs",
     "archive:capture": "node scripts/capture-design-archive.mjs",
-    "seo:check": "node scripts/seo-check.mjs"
+    "seo:check": "node scripts/seo-check.mjs",
+    "seo:verify": "node scripts/verify-seo.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.1",

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { robotsForEnvironment } from "./indexing";
 import {
   ROUTES_CONFIG,
   DEFAULT_SITE_URL,
@@ -61,6 +62,9 @@ export function useSeo({ view, query = "", confessionId = null }) {
   useEffect(() => {
     const siteUrl = import.meta.env.VITE_SITE_URL || DEFAULT_SITE_URL;
 
+    // Static route data must not survive navigation to another page or private post.
+    document.head.querySelector('script[id="prerendered-jsonld"]')?.remove();
+
     // Set document language
     if (typeof document !== "undefined" && document.documentElement) {
       document.documentElement.lang = DEFAULT_LANG;
@@ -108,6 +112,7 @@ export function useSeo({ view, query = "", confessionId = null }) {
 
     // 2. Browse with search query: noindex, follow (canonical to /browse)
     if (view === "browse" && query.trim()) {
+      document.head.querySelector('script[id="dynamic-jsonld"]')?.remove();
       document.title = `Search "${query}" | Browse ${SITE_NAME}`;
       setMetaTag('meta[name="description"]', "content", `Search results for recipient "${query}" on ${SITE_NAME}.`);
       setMetaTag('meta[name="robots"]', "content", "noindex, follow");
@@ -147,7 +152,7 @@ export function useSeo({ view, query = "", confessionId = null }) {
 
     document.title = config.title;
     setMetaTag('meta[name="description"]', "content", config.description);
-    setMetaTag('meta[name="robots"]', "content", config.robots);
+    setMetaTag('meta[name="robots"]', "content", robotsForEnvironment(config.robots, import.meta.env.VITE_DEPLOYMENT_ENV));
     setCanonical(canonicalUrl);
     setHreflang("en-PH", canonicalUrl);
     setHreflang("x-default", canonicalUrl);

@@ -1,15 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
+import { canonicalOrigin, sitemapXml, urlInventoryCsv } from "./seo-assets.mjs";
+import { robotsForEnvironment } from "../client/src/seo/indexing.js";
 import {
   ROUTES_CONFIG,
   DEFAULT_SITE_URL,
-  SITE_NAME,
   CANONICAL_DEFINITION,
   DISCLOSURE_SENTENCE,
-  DISAMBIGUATION_NOTE,
-  OFFICIAL_COLLEGE_NAME,
-  OFFICIAL_COLLEGE_URL,
 } from "../client/src/seo/routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -37,56 +36,49 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-function getPrerenderBody(route, config) {
-  if (route === "/dssc-confessions") {
-    return `
-      <main style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;line-height:1.6;color:#1F2A44;">
-        <nav aria-label="Breadcrumb" style="font-family:sans-serif;font-size:12px;margin-bottom:20px;">
-          <a href="/">Home</a> / <span>DSSC Confessions</span>
-        </nav>
-        <h1 style="font-size:2.2rem;margin-bottom:16px;">${escapeHtml(config.h1)}</h1>
-        <div style="background:#FFFFFF;border:2px solid #1F2A44;padding:24px;border-radius:16px;box-shadow:4px 4px 0 #1F2A44;margin-bottom:24px;">
-          <h2 style="font-size:1.3rem;margin-top:0;">What is DSSC Confessions?</h2>
-          <p style="font-size:1.05rem;">${escapeHtml(CANONICAL_DEFINITION)}</p>
-        </div>
-        <div style="background:#FEF08A;border:2px solid #1F2A44;padding:20px;border-radius:16px;box-shadow:3px 3px 0 #1F2A44;margin-bottom:30px;">
-          <p style="font-weight:bold;margin:0 0 10px 0;">⚠️ ${escapeHtml(DISCLOSURE_SENTENCE)}</p>
-          <p style="font-size:0.9rem;margin:0;">
-            ${escapeHtml(DISAMBIGUATION_NOTE)}
-            Visit the official <a href="${OFFICIAL_COLLEGE_URL}" target="_blank" rel="noopener noreferrer" style="color:#2563EB;font-weight:bold;">${escapeHtml(OFFICIAL_COLLEGE_NAME)} website (${OFFICIAL_COLLEGE_URL})</a> for enrollment, student portal login, and official announcements.
-          </p>
-        </div>
-        <section style="margin-bottom:30px;">
-          <h2 style="font-size:1.4rem;">How to Send a Confession with a Song</h2>
-          <ol style="padding-left:20px;">
-            <li>Navigate to the <a href="/confess" style="color:#2563EB;">Confess page</a>.</li>
-            <li>Enter the recipient's name or pseudonym.</li>
-            <li>Search Spotify for the exact track that carries your unspoken words.</li>
-            <li>Compose your message (up to 3,000 characters).</li>
-            <li>Post your confession and safely store your private 16-character Delete Key.</li>
-          </ol>
-        </section>
-        <section style="margin-bottom:30px;">
-          <h2 style="font-size:1.4rem;">Community Safety & Moderation Rules</h2>
-          <p>DSSC Confessions is committed to a safe, positive environment for all students in Davao del Sur. Harassment, bullying, doxxing, naming minors, and hate speech are strictly prohibited.</p>
-          <p>Any visitor can report a confession using the in-app flag icon. Urgent reports are hidden automatically from the public feed.</p>
-        </section>
-        <footer style="margin-top:50px;padding-top:20px;border-top:1px solid #1F2A44;font-family:sans-serif;font-size:12px;text-align:center;">
-          <p>Independent student project, not affiliated with or endorsed by Davao del Sur State College.</p>
-        </footer>
-      </main>
-    `;
+// Reuse the existing build dependencies. No browser, API requests, or student
+// content are involved in rendering these public informational views.
+const clientRequire = createRequire(path.join(rootDir, "client/package.json"));
+const { createServer } = await import(pathToFileURL(clientRequire.resolve("vite")).href);
+const React = clientRequire("react");
+const { renderToStaticMarkup } = clientRequire("react-dom/server");
+const informationalRoutes = new Set([
+  "/dssc-confessions", "/about", "/faq", "/privacy",
+  ...Object.keys(routeModules).filter(route => route.startsWith("/guides/")),
+]);
+
+async function getPrerenderBody(route, config, renderer) {
+  const navigation = `<nav aria-label="Main navigation" class="max-w-4xl mx-auto px-6 py-4 flex flex-wrap gap-4 text-nav">
+    <a class="btn btn-paper" href="/">Home</a>
+    <a class="btn btn-paper" href="/dssc-confessions">DSSC community</a>
+    <a class="btn btn-paper" href="/browse">Browse</a>
+    <a class="btn btn-paper" href="/confess">Confess</a>
+    <a class="btn btn-paper" href="/about">About</a>
+    <a class="btn btn-paper" href="/faq">FAQ</a>
+  </nav>`;
+  const disclosure = `<footer class="max-w-4xl mx-auto px-6 py-8 text-body-sm"><p>${escapeHtml(DISCLOSURE_SENTENCE)}</p></footer>`;
+  if (informationalRoutes.has(route)) {
+    const { default: View } = await renderer.ssrLoadModule(`/${routeModules[route]}`);
+    return `${navigation}<main>${renderToStaticMarkup(React.createElement(View))}</main>${disclosure}`;
   }
 
-  // Generic fallback body for other routes
-  return `
-    <main style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;line-height:1.6;color:#1F2A44;">
-      <h1 style="font-size:2rem;margin-bottom:16px;">${escapeHtml(config.h1)}</h1>
-      <p style="font-size:1.05rem;color:#4A5568;">${escapeHtml(config.description)}</p>
-      <footer style="margin-top:50px;padding-top:20px;border-top:1px solid #1F2A44;font-family:sans-serif;font-size:12px;text-align:center;">
-        <p>Independent student project, not affiliated with or endorsed by Davao del Sur State College.</p>
-      </footer>
-    </main>
+  // Interactive feed/search/composer routes deliberately contain no user data.
+  return `${navigation}
+    <main class="max-w-4xl mx-auto px-6 py-8">
+      <h1 class="text-h1 font-script">${escapeHtml(config.h1)}</h1>
+      <p class="text-body-lg">${escapeHtml(config.description)}</p>
+      <section class="my-8">
+        <h2 class="text-h2">Anonymous song dedications for the DSSC community</h2>
+        <p class="text-body">${escapeHtml(CANONICAL_DEFINITION)}</p>
+        <nav aria-label="Explore DSSC Confessions" class="flex flex-wrap gap-4 my-6">
+          <a class="btn btn-paper" href="/dssc-confessions">About the DSSC community project</a>
+          <a class="btn btn-paper" href="/confess">Send a song confession</a>
+          <a class="btn btn-paper" href="/browse">Browse confessions</a>
+          <a class="btn btn-paper" href="/faq">Questions and answers</a>
+          <a class="btn btn-paper" href="/privacy">Privacy and deletion</a>
+        </nav>
+      </section>
+    </main>${disclosure}
   `;
 }
 
@@ -102,99 +94,116 @@ async function prerender() {
     process.exit(1);
   }
 
-  const siteUrl = process.env.VITE_SITE_URL || DEFAULT_SITE_URL;
+  const siteUrl = canonicalOrigin(process.env.VITE_SITE_URL || DEFAULT_SITE_URL);
+  const environment = process.env.VERCEL_ENV || "";
+  const pages = {};
   const manifest = JSON.parse(await fs.readFile(path.join(distDir, ".vite/manifest.json"), "utf8"));
 
-  for (const [route, config] of Object.entries(ROUTES_CONFIG)) {
-    const canonicalUrl = `${siteUrl}${config.path === "/" ? "/" : config.path}`;
-    const jsonLdData = config.getJsonLd ? config.getJsonLd(siteUrl) : null;
-    const bodyContent = getPrerenderBody(route, config);
+  const renderer = await createServer({
+    root: path.join(rootDir, "client"),
+    server: { middlewareMode: true, watch: null, hmr: false },
+    appType: "custom",
+  });
+  try {
+    for (const [route, config] of Object.entries(ROUTES_CONFIG)) {
+      const canonicalUrl = `${siteUrl}${config.path === "/" ? "/" : config.path}`;
+      const jsonLdData = config.getJsonLd ? config.getJsonLd(siteUrl) : null;
+      const bodyContent = await getPrerenderBody(route, config, renderer);
 
-    let html = templateHtml;
-    // Fetch only this page's chunk in parallel with the entry script, rather
-    // than waiting for React to request it. Other screens stay on demand.
-    const preloads = new Set();
-    const visit = (key) => {
-      const chunk = manifest[key];
-      if (!chunk || chunk.isEntry || preloads.has(chunk.file)) return;
-      preloads.add(chunk.file);
-      for (const imported of chunk.imports || []) visit(imported);
-    };
-    visit(routeModules[route]);
-    if (preloads.size) html = html.replace("</head>", [...preloads].map(file =>
-      `    <link rel="modulepreload" crossorigin href="/${file}" />\n`).join("") + "  </head>");
+      let html = templateHtml;
+      // Fetch only this page's chunk in parallel with the entry script, rather
+      // than waiting for React to request it. Other screens stay on demand.
+      const preloads = new Set();
+      const visit = (key) => {
+        const chunk = manifest[key];
+        if (!chunk || chunk.isEntry || preloads.has(chunk.file)) return;
+        preloads.add(chunk.file);
+        for (const imported of chunk.imports || []) visit(imported);
+      };
+      visit(routeModules[route]);
+      if (preloads.size) html = html.replace("</head>", [...preloads].map(file =>
+        `    <link rel="modulepreload" crossorigin href="/${file}" />\n`).join("") + "  </head>");
 
-    // 1. Language attribute
-    html = html.replace(/<html[^>]*>/i, '<html lang="en-PH">');
+      // 1. Language attribute
+      html = html.replace(/<html[^>]*>/i, '<html lang="en-PH">');
 
-    // 2. Title & Descriptions
-    html = html.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(config.title)}</title>`);
-    html = html.replace(
-      /<meta\s+name="description"\s+content=".*?"\s*\/?>/i,
-      `<meta name="description" content="${escapeHtml(config.description)}" />`,
-    );
+      // 2. Title & Descriptions
+      html = html.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(config.title)}</title>`);
+      html = html.replace(
+        /<meta\s+name="description"\s+content=".*?"\s*\/?>/i,
+        `<meta name="description" content="${escapeHtml(config.description)}" />`,
+      );
 
-    // 3. Canonical & Hreflang
-    html = html.replace(
-      /<link\s+rel="canonical"\s+href=".*?"\s*\/?>/i,
-      `<link rel="canonical" href="${canonicalUrl}" />\n    <link rel="alternate" hreflang="en-PH" href="${canonicalUrl}" />\n    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}" />`,
-    );
+      // Replace template alternates before adding route-specific URLs.
+      html = html.replace(/<link\s+rel="alternate"\s+hreflang="[^"]+"[^>]*>/gi, "");
+      html = html.replace(/<meta\s+name="robots"\s+content=".*?"\s*\/?>/i,
+        `<meta name="robots" content="${escapeHtml(robotsForEnvironment(config.robots, environment))}, max-image-preview:large" />`);
 
-    // 4. Open Graph & Twitter
-    html = html.replace(
-      /<meta\s+property="og:title"\s+content=".*?"\s*\/?>/i,
-      `<meta property="og:title" content="${escapeHtml(config.title)}" />`,
-    );
-    html = html.replace(
-      /<meta\s+property="og:description"\s+content=".*?"\s*\/?>/i,
-      `<meta property="og:description" content="${escapeHtml(config.description)}" />`,
-    );
-    html = html.replace(
-      /<meta\s+property="og:url"\s+content=".*?"\s*\/?>/i,
-      `<meta property="og:url" content="${canonicalUrl}" />`,
-    );
-    html = html.replace(
-      /<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/i,
-      `<meta name="twitter:title" content="${escapeHtml(config.title)}" />`,
-    );
-    html = html.replace(
-      /<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/i,
-      `<meta name="twitter:description" content="${escapeHtml(config.description)}" />`,
-    );
+      // 3. Canonical & Hreflang
+      html = html.replace(
+        /<link\s+rel="canonical"\s+href=".*?"\s*\/?>/i,
+        `<link rel="canonical" href="${canonicalUrl}" />\n    <link rel="alternate" hreflang="en-PH" href="${canonicalUrl}" />\n    <link rel="alternate" hreflang="x-default" href="${canonicalUrl}" />`,
+      );
 
-    // 5. Injected JSON-LD
-    if (jsonLdData) {
-      const jsonLdBlock = `\n    <!-- Prerendered JSON-LD -->\n    <script type="application/ld+json" id="prerendered-jsonld">\n${JSON.stringify(
-        jsonLdData,
-        null,
-        2,
-      )}\n    </script>\n`;
-      // Replace existing dynamic script if present, or append before </head>
-      if (html.includes('id="dynamic-jsonld"')) {
-        html = html.replace(/<script[^>]*id="dynamic-jsonld"[^>]*>[\s\S]*?<\/script>/i, jsonLdBlock);
-      } else {
+      // 4. Open Graph & Twitter
+      html = html.replace(
+        /<meta\s+property="og:title"\s+content=".*?"\s*\/?>/i,
+        `<meta property="og:title" content="${escapeHtml(config.title)}" />`,
+      );
+      html = html.replace(
+        /<meta\s+property="og:description"\s+content=".*?"\s*\/?>/i,
+        `<meta property="og:description" content="${escapeHtml(config.description)}" />`,
+      );
+      html = html.replace(
+        /<meta\s+property="og:url"\s+content=".*?"\s*\/?>/i,
+        `<meta property="og:url" content="${canonicalUrl}" />`,
+      );
+      html = html.replace(
+        /<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/i,
+        `<meta name="twitter:title" content="${escapeHtml(config.title)}" />`,
+      );
+      html = html.replace(
+        /<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/i,
+        `<meta name="twitter:description" content="${escapeHtml(config.description)}" />`,
+      );
+
+      // 5. Injected JSON-LD
+      if (jsonLdData) {
+        const jsonLdBlock = `\n    <!-- Prerendered JSON-LD -->\n    <script type="application/ld+json" id="prerendered-jsonld">\n${JSON.stringify(
+          jsonLdData,
+          null,
+          2,
+        )}\n    </script>\n`;
+        // The template graph belongs to Home. Keep one graph for this route.
+        html = html.replace(/<script[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi, "");
         html = html.replace("</head>", `${jsonLdBlock}  </head>`);
       }
+
+      // 6. Inject prerendered body into <div id="root"></div>
+      html = html.replace(
+        '<div id="root"></div>',
+        `<div id="root">${bodyContent}</div>`,
+      );
+
+      const h1 = bodyContent.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1].replace(/<[^>]+>/g, "").trim();
+      pages[route] = { h1: h1?.replaceAll("&amp;", "&").replaceAll("&quot;", '"').replaceAll("&#x27;", "'") };
+
+      // 7. Write to dist folder
+      const targetDir =
+        route === "/" ? distDir : path.join(distDir, route.replace(/^\//, ""));
+      await fs.mkdir(targetDir, { recursive: true });
+      const targetFile = path.join(targetDir, "index.html");
+      await fs.writeFile(targetFile, html, "utf8");
+
+      console.log(`  ✓ Prerendered: ${route} -> ${path.relative(rootDir, targetFile)}`);
     }
 
-    // 6. Inject prerendered body into <div id="root"></div>
-    html = html.replace(
-      '<div id="root"></div>',
-      `<div id="root">${bodyContent}</div>`,
-    );
-
-    // 7. Write to dist folder
-    const targetDir =
-      route === "/" ? distDir : path.join(distDir, route.replace(/^\//, ""));
-    await fs.mkdir(targetDir, { recursive: true });
-    const targetFile = path.join(targetDir, "index.html");
-    await fs.writeFile(targetFile, html, "utf8");
-
-    console.log(`  ✓ Prerendered: ${route} -> ${path.relative(rootDir, targetFile)}`);
+  } finally {
+    await renderer.close();
   }
 
-  // 8. Ensure sitemap.xml, robots.txt, llms.txt, llms-full.txt are in dist
-  const staticFiles = ["sitemap.xml", "robots.txt", "llms.txt", "llms-full.txt"];
+  // 8. Copy reference assets; generate the sitemap from canonical indexable routes.
+  const staticFiles = ["robots.txt", "llms.txt", "llms-full.txt"];
   for (const file of staticFiles) {
     const src = path.join(publicDir, file);
     const dest = path.join(distDir, file);
@@ -206,6 +215,13 @@ async function prerender() {
     }
   }
 
+  await fs.writeFile(path.join(distDir, "sitemap.xml"), sitemapXml(siteUrl, environment), "utf8");
+  const robotsPath = path.join(distDir, "robots.txt");
+  const robots = await fs.readFile(robotsPath, "utf8");
+  await fs.writeFile(robotsPath, robots.replace(/^Sitemap: .*$/m, `Sitemap: ${siteUrl}/sitemap.xml`), "utf8");
+  await fs.writeFile(path.join(distDir, "seo-build.json"), JSON.stringify({ siteUrl, environment }), "utf8");
+  await fs.mkdir(path.join(rootDir, "docs/seo"), { recursive: true });
+  await fs.writeFile(path.join(rootDir, "docs/seo/url-inventory.csv"), urlInventoryCsv(siteUrl, pages), "utf8");
   console.log("✅ Prerender completed successfully!");
 }
 

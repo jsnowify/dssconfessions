@@ -1,3 +1,4 @@
+import PageLink from "../../components/ui/PageLink";
 import Doodle from "../../components/ui/Doodle";
 
 export default function IsItSafeGuide({ setView }) {
@@ -208,20 +209,12 @@ export default function IsItSafeGuide({ setView }) {
           Explore complete technical disclosures, deletion key guides, and terms.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <button
-            type="button"
-            onClick={() => setView("faq")}
-            className="btn btn-ink px-6 py-3 font-bold text-xs uppercase tracking-wider cursor-pointer"
-          >
+          <PageLink href="/faq" view="faq" setView={setView} className="btn btn-ink px-6 py-3 font-bold text-xs uppercase tracking-wider cursor-pointer">
             Read FAQ
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("privacy")}
-            className="btn btn-secondary px-6 py-3 font-bold text-xs uppercase tracking-wider cursor-pointer"
-          >
+          </PageLink>
+          <PageLink href="/privacy" view="privacy" setView={setView} className="btn btn-secondary px-6 py-3 font-bold text-xs uppercase tracking-wider cursor-pointer">
             Read Privacy Policy
-          </button>
+          </PageLink>
         </div>
       </div>
     </article>

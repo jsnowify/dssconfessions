@@ -4,27 +4,184 @@
   "installCommand": "npm ci --prefix server --omit=dev && npm ci --prefix client",
   "buildCommand": "npm run build",
   "outputDirectory": "client/dist",
-  "regions": ["syd1"],
-  "crons": [{ "path": "/api/cron/confession-bots", "schedule": "0 0 * * *" }],
-  "functions": { "api/index.js": { "maxDuration": 45 } },
+  "regions": [
+    "syd1"
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/confession-bots",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 45
+    }
+  },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index" },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
     {
       "source": "/confession/:id",
-      "has": [{ "type": "query", "key": "_spa", "value": "1" }],
+      "has": [
+        {
+          "type": "query",
+          "key": "_spa",
+          "value": "1"
+        }
+      ],
       "destination": "/index.html"
     },
-    { "source": "/confession/:id", "destination": "/api/index" },
-    { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }
+    {
+      "source": "/confession/:id",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/browse",
+      "destination": "/browse/index.html"
+    },
+    {
+      "source": "/confess",
+      "destination": "/confess/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/dssc-confessions",
+      "destination": "/dssc-confessions/index.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/guides/how-to-send-an-anonymous-song-confession",
+      "destination": "/guides/how-to-send-an-anonymous-song-confession/index.html"
+    },
+    {
+      "source": "/guides/how-to-choose-a-song-for-your-confession",
+      "destination": "/guides/how-to-choose-a-song-for-your-confession/index.html"
+    },
+    {
+      "source": "/guides/is-it-safe-to-send-an-anonymous-confession",
+      "destination": "/guides/is-it-safe-to-send-an-anonymous-confession/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/:tab(bots|reports|moderation)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/submit",
+      "destination": "/confess/index.html"
+    },
+    {
+      "source": "/guides/how-to-send-an-anonymous-confession",
+      "destination": "/guides/how-to-send-an-anonymous-song-confession/index.html"
+    },
+    {
+      "source": "/confessions/:id",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
       "source": "/admin/:path*",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     },
     {
       "source": "/confession/:id",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/confessions/:id",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "to"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "search"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "id"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "query",
+          "key": "confession"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ]
 }

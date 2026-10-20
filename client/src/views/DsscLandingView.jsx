@@ -1,9 +1,10 @@
+import PageLink from "../components/ui/PageLink";
 import Doodle from "../components/ui/Doodle";
 import {
   CANONICAL_DEFINITION,
   DISCLOSURE_SENTENCE,
   DISAMBIGUATION_NOTE,
-  OFFICIAL_COLLEGE_NAME,
+  OFFICIAL_PORTAL_URL,
   OFFICIAL_COLLEGE_URL,
 } from "../seo/routes";
 
@@ -41,7 +42,7 @@ export default function DsscLandingView({ setView }) {
           DSSC Confessions: Send an Anonymous Song to Someone at Davao del Sur State College
         </h1>
         <p className="text-sm sm:text-base font-sans text-(--ink-soft) leading-relaxed">
-          Untold thoughts, hidden crushes, and heartfelt dedications across the Digos City and Davao del Sur campus community.
+          An independent song dedication website for the Davao del Sur State College (DSSC) community in Digos City, Davao del Sur. Send a message with a song, browse dedications, or reply with another track, without creating an account.
         </p>
       </header>
 
@@ -98,7 +99,7 @@ export default function DsscLandingView({ setView }) {
           <p className="leading-relaxed">
             If you are looking for student enrollment, grade inquiries, admission schedules, or the official student portal, please visit the official{" "}
             <a
-              href="https://portal.dssc.edu.ph/"
+              href={OFFICIAL_PORTAL_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-(--primary) font-bold underline hover:text-(--ink)"
@@ -141,7 +142,7 @@ export default function DsscLandingView({ setView }) {
               </tr>
               <tr>
                 <td className="p-3 sm:p-4 font-bold text-(--ink)">Account Required</td>
-                <td className="p-3 sm:p-4 bg-(--sky)/20 font-bold text-emerald-800">None (100% anonymous)</td>
+                <td className="p-3 sm:p-4 bg-(--sky)/20 font-bold text-emerald-800">No account required</td>
                 <td className="p-3 sm:p-4 text-(--ink-soft)">Official Student ID and password login</td>
               </tr>
               <tr>
@@ -170,13 +171,9 @@ export default function DsscLandingView({ setView }) {
         <ol className="list-decimal list-inside space-y-3 text-sm text-(--ink)">
           <li>
             <strong>Open the Confess form:</strong> Click the{" "}
-            <button
-              type="button"
-              onClick={() => setView("submit")}
-              className="font-bold underline text-(--primary) hover:text-(--ink)"
-            >
+            <PageLink href="/confess" view="submit" setView={setView} className="font-bold underline text-(--primary) hover:text-(--ink)">
               Confess button
-            </button>{" "}
+            </PageLink>{" "}
             in the navigation bar.
           </li>
           <li>
@@ -205,13 +202,9 @@ export default function DsscLandingView({ setView }) {
         <ol className="list-decimal list-inside space-y-3 text-sm text-(--ink)">
           <li>
             <strong>Navigate to Browse:</strong> Go to the{" "}
-            <button
-              type="button"
-              onClick={() => setView("browse")}
-              className="font-bold underline text-(--primary) hover:text-(--ink)"
-            >
+            <PageLink href="/browse" view="browse" setView={setView} className="font-bold underline text-(--primary) hover:text-(--ink)">
               Browse page
-            </button>
+            </PageLink>
             .
           </li>
           <li>
@@ -272,7 +265,7 @@ export default function DsscLandingView({ setView }) {
           What Data is Stored?
         </h2>
         <p className="text-sm text-(--ink-soft) leading-relaxed mb-3">
-          We maintain an absolute zero-IP policy. We never log client IP addresses, browser fingerprints, or GPS locations. Rate limiting uses transient cryptographic hashes with daily salts that expire automatically.
+          No account is required. Our application does not store raw IP addresses or browser fingerprints. Abuse prevention uses one-way hashes. Confessions are publicly readable, so avoid including personal details you do not want others to see. Hosting and music providers may process their own operational data.
         </p>
         <p className="text-sm font-bold text-(--ink)">
           Read our complete technical guarantees on the{" "}
@@ -359,20 +352,12 @@ export default function DsscLandingView({ setView }) {
 
       {/* Primary CTAs */}
       <div className="flex flex-wrap items-center justify-center gap-4 py-6 border-t-2 border-dashed border-(--ink)/30">
-        <button
-          type="button"
-          onClick={() => setView("submit")}
-          className="btn btn-primary px-8 py-3.5 font-bold text-sm shadow-[3px_3px_0_var(--ink)] cursor-pointer"
-        >
+        <PageLink href="/confess" view="submit" setView={setView} className="btn btn-primary px-8 py-3.5 font-bold text-sm shadow-[3px_3px_0_var(--ink)] cursor-pointer">
           Tell Your Story
-        </button>
-        <button
-          type="button"
-          onClick={() => setView("browse")}
-          className="btn btn-paper px-8 py-3.5 font-bold text-sm shadow-[3px_3px_0_var(--ink)] cursor-pointer"
-        >
+        </PageLink>
+        <PageLink href="/browse" view="browse" setView={setView} className="btn btn-paper px-8 py-3.5 font-bold text-sm shadow-[3px_3px_0_var(--ink)] cursor-pointer">
           Browse Confessions
-        </button>
+        </PageLink>
       </div>
     </div>
   );

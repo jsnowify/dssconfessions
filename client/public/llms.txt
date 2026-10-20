@@ -16,7 +16,7 @@
 - **Complete Anonymity**: No accounts, usernames, emails, or phone numbers required.
 - **Zero-IP Logging**: No client IP addresses or hardware fingerprints are stored in any database table.
 - **Author Control**: Authors receive a private 16-character Delete Key for permanent self-deletion.
-- **Mixtape Song Replies**: Confessions can receive up to 10 anonymous song replies in a collaborative 10-track mixtape format.
+- **Mixtape Song Replies**: Confessions can receive up to 500 anonymous song replies on a collaborative mixtape.
 - **Community Safety**: In-app reporting automatically hides contested confessions upon urgent review.
 
 ## Key Indexable URLs

@@ -136,6 +136,9 @@ export const ConfessionCard = React.memo(
                   {data?.album_art && failedImage !== data.album_art ? (
                     <img
                       src={data.album_art}
+                      width={44}
+                      height={44}
+                      decoding="async"
                       alt=""
                       loading="lazy"
                       className="album-thumb"

@@ -27,7 +27,7 @@ DSSC Confessions is an independent student-built creative experiment and communi
 3. Search for any song on Spotify and attach it to the post.
 4. Compose an untold message up to 3,000 characters.
 5. Tap Post Confession.
-6. The system displays a private 16-character Delete Key. This key is the only method to permanently delete the post.
+6. The system displays a private 16-character Delete Key. Authors can use this key to delete their own post; visitors can also report posts for moderation.
 
 ### Finding a Confession
 1. Navigate to https://dssconfessions.vercel.app/browse.
@@ -41,7 +41,7 @@ DSSC Confessions is an independent student-built creative experiment and communi
 4. Pokes do not track identity or IP addresses.
 
 ### Song Replies (Mixtape Tracklist)
-1. Confessions can receive up to 10 anonymous song replies in a collaborative 10-track mixtape tracklist.
+1. Confessions can receive up to 500 anonymous song replies on a collaborative mixtape tracklist.
 2. Each reply pairs a verified Spotify track with an optional 140-character note.
 3. The confession author can disable replies at post time, or unlock reply controls with their Delete Key to remove individual tracks and free up spots.
 

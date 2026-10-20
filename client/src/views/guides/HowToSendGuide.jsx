@@ -1,3 +1,4 @@
+import PageLink from "../../components/ui/PageLink";
 import Doodle from "../../components/ui/Doodle";
 
 export default function HowToSendGuide({ setView }) {
@@ -147,13 +148,9 @@ export default function HowToSendGuide({ setView }) {
         <p className="text-sm text-(--ink-soft) mb-6 max-w-md mx-auto">
           Write your story, attach a track, and let it speak for you anonymously.
         </p>
-        <button
-          type="button"
-          onClick={() => setView("submit")}
-          className="btn btn-ink px-8 py-3.5 font-bold text-sm uppercase tracking-wider cursor-pointer"
-        >
+        <PageLink href="/confess" view="submit" setView={setView} className="btn btn-ink px-8 py-3.5 font-bold text-sm uppercase tracking-wider cursor-pointer">
           Open the Confess Form
-        </button>
+        </PageLink>
       </div>
     </article>
   );

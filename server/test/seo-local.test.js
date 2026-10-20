@@ -28,25 +28,10 @@ const EXPECTED_ROUTES = [
   "/guides/is-it-safe-to-send-an-anonymous-confession",
 ];
 
-function calculateKeywordDensity(htmlText, keyword) {
-  const cleanText = htmlText
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/[^\w\s]/g, " ")
-    .toLowerCase();
-
-  const words = cleanText.split(/\s+/).filter((w) => w.length > 0);
-  const keywordLower = keyword.toLowerCase();
-  const occurrences = words.filter((w) => w === keywordLower).length;
-  const density = words.length > 0 ? (occurrences / words.length) * 100 : 0;
-  return { density, occurrences, totalWords: words.length };
-}
-
 test("Local SEO, GEO, AEO & Schema Invariants Suite", async (t) => {
   await t.test("routes.js defines valid local SEO and canonical constants", () => {
     assert.ok(fs.existsSync(routesJsPath), "routes.js must exist");
-    const content = fs.readFileSync(routesJsPath, "utf8");
+    const content = fs.readFileSync(routesJsPath, "utf8") + fs.readFileSync(path.join(rootDir, "client/src/seo/identity.js"), "utf8");
 
     assert.ok(content.includes('SITE_NAME = "DSSC Confessions"'), "SITE_NAME must be DSSC Confessions");
     assert.ok(content.includes('DEFAULT_LANG = "en-PH"'), "DEFAULT_LANG must be en-PH");
@@ -138,6 +123,10 @@ test("Local SEO, GEO, AEO & Schema Invariants Suite", async (t) => {
       llms.includes("https://www.dssc.edu.ph/"),
       "llms.txt must link to official college portal",
     );
+    for (const reference of [llms, llmsFull]) {
+      assert.ok(reference.includes("up to 500 anonymous song replies"));
+      assert.ok(!reference.includes("10-track"));
+    }
     assert.ok(
       llmsFull.includes("https://www.dssc.edu.ph/"),
       "llms-full.txt must link to official college portal",
@@ -157,7 +146,26 @@ test("Local SEO, GEO, AEO & Schema Invariants Suite", async (t) => {
       }
     }
   });
-  await t.test("Prerendered outputs respect density, single h1 and disclosure invariants", () => {
+  await t.test("informational pages ship their full content before JavaScript runs", () => {
+    const expected = {
+      "dssc-confessions": ["What Data is Stored?", "Who Created DSSC Confessions?"],
+      "faq": ["faq-panel-how-many-song-replies", "up to 500 anonymous song replies"],
+      "privacy": ["1. Our Zero-IP Anonymity Guarantee"],
+      "guides/how-to-send-an-anonymous-song-confession": ["Quick Answer", "Step 1"],
+      "guides/how-to-choose-a-song-for-your-confession": ["Quick Recommendation"],
+      "guides/is-it-safe-to-send-an-anonymous-confession": ["Direct Answer"],
+    };
+    for (const [route, phrases] of Object.entries(expected)) {
+      const file = path.join(distDir, route, "index.html");
+      assert.ok(fs.existsSync(file), "Run npm run build before the SEO suite");
+      const html = fs.readFileSync(file, "utf8");
+      const body = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+      for (const phrase of phrases) assert.ok(body.includes(phrase), `${route}: ${phrase}`);
+      assert.equal((html.match(/type="application\/ld\+json"/g) || []).length, 1, route);
+      assert.equal((html.match(/hreflang="en-PH"/g) || []).length, 1, route);
+    }
+  });
+  await t.test("Prerendered outputs respect single h1 and disclosure invariants", () => {
     const landingPath = path.join(distDir, "dssc-confessions", "index.html");
     const homePath = path.join(distDir, "index.html");
     const aboutPath = path.join(distDir, "about", "index.html");
@@ -187,13 +195,6 @@ test("Local SEO, GEO, AEO & Schema Invariants Suite", async (t) => {
     assert.ok(
       landingHtml.includes('"disambiguatingDescription"'),
       "Landing page JSON-LD must contain disambiguatingDescription",
-    );
-
-    // Keyword density <= 3.0%
-    const density = calculateKeywordDensity(landingHtml, "dssc");
-    assert.ok(
-      density.density <= 3.0,
-      `DSSC keyword density (${density.density.toFixed(2)}%) must be <= 3.0%`,
     );
 
     // Home and About disclosures

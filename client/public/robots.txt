@@ -22,9 +22,13 @@ Disallow: /admin/
 
 # Disallow query parameters that filter by name or track
 Disallow: /*?to=
+Disallow: /*?*&to=
 Disallow: /*?search=
+Disallow: /*?*&search=
 Disallow: /*?id=
+Disallow: /*?*&id=
 Disallow: /*?confession=
+Disallow: /*?*&confession=
 
 # Reference XML Sitemap
 Sitemap: https://dssconfessions.vercel.app/sitemap.xml
